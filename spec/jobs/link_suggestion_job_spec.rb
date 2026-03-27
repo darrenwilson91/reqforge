@@ -30,10 +30,14 @@ RSpec.describe LinkSuggestionJob, type: :job do
       described_class.new.perform(requirement.id)
     end
 
-    it "logs the result when AiAnalysisResult is not defined" do
-      expect(Rails.logger).to receive(:info).with(/LinkSuggestionJob.*#{requirement.uid}.*2 suggestions/)
-
+    it "stores the result in AiAnalysisResult" do
       described_class.new.perform(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "link_suggestion")
+      expect(result).to be_present
+      expect(result.status).to eq("completed")
+      expect(result.result_data["suggestions"]).to be_present
+      expect(result.completed_at).to be_present
     end
   end
 
@@ -60,20 +64,28 @@ RSpec.describe LinkSuggestionJob, type: :job do
       }.not_to raise_error
     end
 
-    it "retries on LinkSuggester::Error" do
+    it "retries on LinkSuggester::Error and stores failure" do
       allow_any_instance_of(LinkSuggester).to receive(:suggest).and_raise(LinkSuggester::Error, "Service unavailable")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "link_suggestion")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Service unavailable")
     end
 
-    it "retries on LlmService::TimeoutError" do
+    it "retries on LlmService::TimeoutError and stores failure" do
       allow_any_instance_of(LinkSuggester).to receive(:suggest).and_raise(LlmService::TimeoutError, "Timeout")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "link_suggestion")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Timeout")
     end
   end
 end

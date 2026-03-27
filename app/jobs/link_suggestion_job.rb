@@ -7,19 +7,14 @@ class LinkSuggestionJob < ApplicationJob
 
   def perform(requirement_id)
     requirement = Requirement.find(requirement_id)
+    AiAnalysisResult.mark_running!(requirement, "link_suggestion")
+
     suggester = LinkSuggester.new
     result = suggester.suggest(requirement)
 
-    store_result(requirement, "link_suggestion", result)
-  end
-
-  private
-
-  def store_result(requirement, analysis_type, result)
-    if defined?(AiAnalysisResult)
-      AiAnalysisResult.store_result!(requirement, analysis_type, result)
-    else
-      Rails.logger.info("[LinkSuggestionJob] Suggestions complete for #{requirement.uid}: #{result[:suggestions].size} suggestions")
-    end
+    AiAnalysisResult.store_result!(requirement, "link_suggestion", result)
+  rescue LinkSuggester::Error, LlmService::TimeoutError => e
+    AiAnalysisResult.store_failure!(requirement, "link_suggestion", e.message) if defined?(requirement) && requirement
+    raise
   end
 end

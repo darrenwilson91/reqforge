@@ -49,10 +49,15 @@ RSpec.describe ImpactAnalysisJob, type: :job do
       described_class.new.perform(requirement.id, nil)
     end
 
-    it "logs the result when AiAnalysisResult is not defined" do
-      expect(Rails.logger).to receive(:info).with(/ImpactAnalysisJob.*#{requirement.uid}.*2 impacts.*risk=significant/)
-
+    it "stores the result in AiAnalysisResult" do
       described_class.new.perform(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result).to be_present
+      expect(result.status).to eq("completed")
+      expect(result.result_data["impacts"]).to be_present
+      expect(result.result_data["risk_level"]).to eq("significant")
+      expect(result.completed_at).to be_present
     end
   end
 
@@ -86,20 +91,28 @@ RSpec.describe ImpactAnalysisJob, type: :job do
       }.not_to raise_error
     end
 
-    it "retries on ImpactAnalyzer::Error" do
+    it "retries on ImpactAnalyzer::Error and stores failure" do
       allow_any_instance_of(ImpactAnalyzer).to receive(:analyze).and_raise(ImpactAnalyzer::Error, "Service unavailable")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Service unavailable")
     end
 
-    it "retries on LlmService::TimeoutError" do
+    it "retries on LlmService::TimeoutError and stores failure" do
       allow_any_instance_of(ImpactAnalyzer).to receive(:analyze).and_raise(LlmService::TimeoutError, "Timeout")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Timeout")
     end
   end
 end

@@ -10,9 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_102406) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_114650) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_analysis_results", force: :cascade do |t|
+    t.string "analysis_type", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.bigint "requirement_id", null: false
+    t.jsonb "result_data", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["analysis_type"], name: "index_ai_analysis_results_on_analysis_type"
+    t.index ["requirement_id", "analysis_type"], name: "index_ai_analysis_results_on_requirement_id_and_analysis_type", unique: true
+    t.index ["requirement_id"], name: "index_ai_analysis_results_on_requirement_id"
+    t.index ["status"], name: "index_ai_analysis_results_on_status"
+  end
 
   create_table "memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -206,6 +221,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_102406) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  add_foreign_key "ai_analysis_results", "requirements"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
   add_foreign_key "projects", "organizations"

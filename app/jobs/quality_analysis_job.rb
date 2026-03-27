@@ -7,19 +7,14 @@ class QualityAnalysisJob < ApplicationJob
 
   def perform(requirement_id)
     requirement = Requirement.find(requirement_id)
+    AiAnalysisResult.mark_running!(requirement, "quality_analysis")
+
     analyzer = QualityAnalyzer.new
     result = analyzer.analyze(requirement)
 
-    store_result(requirement, "quality_analysis", result)
-  end
-
-  private
-
-  def store_result(requirement, analysis_type, result)
-    if defined?(AiAnalysisResult)
-      AiAnalysisResult.store_result!(requirement, analysis_type, result)
-    else
-      Rails.logger.info("[QualityAnalysisJob] Analysis complete for #{requirement.uid}: score=#{result[:overall_score]}")
-    end
+    AiAnalysisResult.store_result!(requirement, "quality_analysis", result)
+  rescue QualityAnalyzer::Error, LlmService::TimeoutError => e
+    AiAnalysisResult.store_failure!(requirement, "quality_analysis", e.message) if defined?(requirement) && requirement
+    raise
   end
 end

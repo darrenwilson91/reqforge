@@ -7,19 +7,14 @@ class ImpactAnalysisJob < ApplicationJob
 
   def perform(requirement_id, changes = nil)
     requirement = Requirement.find(requirement_id)
+    AiAnalysisResult.mark_running!(requirement, "impact_analysis")
+
     analyzer = ImpactAnalyzer.new
     result = analyzer.analyze(requirement, changes: changes&.deep_symbolize_keys)
 
-    store_result(requirement, "impact_analysis", result)
-  end
-
-  private
-
-  def store_result(requirement, analysis_type, result)
-    if defined?(AiAnalysisResult)
-      AiAnalysisResult.store_result!(requirement, analysis_type, result)
-    else
-      Rails.logger.info("[ImpactAnalysisJob] Analysis complete for #{requirement.uid}: #{result[:impacts].size} impacts, risk=#{result[:risk_level]}")
-    end
+    AiAnalysisResult.store_result!(requirement, "impact_analysis", result)
+  rescue ImpactAnalyzer::Error, LlmService::TimeoutError => e
+    AiAnalysisResult.store_failure!(requirement, "impact_analysis", e.message) if defined?(requirement) && requirement
+    raise
   end
 end

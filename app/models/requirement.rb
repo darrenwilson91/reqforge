@@ -7,6 +7,7 @@ class Requirement < ApplicationRecord
 
   has_many :outgoing_links, class_name: "TraceabilityLink", foreign_key: :source_requirement_id, dependent: :destroy
   has_many :incoming_links, class_name: "TraceabilityLink", foreign_key: :target_requirement_id, dependent: :destroy
+  has_many :ai_analysis_results, dependent: :destroy
 
   has_paper_trail
 

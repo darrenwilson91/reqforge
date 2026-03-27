@@ -36,10 +36,22 @@ RSpec.describe QualityAnalysisJob, type: :job do
       described_class.new.perform(requirement.id)
     end
 
-    it "logs the result when AiAnalysisResult is not defined" do
-      expect(Rails.logger).to receive(:info).with(/QualityAnalysisJob.*#{requirement.uid}.*score=75/)
-
+    it "marks the analysis as running before starting" do
       described_class.new.perform(requirement.id)
+      # After completion it should be completed, but mark_running! was called first
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result.status).to eq("completed")
+    end
+
+    it "stores the result in AiAnalysisResult" do
+      described_class.new.perform(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result).to be_present
+      expect(result.status).to eq("completed")
+      expect(result.result_data["overall_score"]).to eq(75)
+      expect(result.completed_at).to be_present
+      expect(result.error_message).to be_nil
     end
   end
 
@@ -66,20 +78,28 @@ RSpec.describe QualityAnalysisJob, type: :job do
       }.not_to raise_error
     end
 
-    it "retries on QualityAnalyzer::Error" do
+    it "retries on QualityAnalyzer::Error and stores failure" do
       allow_any_instance_of(QualityAnalyzer).to receive(:analyze).and_raise(QualityAnalyzer::Error, "Service unavailable")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Service unavailable")
     end
 
-    it "retries on LlmService::TimeoutError" do
+    it "retries on LlmService::TimeoutError and stores failure" do
       allow_any_instance_of(QualityAnalyzer).to receive(:analyze).and_raise(LlmService::TimeoutError, "Timeout")
 
       expect {
         described_class.perform_now(requirement.id)
       }.to have_enqueued_job(described_class).with(requirement.id)
+
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result.status).to eq("failed")
+      expect(result.error_message).to eq("Timeout")
     end
   end
 end
