@@ -188,7 +188,10 @@ class RequirementsController < ApplicationController
     @requirement = @project.requirements.build(
       title: params[:title].to_s.strip,
       section_id: params[:section_id],
-      created_by: current_user
+      created_by: current_user,
+      requirement_type: params[:requirement_type].presence || "functional",
+      priority: params[:priority].presence || "must_have",
+      asil_level: params[:asil_level].presence || "qm"
     )
 
     if @requirement.save

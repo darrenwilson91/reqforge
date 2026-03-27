@@ -62,11 +62,28 @@
               class="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border-0 ring-0 focus:ring-2 focus:ring-brand-accent/40 rounded-lg resize-none p-2 leading-relaxed"
               autofocus
             ></textarea>
+
+            <%# Inline attribute bar — hidden until Tab is pressed on empty input %>
+            <div
+              data-quick-entry-target="attributeBar"
+              data-action="keydown->quick-entry#handleAttributeKeydown"
+              tabindex="-1"
+              class="hidden mt-2 flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
+            >
+              <%# Populated dynamically by Stimulus controller %>
+            </div>
           </div>
         </div>
-        <div class="ml-[4.5rem] mt-1 flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
-          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Enter</kbd> to save &amp; add next</span>
-          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Shift+Enter</kbd> for new line</span>
+        <div class="ml-[4.5rem] mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Enter</kbd> save &amp; next</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Shift+Enter</kbd> new line</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Tab</kbd> set attributes</span>
+          <span class="flex items-center gap-1.5">
+            Defaults:
+            <span data-quick-entry-target="attrTypeBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">Functional</span>
+            <span data-quick-entry-target="attrPriorityBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">Must Have</span>
+            <span data-quick-entry-target="attrAsilBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">QM</span>
+          </span>
         </div>
       </div>
     <% else %>
