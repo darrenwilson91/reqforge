@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_234703) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_235153) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_234703) do
     t.index ["requirement_id", "analysis_type"], name: "index_ai_analysis_results_on_requirement_id_and_analysis_type", unique: true
     t.index ["requirement_id"], name: "index_ai_analysis_results_on_requirement_id"
     t.index ["status"], name: "index_ai_analysis_results_on_status"
+  end
+
+  create_table "change_set_rules", force: :cascade do |t|
+    t.boolean "auto_merge_on_approval", default: false, null: false
+    t.datetime "created_at", null: false
+    t.integer "min_approvals", default: 1, null: false
+    t.bigint "project_id", null: false
+    t.boolean "require_all_conversations_resolved", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_change_set_rules_on_project_id", unique: true
   end
 
   create_table "change_sets", force: :cascade do |t|
@@ -254,6 +264,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_234703) do
   end
 
   add_foreign_key "ai_analysis_results", "requirements"
+  add_foreign_key "change_set_rules", "projects"
   add_foreign_key "change_sets", "projects"
   add_foreign_key "change_sets", "reviews", column: "source_baseline_id"
   add_foreign_key "change_sets", "users", column: "created_by_id"

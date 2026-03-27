@@ -7,6 +7,7 @@ RSpec.describe Project, type: :model do
     it { should belong_to(:organization) }
     it { should have_many(:requirement_modules).dependent(:destroy) }
     it { should have_many(:requirements).dependent(:destroy) }
+    it { should have_one(:change_set_rule).dependent(:destroy) }
   end
 
   describe "validations" do
