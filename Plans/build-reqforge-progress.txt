@@ -30,3 +30,15 @@ Task: Install Devise and configure mailer defaults
 Status: completed
 Changes: config/initializers/devise.rb, config/locales/devise.en.yml, config/routes.rb, app/controllers/dashboard_controller.rb, app/views/dashboard/index.html.erb
 Notes: Ran rails generate devise:install. Set mailer_sender to noreply@reqforge.dev. Development and test environments already had default_url_options configured. Added root route pointing to dashboard#index (placeholder controller/view) as required by Devise. Verified with bundle exec rspec — 0 examples, 0 failures.
+
+--- Iteration 6: Thu 27 Mar 2026 ---
+Task: Generate User model with Devise: first_name:string last_name:string
+Status: completed
+Changes: app/models/user.rb, db/migrate/20260327003527_devise_create_users.rb, spec/factories/users.rb, spec/models/user_spec.rb, config/routes.rb, db/schema.rb, spec/rails_helper.rb, spec/support/factory_bot.rb
+Notes: Ran rails generate devise User first_name:string last_name:string. Ran migration to create users table with email, encrypted_password, reset_password_token, remember_created_at, first_name, last_name. Added presence validations for first_name and last_name, full_name helper method. Created user factory with Faker data. Wrote comprehensive specs covering validations, Devise modules, and factory validity. Fixed duplicate FactoryBot definition loading (removed find_definitions from support file). Association specs for memberships/organizations marked pending until those models are generated. Verified with bundle exec rspec — 13 passing, 2 pending.
+
+--- Iteration 7: Thu 27 Mar 2026 ---
+Task: Generate Organization model: name:string slug:string:uniq settings:jsonb
+Status: completed
+Changes: app/models/organization.rb, db/migrate/20260327003741_create_organizations.rb, spec/factories/organizations.rb, spec/models/organization_spec.rb, db/schema.rb
+Notes: Ran rails generate model Organization name:string slug:string:uniq settings:jsonb. Added NOT NULL constraints for name and slug in migration, default {} for settings JSONB column. Model includes: presence/uniqueness/format validations for slug, presence validation for name, has_many associations (memberships, users through memberships, projects), and auto-slug generation from name via before_validation callback with collision handling (appends counter). Factory uses sequence for slug. Comprehensive specs covering validations, slug format, slug generation (auto-generate, explicit override, collision handling, no-regenerate-on-update), settings storage, and factory. Association specs pending until Membership/Project models exist. Verified with bundle exec rspec — 34 examples, 0 failures, 5 pending.
