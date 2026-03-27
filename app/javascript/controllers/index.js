@@ -13,6 +13,9 @@ application.register("dropdown", DropdownController)
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
 
+import GraphController from "./graph_controller"
+application.register("graph", GraphController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 

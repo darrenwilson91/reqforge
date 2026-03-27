@@ -1,0 +1,197 @@
+<% content_for(:page_title, "#{@project.name} — Traceability Graph") %>
+
+<%
+  # Prepare graph data for Stimulus controller
+  graph_nodes = @requirements.map do |req|
+    {
+      id: req.id,
+      uid: req.uid,
+      title: req.title,
+      module_id: req.section&.requirement_module_id,
+      module_name: req.section&.requirement_module&.name,
+      status: req.status,
+      url: project_requirement_path(@project, req)
+    }
+  end
+
+  graph_edges = @links.map do |link|
+    {
+      source_id: link.source_requirement_id,
+      target_id: link.target_requirement_id,
+      link_type: link.link_type
+    }
+  end
+%>
+
+<div class="space-y-6">
+  <%# Breadcrumb %>
+  <nav class="flex items-center gap-2 text-sm text-slate-500">
+    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <span class="text-slate-900 font-medium">Traceability Graph</span>
+  </nav>
+
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Traceability Graph</h1>
+      <p class="mt-1 text-sm text-slate-500"><%= @project.name %> &middot; <%= @requirements.size %> <%= "requirement".pluralize(@requirements.size) %> &middot; <%= @links.size %> <%= "link".pluralize(@links.size) %></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to project_traceability_matrix_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm1 5a1 1 0 00-1 1v2a1 1 0 001 1h12a1 1 0 001-1v-2a1 1 0 00-1-1H4z" clip-rule="evenodd" />
+        </svg>
+        Matrix View
+      <% end %>
+      <%= link_to project_requirements_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+        </svg>
+        Requirements
+      <% end %>
+    </div>
+  </div>
+
+  <% if @links.any? %>
+    <%# Graph Canvas %>
+    <div class="rf-card overflow-hidden relative"
+         data-controller="graph"
+         data-graph-nodes-value="<%= graph_nodes.to_json %>"
+         data-graph-edges-value="<%= graph_edges.to_json %>">
+
+      <%# Toolbar %>
+      <div class="absolute top-3 left-3 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm px-1 py-1">
+        <button type="button" data-action="graph#zoomIn" class="p-1.5 rounded hover:bg-slate-100 transition-colors text-slate-600" title="Zoom in">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M8 6a1 1 0 011 1v1h1a1 1 0 110 2H9v1a1 1 0 01-2 0v-1H6a1 1 0 110-2h1V7a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <span data-graph-target="zoomLevel" class="text-xs font-mono text-slate-500 px-1.5 min-w-[40px] text-center">100%</span>
+        <button type="button" data-action="graph#zoomOut" class="p-1.5 rounded hover:bg-slate-100 transition-colors text-slate-600" title="Zoom out">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M6 8a1 1 0 011-1h2a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+        <button type="button" data-action="graph#resetView" class="p-1.5 rounded hover:bg-slate-100 transition-colors text-slate-600" title="Fit to view">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 110-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13 0a1 1 0 10-2 0v1.586l-2.293-2.293a1 1 0 00-1.414 1.414L13.586 15H12a1 1 0 100 2h4a1 1 0 001-1v-4z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <%# Tooltip %>
+      <div data-graph-target="tooltip"
+           class="hidden absolute z-20 bg-white border border-slate-200 rounded-lg shadow-lg px-3 py-2 pointer-events-none">
+      </div>
+
+      <%# SVG Canvas %>
+      <svg data-graph-target="canvas"
+           class="w-full bg-slate-50/50"
+           style="height: 560px;"
+           xmlns="http://www.w3.org/2000/svg">
+      </svg>
+
+      <%# Legend %>
+      <div class="px-4 py-3 border-t border-slate-200 bg-white">
+        <div class="flex flex-wrap items-start gap-6">
+          <%# Link type legend %>
+          <div>
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">Link Types</span>
+            <div class="flex flex-wrap gap-3">
+              <% TraceabilityLink.link_types.keys.each do |lt| %>
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-4 h-1.5" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="0" y1="4" x2="16" y2="4" stroke="<%= { 'derives_from' => '#3b82f6', 'satisfies' => '#22c55e', 'verifies' => '#8b5cf6', 'conflicts_with' => '#ef4444', 'refines' => '#f59e0b', 'implements' => '#14b8a6', 'parent_child' => '#94a3b8' }[lt] %>" stroke-width="2"/>
+                  </svg>
+                  <span class="text-xs text-slate-600"><%= lt.humanize %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          <%# Module legend %>
+          <% if @modules.any? %>
+            <div>
+              <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">Modules</span>
+              <div class="flex flex-wrap gap-2">
+                <%
+                  module_colors = [
+                    { stroke: "#3b82f6", fill: "#eff6ff" },
+                    { stroke: "#22c55e", fill: "#f0fdf4" },
+                    { stroke: "#a855f7", fill: "#faf5ff" },
+                    { stroke: "#f97316", fill: "#fff7ed" },
+                    { stroke: "#ec4899", fill: "#fdf2f8" },
+                    { stroke: "#14b8a6", fill: "#f0fdfa" },
+                    { stroke: "#eab308", fill: "#fefce8" },
+                    { stroke: "#ef4444", fill: "#fef2f2" }
+                  ]
+                %>
+                <% @modules.each_with_index do |mod, i| %>
+                  <% color = module_colors[i % module_colors.length] %>
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="7" cy="7" r="6" fill="<%= color[:fill] %>" stroke="<%= color[:stroke] %>" stroke-width="1.5"/>
+                    </svg>
+                    <span class="text-xs text-slate-600"><%= mod.name %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <div class="mt-2 text-xs text-slate-400">Scroll to zoom &middot; Drag nodes to rearrange &middot; Drag background to pan &middot; Hover nodes for details</div>
+      </div>
+    </div>
+
+    <%# Coverage summary cards %>
+    <div class="grid grid-cols-4 gap-4">
+      <div class="rf-card-padded">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Requirements</div>
+        <div class="mt-1 text-2xl font-bold text-slate-900"><%= @coverage[:total_requirements] %></div>
+      </div>
+      <div class="rf-card-padded">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Linked</div>
+        <div class="mt-1 text-2xl font-bold text-emerald-600"><%= @coverage[:linked_requirements] %></div>
+      </div>
+      <div class="rf-card-padded">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Unlinked</div>
+        <div class="mt-1 text-2xl font-bold <%= @coverage[:unlinked_requirements] > 0 ? 'text-amber-600' : 'text-slate-400' %>"><%= @coverage[:unlinked_requirements] %></div>
+      </div>
+      <div class="rf-card-padded">
+        <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Coverage</div>
+        <div class="mt-1 flex items-baseline gap-2">
+          <span class="text-2xl font-bold <%= @coverage[:coverage_percentage] >= 80 ? 'text-emerald-600' : @coverage[:coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>"><%= @coverage[:coverage_percentage] %>%</span>
+        </div>
+        <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+          <div class="h-1.5 rounded-full transition-all duration-300 <%= @coverage[:coverage_percentage] >= 80 ? 'bg-emerald-500' : @coverage[:coverage_percentage] >= 50 ? 'bg-amber-500' : 'bg-red-500' %>" style="width: <%= @coverage[:coverage_percentage] %>%"></div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <%# Empty state %>
+    <div class="rf-card">
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <p class="rf-empty-state-title">No traceability links yet</p>
+        <p class="rf-empty-state-description">Create traceability links between requirements to visualize their relationships as an interactive graph.</p>
+        <%= link_to project_requirements_path(@project), class: "rf-btn-primary mt-4" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+          </svg>
+          Go to Requirements
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

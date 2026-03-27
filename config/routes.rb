@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     end
     resources :traceability_links, only: [ :create, :destroy ]
     resource :traceability_matrix, only: [ :show ]
+    resource :traceability_graph, only: [ :show ]
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

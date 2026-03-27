@@ -20,12 +20,20 @@
       <h1 class="text-2xl font-bold text-slate-900">Traceability Matrix</h1>
       <p class="mt-1 text-sm text-slate-500"><%= @project.name %> &middot; <%= @all_requirements.size %> <%= "requirement".pluralize(@all_requirements.size) %></p>
     </div>
-    <%= link_to project_requirements_path(@project), class: "rf-btn-secondary" do %>
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-      </svg>
-      Requirements
-    <% end %>
+    <div class="flex items-center gap-2">
+      <%= link_to project_traceability_graph_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        Graph View
+      <% end %>
+      <%= link_to project_requirements_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+        </svg>
+        Requirements
+      <% end %>
+    </div>
   </div>
 
   <%# Coverage Summary %>
