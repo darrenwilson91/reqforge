@@ -32,6 +32,8 @@ gem "pg_search"
 gem "acts_as_list"
 # Background job processing [https://github.com/sidekiq/sidekiq]
 gem "sidekiq"
+# CSV parsing (no longer in Ruby stdlib since 3.4)
+gem "csv"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
