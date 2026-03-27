@@ -175,6 +175,65 @@ class RequirementsController < ApplicationController
     end
   end
 
+  def bulk_edit
+    authorize @project, :update?
+    @requirements = @project.requirements
+      .includes(:section, section: :requirement_module)
+      .order(:uid)
+    @sections = build_section_options
+  end
+
+  def bulk_update
+    authorize @project, :update?
+
+    updates = params[:requirements]
+    unless updates.is_a?(ActionController::Parameters) || updates.is_a?(Hash)
+      return head :unprocessable_entity
+    end
+
+    updated_count = 0
+    errors = []
+
+    Requirement.transaction do
+      updates.each do |id, attrs|
+        req = @project.requirements.find_by(id: id)
+        next unless req
+
+        permitted = {}
+        permitted[:title] = attrs[:title].strip if attrs[:title].present?
+        permitted[:requirement_type] = attrs[:requirement_type] if attrs[:requirement_type].present?
+        permitted[:status] = attrs[:status] if attrs[:status].present?
+        permitted[:priority] = attrs[:priority] if attrs[:priority].present?
+        permitted[:asil_level] = attrs[:asil_level] if attrs[:asil_level].present?
+        permitted[:section_id] = attrs[:section_id] if attrs[:section_id].present?
+
+        if req.update(permitted)
+          updated_count += 1
+        else
+          errors << "#{req.uid}: #{req.errors.full_messages.join(', ')}"
+        end
+      end
+    end
+
+    if errors.any?
+      redirect_to bulk_edit_project_requirements_path(@project), alert: "Some updates failed: #{errors.first(3).join('; ')}"
+    else
+      redirect_to bulk_edit_project_requirements_path(@project), notice: "#{updated_count} #{'requirement'.pluralize(updated_count)} updated."
+    end
+  end
+
+  def bulk_delete
+    authorize @project, :update?
+
+    ids = params[:requirement_ids]
+    unless ids.is_a?(Array)
+      return redirect_to bulk_edit_project_requirements_path(@project), alert: "No requirements selected."
+    end
+
+    deleted = @project.requirements.where(id: ids).destroy_all
+    redirect_to bulk_edit_project_requirements_path(@project), notice: "#{deleted.size} #{'requirement'.pluralize(deleted.size)} deleted."
+  end
+
   def quick_entry
     authorize @project, :show?
     @modules = @project.requirement_modules.order(:position).includes(sections: :child_sections)

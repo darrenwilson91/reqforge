@@ -10,6 +10,9 @@ application.register("ai-panel", AiPanelController)
 import AttributeSchemaController from "./attribute_schema_controller"
 application.register("attribute-schema", AttributeSchemaController)
 
+import BulkEditController from "./bulk_edit_controller"
+application.register("bulk-edit", BulkEditController)
+
 import ClipboardController from "./clipboard_controller"
 application.register("clipboard", ClipboardController)
 

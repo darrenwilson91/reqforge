@@ -19,6 +19,9 @@ Rails.application.routes.draw do
         get :search
         get :quick_entry
         post :quick_create
+        get :bulk_edit
+        patch :bulk_update
+        delete :bulk_delete
       end
     end
     resources :traceability_links, only: [ :create, :destroy ]
