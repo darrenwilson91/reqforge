@@ -5,7 +5,7 @@ class Section < ApplicationRecord
   has_many :child_sections, class_name: "Section",
                             foreign_key: :parent_section_id,
                             dependent: :destroy
-  # has_many :requirements, dependent: :destroy — added when Requirement model is generated
+  has_many :requirements, dependent: :destroy
 
   acts_as_list scope: [:requirement_module_id, :parent_section_id]
 

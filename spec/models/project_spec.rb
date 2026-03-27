@@ -6,7 +6,7 @@ RSpec.describe Project, type: :model do
   describe "associations" do
     it { should belong_to(:organization) }
     it { should have_many(:requirement_modules).dependent(:destroy) }
-    pending "has_many requirements (Requirement model not yet generated)"
+    it { should have_many(:requirements).dependent(:destroy) }
   end
 
   describe "validations" do

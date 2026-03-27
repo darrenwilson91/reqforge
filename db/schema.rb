@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_005424) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_005852) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_005424) do
     t.index ["project_id"], name: "index_requirement_modules_on_project_id"
   end
 
+  create_table "requirements", force: :cascade do |t|
+    t.integer "asil_level", default: 0, null: false
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.jsonb "custom_attributes", default: {}, null: false
+    t.integer "position"
+    t.integer "priority", default: 0, null: false
+    t.bigint "project_id", null: false
+    t.integer "requirement_type", default: 0, null: false
+    t.bigint "section_id", null: false
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.string "uid", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_requirements_on_created_by_id"
+    t.index ["project_id", "requirement_type"], name: "index_requirements_on_project_id_and_requirement_type"
+    t.index ["project_id", "status"], name: "index_requirements_on_project_id_and_status"
+    t.index ["project_id"], name: "index_requirements_on_project_id"
+    t.index ["section_id", "position"], name: "index_requirements_on_section_id_and_position"
+    t.index ["section_id"], name: "index_requirements_on_section_id"
+    t.index ["uid"], name: "index_requirements_on_uid", unique: true
+  end
+
   create_table "sections", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -87,10 +111,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_005424) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "versions", force: :cascade do |t|
+    t.datetime "created_at"
+    t.string "event", null: false
+    t.bigint "item_id", null: false
+    t.string "item_type", null: false
+    t.text "object"
+    t.string "whodunnit"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
   add_foreign_key "projects", "organizations"
   add_foreign_key "requirement_modules", "projects"
+  add_foreign_key "requirements", "projects"
+  add_foreign_key "requirements", "sections"
+  add_foreign_key "requirements", "users", column: "created_by_id"
   add_foreign_key "sections", "requirement_modules"
   add_foreign_key "sections", "sections", column: "parent_section_id"
 end

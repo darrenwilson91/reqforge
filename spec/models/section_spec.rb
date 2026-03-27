@@ -15,7 +15,7 @@ RSpec.describe Section, type: :model do
     it { is_expected.to belong_to(:requirement_module) }
     it { is_expected.to belong_to(:parent_section).class_name("Section").optional }
     it { is_expected.to have_many(:child_sections).class_name("Section").dependent(:destroy) }
-    pending "has_many requirements (Requirement model not yet generated)"
+    it { is_expected.to have_many(:requirements).dependent(:destroy) }
   end
 
   describe "validations" do
