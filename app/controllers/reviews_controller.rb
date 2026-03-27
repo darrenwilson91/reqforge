@@ -17,6 +17,7 @@ class ReviewsController < ApplicationController
       .references(:requirements)
     @participants = @review.review_participants.includes(:user)
     @progress = @review.progress
+    @outcome = @review.overall_outcome
   end
 
   def new

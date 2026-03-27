@@ -34,8 +34,13 @@ class ReviewItemsController < ApplicationController
     end
 
     if @review_item.update(status: new_status)
-      redirect_to project_review_review_item_path(@project, @review, @review_item),
-        notice: "Item marked as #{new_status.humanize}."
+      if @review.auto_complete_if_all_decided!
+        redirect_to project_review_path(@project, @review),
+          notice: "Item marked as #{new_status.humanize}. All items decided — review completed automatically."
+      else
+        redirect_to project_review_review_item_path(@project, @review, @review_item),
+          notice: "Item marked as #{new_status.humanize}."
+      end
     else
       redirect_to project_review_review_item_path(@project, @review, @review_item),
         alert: "Could not update status."

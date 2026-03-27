@@ -61,4 +61,35 @@ module ReviewsHelper
       "bg-blue-500"
     end
   end
+
+  def review_outcome_config(outcome)
+    case outcome
+    when :approved
+      {
+        label: "Approved",
+        description: "All items in this review have been approved.",
+        icon_color: "text-emerald-500",
+        bg: "bg-emerald-50 border-emerald-200",
+        badge: "rf-badge bg-emerald-100 text-emerald-800"
+      }
+    when :rejected
+      {
+        label: "Rejected",
+        description: "One or more items in this review were rejected.",
+        icon_color: "text-red-500",
+        bg: "bg-red-50 border-red-200",
+        badge: "rf-badge bg-red-100 text-red-800"
+      }
+    when :needs_changes
+      {
+        label: "Changes Requested",
+        description: "One or more items require changes before approval.",
+        icon_color: "text-amber-500",
+        bg: "bg-amber-50 border-amber-200",
+        badge: "rf-badge bg-amber-100 text-amber-800"
+      }
+    else
+      nil
+    end
+  end
 end

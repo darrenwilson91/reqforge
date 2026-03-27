@@ -223,4 +223,142 @@ RSpec.describe Review, type: :model do
       expect(review.progress[:percentage]).to eq(100)
     end
   end
+
+  describe "#all_items_decided?" do
+    let(:organization) { create(:organization) }
+    let(:project) { create(:project, organization: organization) }
+    let(:user) { create(:user) }
+    let(:review) { create(:review, project: project, created_by: user) }
+    let(:mod) { create(:requirement_module, project: project) }
+    let(:section) { create(:section, requirement_module: mod) }
+
+    it "returns false with no items" do
+      expect(review.all_items_decided?).to be false
+    end
+
+    it "returns false when some items are pending" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :pending)
+      expect(review.all_items_decided?).to be false
+    end
+
+    it "returns true when all items are decided" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :rejected)
+      expect(review.all_items_decided?).to be true
+    end
+
+    it "returns true when all items need changes" do
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req, status: :needs_changes)
+      expect(review.all_items_decided?).to be true
+    end
+  end
+
+  describe "#auto_complete_if_all_decided!" do
+    let(:organization) { create(:organization) }
+    let(:project) { create(:project, organization: organization) }
+    let(:user) { create(:user) }
+    let(:review) { create(:review, :in_progress, project: project, created_by: user) }
+    let(:mod) { create(:requirement_module, project: project) }
+    let(:section) { create(:section, requirement_module: mod) }
+
+    it "transitions to completed when all items decided and review is in_progress" do
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req, status: :approved)
+      expect(review.auto_complete_if_all_decided!).to be true
+      expect(review.reload.status).to eq("completed")
+    end
+
+    it "returns false when not all items decided" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :pending)
+      expect(review.auto_complete_if_all_decided!).to be false
+      expect(review.reload.status).to eq("in_progress")
+    end
+
+    it "returns false when review is not in_progress" do
+      draft_review = create(:review, :draft, project: project, created_by: user)
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: draft_review, requirement: req, status: :approved)
+      expect(draft_review.auto_complete_if_all_decided!).to be false
+      expect(draft_review.reload.status).to eq("draft")
+    end
+
+    it "returns false when no items exist" do
+      expect(review.auto_complete_if_all_decided!).to be false
+    end
+
+    it "tracks transition via paper_trail" do
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req, status: :approved)
+      review.auto_complete_if_all_decided!
+      expect(review.versions.last.event).to eq("update")
+    end
+  end
+
+  describe "#overall_outcome" do
+    let(:organization) { create(:organization) }
+    let(:project) { create(:project, organization: organization) }
+    let(:user) { create(:user) }
+    let(:review) { create(:review, project: project, created_by: user) }
+    let(:mod) { create(:requirement_module, project: project) }
+    let(:section) { create(:section, requirement_module: mod) }
+
+    it "returns nil with no items" do
+      expect(review.overall_outcome).to be_nil
+    end
+
+    it "returns nil when some items are still pending" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :pending)
+      expect(review.overall_outcome).to be_nil
+    end
+
+    it "returns :approved when all items are approved" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :approved)
+      expect(review.overall_outcome).to eq(:approved)
+    end
+
+    it "returns :rejected when any item is rejected" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :rejected)
+      expect(review.overall_outcome).to eq(:rejected)
+    end
+
+    it "returns :rejected when rejected takes precedence over needs_changes" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :needs_changes)
+      create(:review_item, review: review, requirement: req2, status: :rejected)
+      expect(review.overall_outcome).to eq(:rejected)
+    end
+
+    it "returns :needs_changes when some items need changes but none rejected" do
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :needs_changes)
+      expect(review.overall_outcome).to eq(:needs_changes)
+    end
+
+    it "returns :approved for a single approved item" do
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:review_item, review: review, requirement: req, status: :approved)
+      expect(review.overall_outcome).to eq(:approved)
+    end
+  end
 end

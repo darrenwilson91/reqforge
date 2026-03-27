@@ -63,4 +63,29 @@ class Review < ApplicationRecord
     decided = review_items.where.not(status: :pending).count
     { total: total, decided: decided, percentage: (decided.to_f / total * 100).round }
   end
+
+  def all_items_decided?
+    review_items.exists? && review_items.where(status: :pending).none?
+  end
+
+  def auto_complete_if_all_decided!
+    return false unless in_progress? && all_items_decided?
+
+    transition_to(:completed)
+  end
+
+  # Computes the overall outcome based on individual item decisions.
+  # Returns :approved, :rejected, :needs_changes, or nil (if incomplete).
+  def overall_outcome
+    return nil unless review_items.exists?
+    return nil if review_items.where(status: :pending).any?
+
+    if review_items.where(status: :rejected).any?
+      :rejected
+    elsif review_items.where(status: :needs_changes).any?
+      :needs_changes
+    else
+      :approved
+    end
+  end
 end

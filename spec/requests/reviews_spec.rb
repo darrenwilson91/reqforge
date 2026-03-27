@@ -299,6 +299,68 @@ RSpec.describe "Reviews", type: :request do
       get project_review_path(other_project, other_review)
       expect(response).to have_http_status(:not_found)
     end
+
+    context "when review is completed with all approved" do
+      let(:completed_review) { create(:review, :completed, project: project, created_by: admin_user) }
+
+      before do
+        reqs = create_requirements(project, 2)
+        create(:review_item, :approved, review: completed_review, requirement: reqs[0])
+        create(:review_item, :approved, review: completed_review, requirement: reqs[1])
+      end
+
+      it "shows the approved outcome banner" do
+        sign_in admin_user
+        get project_review_path(project, completed_review)
+        expect(response.body).to include("Review Outcome")
+        expect(response.body).to include("Approved")
+        expect(response.body).to include("All items in this review have been approved")
+      end
+    end
+
+    context "when review is completed with rejections" do
+      let(:completed_review) { create(:review, :completed, project: project, created_by: admin_user) }
+
+      before do
+        reqs = create_requirements(project, 2)
+        create(:review_item, :approved, review: completed_review, requirement: reqs[0])
+        create(:review_item, :rejected, review: completed_review, requirement: reqs[1])
+      end
+
+      it "shows the rejected outcome banner" do
+        sign_in admin_user
+        get project_review_path(project, completed_review)
+        expect(response.body).to include("Review Outcome")
+        expect(response.body).to include("Rejected")
+        expect(response.body).to include("One or more items in this review were rejected")
+      end
+    end
+
+    context "when review is completed with changes requested" do
+      let(:completed_review) { create(:review, :completed, project: project, created_by: admin_user) }
+
+      before do
+        reqs = create_requirements(project, 2)
+        create(:review_item, :approved, review: completed_review, requirement: reqs[0])
+        create(:review_item, review: completed_review, requirement: reqs[1], status: :needs_changes)
+      end
+
+      it "shows the changes requested outcome banner" do
+        sign_in admin_user
+        get project_review_path(project, completed_review)
+        expect(response.body).to include("Review Outcome")
+        expect(response.body).to include("Changes Requested")
+        expect(response.body).to include("One or more items require changes before approval")
+      end
+    end
+
+    context "when review is not completed" do
+      it "does not show the outcome banner" do
+        sign_in admin_user
+        get project_review_path(project, review)
+        expect(response.body).not_to include("Review Outcome")
+      end
+    end
   end
 
   describe "GET /projects/:project_id/reviews/:id/edit" do

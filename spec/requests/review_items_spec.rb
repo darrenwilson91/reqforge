@@ -150,26 +150,61 @@ RSpec.describe "ReviewItems", type: :request do
     context "as a reviewer participant" do
       before { sign_in reviewer_user }
 
-      it "approves the item" do
+      it "approves the item and auto-completes the review when all items decided" do
         patch update_status_project_review_review_item_path(project, review, review_item, status: "approved")
         expect(review_item.reload.status).to eq("approved")
+        # Single item review — auto-completes and redirects to review page
+        expect(review.reload.status).to eq("completed")
+        expect(response).to redirect_to(project_review_path(project, review))
+      end
+
+      it "rejects the item and auto-completes when all items decided" do
+        patch update_status_project_review_review_item_path(project, review, review_item, status: "rejected")
+        expect(review_item.reload.status).to eq("rejected")
+        expect(review.reload.status).to eq("completed")
+      end
+
+      it "marks as needs changes and auto-completes when all items decided" do
+        patch update_status_project_review_review_item_path(project, review, review_item, status: "needs_changes")
+        expect(review_item.reload.status).to eq("needs_changes")
+        expect(review.reload.status).to eq("completed")
+      end
+
+      it "resets to pending without auto-completing" do
+        review_item.update!(status: :approved)
+        # Reset review back to in_progress (it may have auto-completed in memory)
+        review.update_column(:status, Review.statuses[:in_progress])
+        patch update_status_project_review_review_item_path(project, review, review_item, status: "pending")
+        expect(review_item.reload.status).to eq("pending")
+        expect(review.reload.status).to eq("in_progress")
         expect(response).to redirect_to(project_review_review_item_path(project, review, review_item))
       end
 
-      it "rejects the item" do
-        patch update_status_project_review_review_item_path(project, review, review_item, status: "rejected")
-        expect(review_item.reload.status).to eq("rejected")
-      end
+      context "with multiple items" do
+        let(:requirement2) do
+          create(:requirement, project: project, section: section, created_by: admin_user, title: "Second req")
+        end
+        let!(:review_item2) do
+          item = create(:review_item, review: review, requirement: requirement2)
+          item.snapshot_requirement!
+          item
+        end
 
-      it "marks as needs changes" do
-        patch update_status_project_review_review_item_path(project, review, review_item, status: "needs_changes")
-        expect(review_item.reload.status).to eq("needs_changes")
-      end
+        it "does not auto-complete when undecided items remain" do
+          patch update_status_project_review_review_item_path(project, review, review_item, status: "approved")
+          expect(review_item.reload.status).to eq("approved")
+          expect(review.reload.status).to eq("in_progress")
+          expect(response).to redirect_to(project_review_review_item_path(project, review, review_item))
+        end
 
-      it "resets to pending" do
-        review_item.update!(status: :approved)
-        patch update_status_project_review_review_item_path(project, review, review_item, status: "pending")
-        expect(review_item.reload.status).to eq("pending")
+        it "auto-completes when the last item is decided" do
+          review_item2.update!(status: :approved)
+          patch update_status_project_review_review_item_path(project, review, review_item, status: "approved")
+          expect(review.reload.status).to eq("completed")
+          expect(response).to redirect_to(project_review_path(project, review))
+          follow_redirect!
+          expect(response.body).to include("review completed automatically")
+        end
       end
 
       it "rejects invalid status" do
