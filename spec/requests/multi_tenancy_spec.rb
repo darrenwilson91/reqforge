@@ -58,9 +58,9 @@ RSpec.describe "Multi-tenancy", type: :request do
 
       before { sign_in user_without_org }
 
-      it "still allows access to dashboard" do
+      it "redirects to organization setup" do
         get root_path
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(new_organization_path)
       end
     end
   end
@@ -132,6 +132,7 @@ RSpec.describe "Multi-tenancy", type: :request do
       # Draw temporary routes
       Rails.application.routes.draw do
         devise_for :users
+        resources :organizations, only: [ :new, :create ]
         root "dashboard#index"
         resources :tenant_test_items, only: [ :index, :create ]
       end

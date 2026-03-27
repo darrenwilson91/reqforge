@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   before_action :set_current_organization
+  before_action :require_organization_setup!
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   helper_method :current_organization, :current_membership
@@ -50,6 +51,15 @@ class ApplicationController < ActionController::Base
 
   def store_organization_in_session
     session[:current_organization_id] = @current_organization.id
+  end
+
+  def require_organization_setup!
+    return unless current_user
+    return if current_organization
+    return if devise_controller?
+    return if self.is_a?(OrganizationsController)
+
+    redirect_to new_organization_path, alert: "Please create or join an organization to continue."
   end
 
   def require_organization!
