@@ -361,4 +361,81 @@ RSpec.describe Review, type: :model do
       expect(review.overall_outcome).to eq(:approved)
     end
   end
+
+  describe "share token" do
+    let(:organization) { create(:organization) }
+    let(:project) { create(:project, organization: organization) }
+    let(:user) { create(:user) }
+    let(:review) { create(:review, project: project, created_by: user) }
+
+    describe "validations" do
+      it "allows nil share_token" do
+        expect(review.share_token).to be_nil
+        expect(review).to be_valid
+      end
+
+      it "validates uniqueness of share_token" do
+        review.generate_share_token!
+        other_review = create(:review, project: project, created_by: user)
+        other_review.share_token = review.share_token
+        expect(other_review).not_to be_valid
+        expect(other_review.errors[:share_token]).to include("has already been taken")
+      end
+    end
+
+    describe "#generate_share_token!" do
+      it "generates a non-nil token" do
+        review.generate_share_token!
+        expect(review.share_token).to be_present
+      end
+
+      it "persists the token" do
+        review.generate_share_token!
+        expect(review.reload.share_token).to be_present
+      end
+
+      it "returns the token" do
+        token = review.generate_share_token!
+        expect(token).to eq(review.share_token)
+      end
+
+      it "generates unique tokens for different reviews" do
+        other_review = create(:review, project: project, created_by: user)
+        token1 = review.generate_share_token!
+        token2 = other_review.generate_share_token!
+        expect(token1).not_to eq(token2)
+      end
+
+      it "generates URL-safe tokens" do
+        token = review.generate_share_token!
+        expect(token).to match(/\A[A-Za-z0-9_-]+\z/)
+      end
+    end
+
+    describe "#revoke_share_token!" do
+      it "clears the share token" do
+        review.generate_share_token!
+        expect(review.share_token).to be_present
+        review.revoke_share_token!
+        expect(review.reload.share_token).to be_nil
+      end
+    end
+
+    describe "#shared?" do
+      it "returns false when no token" do
+        expect(review.shared?).to be false
+      end
+
+      it "returns true when token present" do
+        review.generate_share_token!
+        expect(review.shared?).to be true
+      end
+
+      it "returns false after revoking" do
+        review.generate_share_token!
+        review.revoke_share_token!
+        expect(review.shared?).to be false
+      end
+    end
+  end
 end

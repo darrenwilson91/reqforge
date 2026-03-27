@@ -1,0 +1,42 @@
+<div class="<%= depth > 0 ? 'ml-6 border-l-2 border-slate-100 pl-4' : '' %>">
+  <div class="rf-card overflow-hidden <%= comment.resolved? ? 'opacity-60' : '' %>">
+    <!-- Comment header -->
+    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+          <%= comment.user.first_name[0] %><%= comment.user.last_name[0] %>
+        </div>
+        <span class="text-sm font-medium text-slate-700"><%= comment.user.full_name %></span>
+        <span class="text-xs text-slate-400"><%= time_ago_in_words(comment.created_at) %> ago</span>
+      </div>
+      <% if comment.resolved? %>
+        <span class="rf-badge bg-emerald-50 text-emerald-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          Resolved
+        </span>
+      <% end %>
+    </div>
+
+    <!-- Comment body -->
+    <div class="px-4 py-3">
+      <p class="text-sm text-slate-700 whitespace-pre-wrap"><%= comment.body %></p>
+    </div>
+
+    <% if comment.resolved? && comment.resolved_by.present? %>
+      <div class="px-4 pb-2.5 text-xs text-slate-400">
+        Resolved by <%= comment.resolved_by.full_name %> <%= time_ago_in_words(comment.resolved_at) %> ago
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Threaded replies (read-only) -->
+  <% if comment.replies.loaded? ? comment.replies.any? : comment.replies.exists? %>
+    <div class="mt-2 space-y-2">
+      <% comment.replies.order(created_at: :asc).each do |reply| %>
+        <%= render partial: "public_reviews/comment", locals: { comment: reply, depth: depth + 1 } %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

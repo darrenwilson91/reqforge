@@ -555,4 +555,99 @@ RSpec.describe "Reviews", type: :request do
       expect(review.reload.status).to eq("completed")
     end
   end
+
+  describe "POST /projects/:project_id/reviews/:id/generate_share_token" do
+    let(:review) { create(:review, project: project, created_by: admin_user) }
+
+    it "generates a share token" do
+      sign_in admin_user
+      post generate_share_token_project_review_path(project, review)
+      expect(review.reload.share_token).to be_present
+      expect(response).to redirect_to(project_review_path(project, review))
+      expect(flash[:notice]).to include("Share link generated")
+    end
+
+    it "allows PM to generate share token" do
+      sign_in pm_user
+      post generate_share_token_project_review_path(project, review)
+      expect(review.reload.share_token).to be_present
+    end
+
+    it "allows creator to generate share token" do
+      creator = create(:user)
+      create(:membership, user: creator, organization: organization, role: :author)
+      review_by_author = create(:review, project: project, created_by: creator)
+      sign_in creator
+      post generate_share_token_project_review_path(project, review_by_author)
+      expect(review_by_author.reload.share_token).to be_present
+    end
+
+    it "denies viewer access" do
+      sign_in viewer_user
+      post generate_share_token_project_review_path(project, review)
+      expect(response).to redirect_to(root_path)
+      expect(review.reload.share_token).to be_nil
+    end
+
+    it "denies reviewer who is not the creator" do
+      sign_in reviewer_user
+      post generate_share_token_project_review_path(project, review)
+      expect(response).to redirect_to(root_path)
+      expect(review.reload.share_token).to be_nil
+    end
+  end
+
+  describe "DELETE /projects/:project_id/reviews/:id/revoke_share_token" do
+    let(:review) { create(:review, project: project, created_by: admin_user) }
+
+    before { review.generate_share_token! }
+
+    it "revokes the share token" do
+      sign_in admin_user
+      delete revoke_share_token_project_review_path(project, review)
+      expect(review.reload.share_token).to be_nil
+      expect(response).to redirect_to(project_review_path(project, review))
+      expect(flash[:notice]).to include("Share link revoked")
+    end
+
+    it "allows PM to revoke" do
+      sign_in pm_user
+      delete revoke_share_token_project_review_path(project, review)
+      expect(review.reload.share_token).to be_nil
+    end
+
+    it "denies viewer access" do
+      sign_in viewer_user
+      delete revoke_share_token_project_review_path(project, review)
+      expect(response).to redirect_to(root_path)
+      expect(review.reload.share_token).to be_present
+    end
+  end
+
+  describe "share link UI on review show page" do
+    let(:review) { create(:review, project: project, created_by: admin_user) }
+
+    it "shows Generate Share Link button for authorized users" do
+      sign_in admin_user
+      get project_review_path(project, review)
+      expect(response.body).to include("Generate Share Link")
+    end
+
+    it "shows the share URL and Copy/Revoke buttons when token exists" do
+      sign_in admin_user
+      review.generate_share_token!
+      get project_review_path(project, review)
+      expect(response.body).to include(review.share_token)
+      expect(response.body).to include("Copy Link")
+      expect(response.body).to include("Revoke")
+      expect(response.body).to include("External link active")
+    end
+
+    it "does not show share panel for viewers" do
+      sign_in viewer_user
+      get project_review_path(project, review)
+      expect(response.body).not_to include("Generate Share Link")
+      expect(response.body).not_to include("External link active")
+    end
+  end
 end

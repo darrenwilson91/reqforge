@@ -112,48 +112,48 @@
   }
 
   .rf-badge-draft {
-    @apply rf-badge bg-slate-100 text-slate-600;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600;
   }
 
   .rf-badge-in-review {
-    @apply rf-badge bg-blue-50 text-blue-700;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700;
   }
 
   .rf-badge-approved {
-    @apply rf-badge bg-emerald-50 text-emerald-700;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700;
   }
 
   .rf-badge-implemented {
-    @apply rf-badge bg-violet-50 text-violet-700;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-violet-50 text-violet-700;
   }
 
   .rf-badge-verified {
-    @apply rf-badge bg-cyan-50 text-cyan-700;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-cyan-50 text-cyan-700;
   }
 
   .rf-badge-obsolete {
-    @apply rf-badge bg-red-50 text-red-700;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700;
   }
 
   /* ASIL badges */
   .rf-asil-qm {
-    @apply rf-badge bg-slate-100 text-slate-600;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600;
   }
 
   .rf-asil-a {
-    @apply rf-badge bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200;
   }
 
   .rf-asil-b {
-    @apply rf-badge bg-orange-50 text-orange-700 ring-1 ring-orange-200;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700 ring-1 ring-orange-200;
   }
 
   .rf-asil-c {
-    @apply rf-badge bg-red-50 text-red-600 ring-1 ring-red-200;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600 ring-1 ring-red-200;
   }
 
   .rf-asil-d {
-    @apply rf-badge bg-red-100 text-red-800 ring-1 ring-red-300 font-bold;
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 ring-1 ring-red-300 font-bold;
   }
 
   /* Primary button */
@@ -191,11 +191,11 @@
   }
 
   .rf-nav-link-active {
-    @apply rf-nav-link bg-slate-800 text-white;
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white;
   }
 
   .rf-nav-link-inactive {
-    @apply rf-nav-link text-slate-400 hover:bg-slate-800/60 hover:text-slate-200;
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800/60 hover:text-slate-200;
   }
 
   /* Empty state */
@@ -342,7 +342,7 @@ trix-toolbar .trix-dialog__link-fields {
 }
 
 trix-toolbar .trix-dialog__link-fields .trix-input {
-  @apply rf-input text-xs;
+  @apply block w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-accent/40 focus:border-brand-accent transition-colors;
 }
 
 trix-toolbar .trix-dialog__link-fields .trix-button-group {

@@ -18,6 +18,8 @@ Rails.application.routes.draw do
     resources :reviews do
       member do
         patch :transition_status
+        post :generate_share_token
+        delete :revoke_share_token
       end
       resources :review_items, only: [ :show ] do
         member do
@@ -32,6 +34,10 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # Public shareable review links (no authentication required)
+  get "reviews/:token", to: "public_reviews#show", as: :public_review
+  get "reviews/:token/items/:item_id", to: "public_reviews#review_item", as: :public_review_item
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

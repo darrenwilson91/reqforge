@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_030204) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_102406) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -141,12 +141,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_030204) do
     t.bigint "created_by_id", null: false
     t.text "description"
     t.bigint "project_id", null: false
+    t.string "share_token"
     t.integer "status", default: 0, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["created_by_id"], name: "index_reviews_on_created_by_id"
     t.index ["project_id", "status"], name: "index_reviews_on_project_id_and_status"
     t.index ["project_id"], name: "index_reviews_on_project_id"
+    t.index ["share_token"], name: "index_reviews_on_share_token", unique: true, where: "(share_token IS NOT NULL)"
   end
 
   create_table "sections", force: :cascade do |t|

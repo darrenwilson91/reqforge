@@ -1,6 +1,6 @@
 class ReviewsController < ApplicationController
   before_action :set_project
-  before_action :set_review, only: [ :show, :edit, :update, :destroy, :transition_status ]
+  before_action :set_review, only: [ :show, :edit, :update, :destroy, :transition_status, :generate_share_token, :revoke_share_token ]
 
   def index
     authorize @project, :show?
@@ -91,6 +91,20 @@ class ReviewsController < ApplicationController
       redirect_to project_review_path(@project, @review),
         alert: @review.errors.full_messages.join(", ")
     end
+  end
+
+  def generate_share_token
+    authorize @review, :update?
+    @review.generate_share_token!
+    redirect_to project_review_path(@project, @review),
+      notice: "Share link generated. Anyone with the link can view this review."
+  end
+
+  def revoke_share_token
+    authorize @review, :update?
+    @review.revoke_share_token!
+    redirect_to project_review_path(@project, @review),
+      notice: "Share link revoked. The previous link will no longer work."
   end
 
   private

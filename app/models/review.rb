@@ -14,6 +14,7 @@ class Review < ApplicationRecord
 
   validates :title, presence: true
   validates :status, presence: true
+  validates :share_token, uniqueness: true, allow_nil: true
 
   VALID_TRANSITIONS = {
     "draft" => %w[open cancelled],
@@ -72,6 +73,23 @@ class Review < ApplicationRecord
     return false unless in_progress? && all_items_decided?
 
     transition_to(:completed)
+  end
+
+  def generate_share_token!
+    loop do
+      self.share_token = SecureRandom.urlsafe_base64(32)
+      break unless Review.exists?(share_token: share_token)
+    end
+    save!
+    share_token
+  end
+
+  def revoke_share_token!
+    update!(share_token: nil)
+  end
+
+  def shared?
+    share_token.present?
   end
 
   # Computes the overall outcome based on individual item decisions.

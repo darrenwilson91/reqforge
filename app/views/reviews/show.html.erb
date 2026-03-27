@@ -151,6 +151,65 @@
           <p class="text-sm text-slate-500">No participants added.</p>
         </div>
       <% end %>
+
+      <!-- Share Link Panel -->
+      <% if policy(@review).update? %>
+        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mt-6">Share Link</h2>
+        <div class="rf-card-padded">
+          <% if @review.shared? %>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2 text-sm text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                </svg>
+                <span>External link active</span>
+              </div>
+
+              <div data-controller="clipboard">
+                <input type="text"
+                       readonly
+                       value="<%= public_review_url(@review.share_token) %>"
+                       class="rf-input text-xs font-mono w-full bg-slate-50"
+                       data-clipboard-target="source">
+                <div class="flex items-center gap-2 mt-2">
+                  <button type="button"
+                          data-action="click->clipboard#copy"
+                          data-clipboard-target="button"
+                          class="rf-btn-secondary text-xs flex-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                    Copy Link
+                  </button>
+                  <%= link_to revoke_share_token_project_review_path(@project, @review),
+                    data: { turbo_method: :delete, turbo_confirm: "Revoke this share link? Anyone with the link will no longer be able to access this review." },
+                    class: "rf-btn-danger text-xs" do %>
+                    Revoke
+                  <% end %>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-400">Anyone with this link can view the review read-only, without signing in.</p>
+            </div>
+          <% else %>
+            <div class="text-center py-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <p class="text-sm text-slate-500 mb-3">Share this review with external stakeholders.</p>
+              <%= link_to generate_share_token_project_review_path(@project, @review),
+                data: { turbo_method: :post },
+                class: "rf-btn-primary text-sm" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                </svg>
+                Generate Share Link
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
