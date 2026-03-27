@@ -40,6 +40,9 @@ application.register("loading", LoadingController)
 import MatrixController from "./matrix_controller"
 application.register("matrix", MatrixController)
 
+import QuickEntryController from "./quick_entry_controller"
+application.register("quick-entry", QuickEntryController)
+
 import ReviewCommentController from "./review_comment_controller"
 application.register("review-comment", ReviewCommentController)
 

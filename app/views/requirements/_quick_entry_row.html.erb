@@ -1,0 +1,19 @@
+<div class="group flex items-start gap-3 px-4 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors" id="quick-entry-row-<%= requirement.id %>" data-requirement-id="<%= requirement.id %>">
+  <div class="shrink-0 mt-0.5">
+    <%= link_to project_requirement_path(project, requirement), class: "rf-uid text-xs hover:text-brand-accent-dark transition-colors" do %>
+      <%= requirement.uid %>
+    <% end %>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="text-sm text-slate-900 dark:text-white leading-relaxed"><%= requirement.title %></p>
+  </div>
+  <div class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+    <span class="<%= requirement_status_badge_class(requirement) %> text-[10px]"><%= requirement.status.humanize %></span>
+    <%= link_to project_requirement_path(project, requirement), class: "text-slate-400 hover:text-brand-accent-dark transition-colors", title: "View details" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+      </svg>
+    <% end %>
+  </div>
+</div>

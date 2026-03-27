@@ -17,6 +17,8 @@ Rails.application.routes.draw do
       collection do
         patch :reorder
         get :search
+        get :quick_entry
+        post :quick_create
       end
     end
     resources :traceability_links, only: [ :create, :destroy ]

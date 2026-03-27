@@ -175,6 +175,41 @@ class RequirementsController < ApplicationController
     end
   end
 
+  def quick_entry
+    authorize @project, :show?
+    @modules = @project.requirement_modules.order(:position).includes(sections: :child_sections)
+    @sections = build_section_options
+    @existing_requirements = load_quick_entry_requirements
+  end
+
+  def quick_create
+    authorize @project, :update?
+
+    @requirement = @project.requirements.build(
+      title: params[:title].to_s.strip,
+      section_id: params[:section_id],
+      created_by: current_user
+    )
+
+    if @requirement.save
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.append(
+            "quick-entry-list",
+            partial: "requirements/quick_entry_row",
+            locals: { requirement: @requirement, project: @project }
+          )
+        end
+        format.html { redirect_to quick_entry_project_requirements_path(@project, section_id: @requirement.section_id) }
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { head :unprocessable_entity }
+        format.html { redirect_to quick_entry_project_requirements_path(@project), alert: @requirement.errors.full_messages.join(", ") }
+      end
+    end
+  end
+
   def search
     authorize @project, :show?
     query = params[:q].to_s.strip
@@ -256,7 +291,11 @@ class RequirementsController < ApplicationController
 
   def load_form_data
     @modules = @project.requirement_modules.order(:position).includes(:sections)
-    @sections = @project.requirement_modules
+    @sections = build_section_options
+  end
+
+  def build_section_options
+    @project.requirement_modules
       .order(:position)
       .includes(sections: :child_sections)
       .flat_map do |mod|
@@ -264,5 +303,14 @@ class RequirementsController < ApplicationController
           [ "#{mod.name} > #{section.name}", section.id ]
         end
       end
+  end
+
+  def load_quick_entry_requirements
+    return [] unless params[:section_id].present?
+
+    @project.requirements
+      .where(section_id: params[:section_id])
+      .includes(:section, section: :requirement_module)
+      .order(:position)
   end
 end

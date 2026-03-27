@@ -44,6 +44,11 @@
     <%= link_to project_requirements_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
       <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Requirements</div>
       <div class="mt-1 text-xl font-bold text-slate-900"><%= @project.requirements.count %></div>
+      <div class="mt-1">
+        <%= link_to quick_entry_project_requirements_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
+          Quick Entry &rarr;
+        <% end %>
+      </div>
     <% end %>
     <%= link_to project_traceability_matrix_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
       <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Traceability</div>
