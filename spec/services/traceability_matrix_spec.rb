@@ -153,11 +153,12 @@ RSpec.describe TraceabilityMatrix do
   describe "#coverage_report" do
     before do
       req_a; req_b; req_c; req_d
+      # a -> b (derives_from), b -> c (verifies)
       create(:traceability_link, source_requirement: req_a, target_requirement: req_b, link_type: :derives_from, created_by: user)
       create(:traceability_link, source_requirement: req_b, target_requirement: req_c, link_type: :verifies, created_by: user)
     end
 
-    it "returns coverage percentages" do
+    it "returns overall coverage percentages" do
       report = matrix.coverage_report
       expect(report[:total_requirements]).to eq(4)
       expect(report[:linked_requirements]).to eq(3) # a, b, c have at least one link
@@ -165,12 +166,55 @@ RSpec.describe TraceabilityMatrix do
       expect(report[:coverage_percentage]).to eq(75.0)
     end
 
-    it "returns per-link-type coverage" do
+    it "returns forward (outgoing) coverage" do
+      report = matrix.coverage_report
+      # a and b have outgoing links = 2 out of 4
+      expect(report[:forward_count]).to eq(2)
+      expect(report[:forward_coverage]).to eq(50.0)
+    end
+
+    it "returns backward (incoming) coverage" do
+      report = matrix.coverage_report
+      # b and c have incoming links = 2 out of 4
+      expect(report[:backward_count]).to eq(2)
+      expect(report[:backward_coverage]).to eq(50.0)
+    end
+
+    it "returns per-link-type counts" do
       report = matrix.coverage_report
       expect(report[:by_link_type]).to have_key(:derives_from)
       expect(report[:by_link_type][:derives_from][:count]).to eq(1)
       expect(report[:by_link_type]).to have_key(:verifies)
       expect(report[:by_link_type][:verifies][:count]).to eq(1)
+    end
+
+    it "returns per-link-type forward/backward coverage" do
+      report = matrix.coverage_report
+
+      derives = report[:by_link_type][:derives_from]
+      expect(derives[:forward_count]).to eq(1)   # a is source
+      expect(derives[:backward_count]).to eq(1)   # b is target
+      expect(derives[:forward_percentage]).to eq(25.0)
+      expect(derives[:backward_percentage]).to eq(25.0)
+
+      verifies = report[:by_link_type][:verifies]
+      expect(verifies[:forward_count]).to eq(1)   # b is source
+      expect(verifies[:backward_count]).to eq(1)   # c is target
+      expect(verifies[:forward_percentage]).to eq(25.0)
+      expect(verifies[:backward_percentage]).to eq(25.0)
+    end
+
+    it "deduplicates requirements that appear in multiple links of the same type" do
+      # a -> c (also derives_from) — a is already a source for derives_from
+      create(:traceability_link, source_requirement: req_a, target_requirement: req_c, link_type: :derives_from, created_by: user)
+
+      report = matrix.coverage_report
+      derives = report[:by_link_type][:derives_from]
+      expect(derives[:count]).to eq(2)
+      expect(derives[:forward_count]).to eq(1)   # still just a
+      expect(derives[:backward_count]).to eq(2)   # b and c
+      expect(derives[:forward_percentage]).to eq(25.0)
+      expect(derives[:backward_percentage]).to eq(50.0)
     end
 
     it "identifies unlinked requirements" do
@@ -184,6 +228,10 @@ RSpec.describe TraceabilityMatrix do
       report = empty_matrix.coverage_report
       expect(report[:total_requirements]).to eq(0)
       expect(report[:coverage_percentage]).to eq(0.0)
+      expect(report[:forward_coverage]).to eq(0.0)
+      expect(report[:backward_coverage]).to eq(0.0)
+      expect(report[:forward_count]).to eq(0)
+      expect(report[:backward_count]).to eq(0)
     end
   end
 end

@@ -60,11 +60,15 @@ class TraceabilityMatrix
     all_links = links.to_a
 
     linked_ids = Set.new
+    forward_ids = Set.new
+    backward_ids = Set.new
     by_link_type = Hash.new { |h, k| h[k] = { count: 0, source_ids: Set.new, target_ids: Set.new } }
 
     all_links.each do |link|
       linked_ids << link.source_requirement_id
       linked_ids << link.target_requirement_id
+      forward_ids << link.source_requirement_id
+      backward_ids << link.target_requirement_id
 
       type_stats = by_link_type[link.link_type.to_sym]
       type_stats[:count] += 1
@@ -80,8 +84,20 @@ class TraceabilityMatrix
       linked_requirements: linked_ids.size,
       unlinked_requirements: unlinked_ids.size,
       coverage_percentage: (linked_ids.size.to_f / total * 100).round(1),
+      forward_coverage: (forward_ids.size.to_f / total * 100).round(1),
+      backward_coverage: (backward_ids.size.to_f / total * 100).round(1),
+      forward_count: forward_ids.size,
+      backward_count: backward_ids.size,
       unlinked_requirement_ids: unlinked_ids,
-      by_link_type: by_link_type.transform_values { |v| { count: v[:count] } }
+      by_link_type: by_link_type.transform_values { |v|
+        {
+          count: v[:count],
+          forward_count: v[:source_ids].size,
+          backward_count: v[:target_ids].size,
+          forward_percentage: (v[:source_ids].size.to_f / total * 100).round(1),
+          backward_percentage: (v[:target_ids].size.to_f / total * 100).round(1)
+        }
+      }
     }
   end
 
@@ -93,6 +109,10 @@ class TraceabilityMatrix
       linked_requirements: 0,
       unlinked_requirements: 0,
       coverage_percentage: 0.0,
+      forward_coverage: 0.0,
+      backward_coverage: 0.0,
+      forward_count: 0,
+      backward_count: 0,
       unlinked_requirement_ids: [],
       by_link_type: {}
     }
