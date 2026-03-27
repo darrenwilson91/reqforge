@@ -492,3 +492,9 @@ Task: Fix any failing tests
 Status: completed
 Changes: (no code changes)
 Notes: Re-ran full test suite — 1535 examples, 0 failures in 21.91 seconds. No failing tests to fix. Only output is Rack deprecation warnings about :unprocessable_entity → :unprocessable_content from rspec-rails matchers (cosmetic, not in application code). All specs green.
+
+--- Iteration 32: Thu 27 Mar 2026 ---
+Task: Visual review of all pages for UI quality — no generic/slop elements
+Status: completed
+Changes: app/views/shared/_sidebar.html.erb, app/views/dashboard/index.html.erb, app/views/review_items/show.html.erb, app/views/compliance_dashboards/show.html.erb
+Notes: Comprehensive visual audit of all 24 key view files via subagent, identifying issues across dead links, missing dark mode variants, hardcoded colors, and inconsistent styling. Fixed the highest-impact issues: (1) Sidebar dead href="#" Quality Analysis link replaced with disabled span showing "Per Req" badge and tooltip — AI analysis is per-requirement, no standalone page exists. (2) Dashboard stat cards (all 4 icon backgrounds, headings, dividers, hover states), getting-started step numbers, recent activity sections all gained dark: variants. (3) Compliance dashboard headings, stat values, ASIL detail grid cards, expected link module names, and safety callout banner all gained dark: variants. (4) Review items show page: approve button changed from overriding rf-btn-primary to standalone emerald button with dark mode, needs-changes button replaced hardcoded amber classes with full dark mode support, diff panel backgrounds/borders, section headings, and item navigation divider all gained dark: variants. Overall assessment: the UI is solid and professional — design system (rf-card, rf-btn-*, rf-badge-*, rf-asil-*) is used consistently in ~90% of views with only minor dark mode gaps in data visualization components. Verified with bundle exec rspec — 1535 examples, 0 failures.
