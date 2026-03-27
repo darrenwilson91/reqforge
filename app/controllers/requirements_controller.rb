@@ -1,6 +1,6 @@
 class RequirementsController < ApplicationController
   before_action :set_project
-  before_action :set_requirement, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status ]
 
   def index
     authorize @project, :show?
@@ -92,6 +92,19 @@ class RequirementsController < ApplicationController
     authorize @requirement
     @requirement.destroy
     redirect_to project_requirements_path(@project), notice: "Requirement deleted successfully."
+  end
+
+  def transition_status
+    authorize @requirement, :update?
+    new_status = params[:status]
+
+    if @requirement.transition_to(new_status)
+      redirect_to project_requirement_path(@project, @requirement),
+        notice: "Status changed to #{new_status.humanize}."
+    else
+      redirect_to project_requirement_path(@project, @requirement),
+        alert: @requirement.errors.full_messages.join(", ")
+    end
   end
 
   private

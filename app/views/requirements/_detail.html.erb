@@ -80,6 +80,9 @@
     </div>
   </div>
 
+  <%# Status Workflow %>
+  <%= render "requirements/status_workflow", requirement: requirement, project: project %>
+
   <%# Description %>
   <% if requirement.body.present? %>
     <div class="rf-card">

@@ -263,6 +263,127 @@ RSpec.describe Requirement, type: :model do
     end
   end
 
+  describe "status workflow" do
+    let(:requirement) { create(:requirement) }
+
+    describe "#available_transitions" do
+      it "returns valid transitions for draft" do
+        requirement.update_column(:status, 0) # draft
+        expect(requirement.available_transitions).to contain_exactly("in_review", "obsolete")
+      end
+
+      it "returns valid transitions for in_review" do
+        requirement.update_column(:status, 1) # in_review
+        expect(requirement.available_transitions).to contain_exactly("approved", "draft", "obsolete")
+      end
+
+      it "returns valid transitions for approved" do
+        requirement.update_column(:status, 2) # approved
+        expect(requirement.available_transitions).to contain_exactly("implemented", "in_review", "obsolete")
+      end
+
+      it "returns valid transitions for implemented" do
+        requirement.update_column(:status, 3) # implemented
+        expect(requirement.available_transitions).to contain_exactly("verified", "approved", "obsolete")
+      end
+
+      it "returns valid transitions for verified" do
+        requirement.update_column(:status, 4) # verified
+        expect(requirement.available_transitions).to contain_exactly("implemented", "obsolete")
+      end
+
+      it "returns valid transitions for obsolete" do
+        requirement.update_column(:status, 5) # obsolete
+        expect(requirement.available_transitions).to contain_exactly("draft")
+      end
+    end
+
+    describe "#transition_to" do
+      it "transitions from draft to in_review" do
+        expect(requirement.transition_to("in_review")).to be true
+        expect(requirement.reload.status).to eq("in_review")
+      end
+
+      it "rejects invalid transition from draft to approved" do
+        expect(requirement.transition_to("approved")).to be false
+        expect(requirement.reload.status).to eq("draft")
+        expect(requirement.errors[:status]).to include(/cannot transition/)
+      end
+
+      it "rejects invalid transition from draft to verified" do
+        expect(requirement.transition_to("verified")).to be false
+        expect(requirement.reload.status).to eq("draft")
+      end
+
+      it "transitions from in_review to approved" do
+        requirement.update_column(:status, 1)
+        expect(requirement.transition_to("approved")).to be true
+        expect(requirement.reload.status).to eq("approved")
+      end
+
+      it "transitions from in_review back to draft" do
+        requirement.update_column(:status, 1)
+        expect(requirement.transition_to("draft")).to be true
+        expect(requirement.reload.status).to eq("draft")
+      end
+
+      it "allows any active status to transition to obsolete" do
+        %w[draft in_review approved implemented verified].each do |s|
+          req = create(:requirement)
+          req.update_column(:status, Requirement.statuses[s])
+          expect(req.transition_to("obsolete")).to be true
+          expect(req.reload.status).to eq("obsolete")
+        end
+      end
+
+      it "allows obsolete to transition back to draft" do
+        requirement.update_column(:status, 5)
+        expect(requirement.transition_to("draft")).to be true
+        expect(requirement.reload.status).to eq("draft")
+      end
+
+      it "tracks status change in paper trail" do
+        initial_count = requirement.versions.count
+        requirement.transition_to("in_review")
+        expect(requirement.versions.count).to eq(initial_count + 1)
+      end
+    end
+
+    describe ".transition_action_label" do
+      it "returns 'Submit for Review' for draft to in_review" do
+        expect(Requirement.transition_action_label("draft", "in_review")).to eq("Submit for Review")
+      end
+
+      it "returns 'Approve' for in_review to approved" do
+        expect(Requirement.transition_action_label("in_review", "approved")).to eq("Approve")
+      end
+
+      it "returns 'Return to Draft' for in_review to draft" do
+        expect(Requirement.transition_action_label("in_review", "draft")).to eq("Return to Draft")
+      end
+
+      it "returns 'Mark Obsolete' for any status to obsolete" do
+        expect(Requirement.transition_action_label("draft", "obsolete")).to eq("Mark Obsolete")
+      end
+
+      it "returns 'Restore to Draft' for obsolete to draft" do
+        expect(Requirement.transition_action_label("obsolete", "draft")).to eq("Restore to Draft")
+      end
+
+      it "returns 'Re-open Review' for approved to in_review" do
+        expect(Requirement.transition_action_label("approved", "in_review")).to eq("Re-open Review")
+      end
+
+      it "returns 'Mark Implemented' for approved to implemented" do
+        expect(Requirement.transition_action_label("approved", "implemented")).to eq("Mark Implemented")
+      end
+
+      it "returns 'Mark Verified' for implemented to verified" do
+        expect(Requirement.transition_action_label("implemented", "verified")).to eq("Mark Verified")
+      end
+    end
+  end
+
   describe "default values" do
     it "defaults requirement_type to functional" do
       expect(Requirement.new.requirement_type).to eq("functional")

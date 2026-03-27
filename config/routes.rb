@@ -3,7 +3,11 @@ Rails.application.routes.draw do
 
   resources :organizations, only: [ :new, :create ]
   resources :projects do
-    resources :requirements
+    resources :requirements do
+      member do
+        patch :transition_status
+      end
+    end
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

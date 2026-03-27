@@ -57,6 +57,52 @@ class Requirement < ApplicationRecord
 
   before_validation :generate_uid, on: :create
 
+  # Status workflow — defines valid transitions between statuses
+  VALID_TRANSITIONS = {
+    "draft"       => %w[in_review obsolete],
+    "in_review"   => %w[approved draft obsolete],
+    "approved"    => %w[implemented in_review obsolete],
+    "implemented" => %w[verified approved obsolete],
+    "verified"    => %w[implemented obsolete],
+    "obsolete"    => %w[draft]
+  }.freeze
+
+  TRANSITION_LABELS = {
+    "draft"       => { from_label: "Draft",       icon: "pencil" },
+    "in_review"   => { from_label: "In Review",   icon: "eye" },
+    "approved"    => { from_label: "Approved",     icon: "check" },
+    "implemented" => { from_label: "Implemented",  icon: "code" },
+    "verified"    => { from_label: "Verified",     icon: "shield" },
+    "obsolete"    => { from_label: "Obsolete",     icon: "archive" }
+  }.freeze
+
+  # Returns the list of statuses this requirement can transition to
+  def available_transitions
+    VALID_TRANSITIONS.fetch(status, [])
+  end
+
+  # Attempts to transition to a new status; returns true on success
+  def transition_to(new_status)
+    unless available_transitions.include?(new_status)
+      errors.add(:status, "cannot transition from #{status.humanize} to #{new_status.humanize}")
+      return false
+    end
+    update(status: new_status)
+  end
+
+  # Returns a human-friendly label for a transition action
+  def self.transition_action_label(from_status, to_status)
+    case to_status
+    when "draft"       then from_status == "obsolete" ? "Restore to Draft" : "Return to Draft"
+    when "in_review"   then from_status == "approved" ? "Re-open Review" : "Submit for Review"
+    when "approved"    then "Approve"
+    when "implemented" then "Mark Implemented"
+    when "verified"    then "Mark Verified"
+    when "obsolete"    then "Mark Obsolete"
+    else to_status.humanize
+    end
+  end
+
   private
 
   def generate_uid

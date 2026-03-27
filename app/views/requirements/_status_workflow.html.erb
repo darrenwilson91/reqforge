@@ -1,0 +1,126 @@
+<%# Status Workflow Panel — shows current status with visual progress and transition buttons %>
+<div class="rf-card">
+  <div class="p-5 border-b border-slate-100">
+    <h2 class="text-base font-semibold text-slate-900">Status Workflow</h2>
+  </div>
+  <div class="p-5 space-y-5">
+    <%# Status progress indicator %>
+    <% statuses = %w[draft in_review approved implemented verified] %>
+    <% current_index = statuses.index(requirement.status) %>
+    <% is_obsolete = requirement.obsolete? %>
+
+    <% if is_obsolete %>
+      <div class="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-100">
+        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-red-700">Obsolete</p>
+          <p class="text-xs text-red-500">This requirement has been retired from the active workflow.</p>
+        </div>
+      </div>
+    <% else %>
+      <%# Progress bar showing workflow stages %>
+      <div class="flex items-center gap-0">
+        <% statuses.each_with_index do |s, i| %>
+          <% is_current = (i == current_index) %>
+          <% is_completed = current_index.present? && i < current_index %>
+          <% is_future = current_index.present? && i > current_index %>
+
+          <%# Step indicator %>
+          <div class="flex flex-col items-center relative z-10">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors
+              <%= if is_current
+                    'border-brand-accent bg-brand-accent-subtle text-brand-accent-dark'
+                  elsif is_completed
+                    'border-emerald-500 bg-emerald-500 text-white'
+                  else
+                    'border-slate-200 bg-white text-slate-400'
+                  end %>">
+              <% if is_completed %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              <% elsif is_current %>
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-accent"></span>
+              <% else %>
+                <span class="text-xs font-medium"><%= i + 1 %></span>
+              <% end %>
+            </div>
+            <span class="mt-1.5 text-[10px] font-medium leading-tight text-center whitespace-nowrap
+              <%= is_current ? 'text-brand-accent-dark' : is_completed ? 'text-emerald-600' : 'text-slate-400' %>">
+              <%= s.humanize %>
+            </span>
+          </div>
+
+          <%# Connector line between steps %>
+          <% unless i == statuses.length - 1 %>
+            <div class="flex-1 h-0.5 -mx-0.5 mt-[-14px]
+              <%= is_completed && (current_index.present? && i + 1 <= current_index) ? 'bg-emerald-400' : 'bg-slate-200' %>">
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Transition action buttons %>
+    <% transitions = requirement.available_transitions %>
+    <% if transitions.any? && policy(requirement).update? %>
+      <div class="border-t border-slate-100 pt-4">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">Available Actions</p>
+        <div class="flex flex-wrap gap-2">
+          <% transitions.each do |target_status| %>
+            <% label = Requirement.transition_action_label(requirement.status, target_status) %>
+            <% is_destructive = (target_status == "obsolete") %>
+            <% is_forward = %w[in_review approved implemented verified].include?(target_status) &&
+                             !%w[draft].include?(target_status) %>
+            <%= button_to transition_status_project_requirement_path(project, requirement, status: target_status),
+                  method: :patch,
+                  class: (if is_destructive
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors"
+                          elsif is_forward
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                          else
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+                          end),
+                  data: is_destructive ? { turbo_confirm: "Mark this requirement as obsolete? It will be retired from the active workflow." } : {} do %>
+              <%# Icon based on target status %>
+              <% case target_status %>
+              <% when "draft" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              <% when "in_review" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+              <% when "approved" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              <% when "implemented" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              <% when "verified" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              <% when "obsolete" %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                  <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+              <% end %>
+              <%= label %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
