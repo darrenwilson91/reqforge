@@ -23,7 +23,7 @@
 
   <body class="h-full">
     <% if user_signed_in? && current_organization %>
-      <div class="flex h-full">
+      <div class="flex h-full" data-controller="keyboard-shortcuts">
         <%# Sidebar Navigation %>
         <%= render "shared/sidebar" %>
 
@@ -40,6 +40,9 @@
             </div>
           </main>
         </div>
+
+        <%# Keyboard shortcuts help overlay %>
+        <%= render "shared/keyboard_shortcuts" %>
       </div>
     <% elsif user_signed_in? %>
       <%# Signed in but no organization — setup flow %>

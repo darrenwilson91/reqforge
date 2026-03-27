@@ -1,0 +1,54 @@
+<%# Keyboard shortcuts help overlay — toggled by pressing ? %>
+<div data-keyboard-shortcuts-target="overlay"
+     class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+     aria-label="Keyboard shortcuts"
+     role="dialog">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+      <h2 class="text-base font-bold text-slate-900">Keyboard Shortcuts</h2>
+      <button type="button" data-action="keyboard-shortcuts#hideOverlay" class="text-slate-400 hover:text-slate-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="px-5 py-4 space-y-4">
+      <div>
+        <h3 class="rf-section-label mb-2">Requirements</h3>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-700">New requirement</span>
+            <kbd class="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 text-xs font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-300 rounded-md shadow-sm">n</kbd>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-700">Edit requirement</span>
+            <kbd class="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 text-xs font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-300 rounded-md shadow-sm">e</kbd>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-700">Save changes</span>
+            <kbd class="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 text-xs font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-300 rounded-md shadow-sm">s</kbd>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-700">Cancel editing</span>
+            <kbd class="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 text-xs font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-300 rounded-md shadow-sm">Esc</kbd>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-100 pt-4">
+        <h3 class="rf-section-label mb-2">General</h3>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-700">Show this help</span>
+            <kbd class="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 text-xs font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-300 rounded-md shadow-sm">?</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-5 py-3 bg-slate-50 border-t border-slate-100">
+      <p class="text-xs text-slate-400">Shortcuts are disabled when typing in form fields.</p>
+    </div>
+  </div>
+</div>

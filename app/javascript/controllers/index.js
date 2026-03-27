@@ -25,6 +25,9 @@ application.register("graph", GraphController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import KeyboardShortcutsController from "./keyboard_shortcuts_controller"
+application.register("keyboard-shortcuts", KeyboardShortcutsController)
+
 import LinkSearchController from "./link_search_controller"
 application.register("link-search", LinkSearchController)
 
