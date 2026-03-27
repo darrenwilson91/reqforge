@@ -1,0 +1,259 @@
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent transition-colors" %>
+    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent transition-colors" %>
+    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+    <%= link_to @review.title, project_review_path(@project, @review), class: "hover:text-brand-accent transition-colors" %>
+    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+    <span class="text-slate-700 font-medium"><%= @review_item.requirement.uid %></span>
+  </nav>
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-3">
+        <span class="rf-uid text-sm"><%= @review_item.requirement.uid %></span>
+        <span class="<%= review_item_status_badge_class(@review_item) %>"><%= @review_item.status.humanize %></span>
+        <% if @diff.any_changes? %>
+          <span class="rf-badge bg-orange-50 text-orange-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            Changed Since Snapshot
+          </span>
+        <% end %>
+      </div>
+      <h1 class="text-2xl font-semibold text-slate-900 mt-2"><%= @review_item.requirement.title %></h1>
+      <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
+        <span>Review: <%= @review.title %></span>
+        <span>Status: <span class="font-medium text-slate-600"><%= @review.status.humanize %></span></span>
+      </div>
+    </div>
+
+    <%= link_to project_review_path(@project, @review), class: "rf-btn-secondary text-sm shrink-0" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Back to Review
+    <% end %>
+  </div>
+
+  <!-- Decision Buttons -->
+  <% if @participant&.can_decide? && @review.in_progress? %>
+    <div class="rf-card-padded mb-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium text-slate-700">Your Decision</h3>
+        <div class="flex items-center gap-2">
+          <% unless @review_item.approved? %>
+            <%= link_to update_status_project_review_review_item_path(@project, @review, @review_item, status: "approved"),
+              data: { turbo_method: :patch },
+              class: "rf-btn-primary bg-emerald-600 hover:bg-emerald-700 text-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+              Approve
+            <% end %>
+          <% end %>
+          <% unless @review_item.needs_changes? %>
+            <%= link_to update_status_project_review_review_item_path(@project, @review, @review_item, status: "needs_changes"),
+              data: { turbo_method: :patch },
+              class: "rf-btn-secondary text-amber-700 border-amber-300 hover:bg-amber-50 text-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+              Needs Changes
+            <% end %>
+          <% end %>
+          <% unless @review_item.rejected? %>
+            <%= link_to update_status_project_review_review_item_path(@project, @review, @review_item, status: "rejected"),
+              data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to reject this item?" },
+              class: "rf-btn-danger text-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Reject
+            <% end %>
+          <% end %>
+          <% if @review_item.decided? %>
+            <%= link_to update_status_project_review_review_item_path(@project, @review, @review_item, status: "pending"),
+              data: { turbo_method: :patch },
+              class: "rf-btn-secondary text-sm" do %>
+              Reset to Pending
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-3 gap-6">
+    <!-- Diff Panel (2/3) -->
+    <div class="col-span-2 space-y-4">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Requirement Changes</h2>
+
+      <% @diff_fields.each do |field| %>
+        <div class="rf-card overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200">
+            <h3 class="text-sm font-medium text-slate-700"><%= field.label %></h3>
+            <% if field.changed %>
+              <span class="rf-badge bg-orange-50 text-orange-700">Changed</span>
+            <% else %>
+              <span class="rf-badge bg-slate-100 text-slate-500">Unchanged</span>
+            <% end %>
+          </div>
+
+          <% if field.field == "body" %>
+            <%# Body field — side-by-side or diff view %>
+            <% if field.changed %>
+              <div class="grid grid-cols-2 divide-x divide-slate-200">
+                <div class="p-5">
+                  <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Snapshot</div>
+                  <div class="rf-rich-text text-sm text-slate-600"><%= sanitize(field.snapshot_value, tags: %w[p br strong em b i u a ul ol li blockquote pre code del s h1 h2 h3], attributes: %w[href target]) %></div>
+                </div>
+                <div class="p-5">
+                  <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current</div>
+                  <div class="rf-rich-text text-sm text-slate-700"><%= sanitize(field.current_value, tags: %w[p br strong em b i u a ul ol li blockquote pre code del s h1 h2 h3], attributes: %w[href target]) %></div>
+                </div>
+              </div>
+              <% if field.diff_html.present? %>
+                <div class="px-5 py-3 bg-amber-50/50 border-t border-slate-200">
+                  <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Word-level diff</div>
+                  <div class="rf-diff-content text-sm leading-relaxed"><%= field.diff_html %></div>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="p-5">
+                <div class="rf-rich-text text-sm text-slate-600"><%= sanitize(field.current_value, tags: %w[p br strong em b i u a ul ol li blockquote pre code del s h1 h2 h3], attributes: %w[href target]) %></div>
+              </div>
+            <% end %>
+
+          <% elsif field.field == "title" %>
+            <%# Title field — inline diff %>
+            <% if field.changed && field.diff_html.present? %>
+              <div class="p-5">
+                <div class="rf-diff-content text-sm leading-relaxed"><%= field.diff_html %></div>
+              </div>
+            <% else %>
+              <div class="p-5">
+                <span class="text-sm text-slate-700"><%= field.current_value %></span>
+              </div>
+            <% end %>
+
+          <% elsif %w[requirement_type status priority asil_level].include?(field.field) %>
+            <%# Enum fields — badge comparison %>
+            <% if field.changed %>
+              <div class="p-5 flex items-center gap-3">
+                <span class="rf-diff-old-badge"><%= field.snapshot_value %></span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span class="rf-diff-new-badge"><%= field.current_value %></span>
+              </div>
+            <% else %>
+              <div class="p-5">
+                <span class="text-sm text-slate-700"><%= field.current_value %></span>
+              </div>
+            <% end %>
+
+          <% else %>
+            <%# Generic text fields (UID, module, section) %>
+            <% if field.changed %>
+              <div class="p-5 flex items-center gap-3">
+                <span class="text-sm text-slate-500 line-through"><%= field.snapshot_value %></span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm font-medium text-slate-700"><%= field.current_value %></span>
+              </div>
+            <% else %>
+              <div class="p-5">
+                <span class="text-sm text-slate-700"><%= field.current_value %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Comments Panel (1/3) -->
+    <div class="space-y-4" id="comments-section">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">
+          Comments
+          <span class="ml-1 text-xs font-normal text-slate-400">(<%= @review_item.review_comments.size %>)</span>
+        </h2>
+      </div>
+
+      <!-- New top-level comment form -->
+      <% if @participant&.can_comment? %>
+        <div class="rf-card-padded" data-controller="review-comment">
+          <%= form_with(model: [@project, @review, @review_item, ReviewComment.new],
+            url: project_review_review_item_review_comments_path(@project, @review, @review_item),
+            class: "space-y-3") do |f| %>
+            <%= f.text_area :body,
+              placeholder: "Add a comment...",
+              rows: 3,
+              class: "rf-input text-sm resize-none",
+              data: { review_comment_target: "commentBody" } %>
+            <div class="flex justify-end">
+              <%= f.submit "Comment", class: "rf-btn-primary text-sm cursor-pointer",
+                data: { action: "click->review-comment#validateSubmit" } %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Comment threads -->
+      <% if @comments.any? %>
+        <div class="space-y-3">
+          <% @comments.each do |comment| %>
+            <%= render partial: "review_items/comment", locals: { comment: comment, depth: 0 } %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="rf-card-padded text-center py-8">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <p class="text-sm text-slate-500">No comments yet.</p>
+          <p class="text-xs text-slate-400 mt-1">Be the first to leave feedback.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Item Navigation -->
+  <% all_items = @review.review_items.includes(:requirement).order("requirements.uid").references(:requirements) %>
+  <% current_index = all_items.to_a.index(@review_item) %>
+  <% if all_items.size > 1 %>
+    <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+      <% if current_index && current_index > 0 %>
+        <% prev_item = all_items[current_index - 1] %>
+        <%= link_to project_review_review_item_path(@project, @review, prev_item), class: "rf-btn-secondary text-sm" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          <%= prev_item.requirement.uid %>
+        <% end %>
+      <% else %>
+        <div></div>
+      <% end %>
+
+      <span class="text-xs text-slate-400"><%= (current_index || 0) + 1 %> of <%= all_items.size %></span>
+
+      <% if current_index && current_index < all_items.size - 1 %>
+        <% next_item = all_items[current_index + 1] %>
+        <%= link_to project_review_review_item_path(@project, @review, next_item), class: "rf-btn-secondary text-sm" do %>
+          <%= next_item.requirement.uid %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+      <% else %>
+        <div></div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

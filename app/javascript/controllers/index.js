@@ -25,6 +25,9 @@ application.register("link-search", LinkSearchController)
 import MatrixController from "./matrix_controller"
 application.register("matrix", MatrixController)
 
+import ReviewCommentController from "./review_comment_controller"
+application.register("review-comment", ReviewCommentController)
+
 import ReviewSelectController from "./review_select_controller"
 application.register("review-select", ReviewSelectController)
 

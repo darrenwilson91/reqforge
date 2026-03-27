@@ -19,6 +19,17 @@ Rails.application.routes.draw do
       member do
         patch :transition_status
       end
+      resources :review_items, only: [ :show ] do
+        member do
+          patch :update_status
+        end
+        resources :review_comments, only: [ :create ] do
+          member do
+            patch :resolve
+            patch :unresolve
+          end
+        end
+      end
     end
   end
 
