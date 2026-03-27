@@ -52,5 +52,8 @@ application.register("traceability-panel", TraceabilityPanelController)
 import TreeController from "./tree_controller"
 application.register("tree", TreeController)
 
+import TemplateSelectController from "./template_select_controller"
+application.register("template-select", TemplateSelectController)
+
 import VersionHistoryController from "./version_history_controller"
 application.register("version-history", VersionHistoryController)

@@ -21,6 +21,7 @@ class ProjectsController < ApplicationController
     authorize @project
 
     if @project.save
+      apply_compliance_template(@project)
       redirect_to project_path(@project), notice: "Project created successfully."
     else
       render :new, status: :unprocessable_entity
@@ -50,6 +51,16 @@ class ProjectsController < ApplicationController
 
   def set_project
     @project = scoped_query(Project).find(params[:id])
+  end
+
+  def apply_compliance_template(project)
+    template_id = params[:compliance_template_id]
+    return if template_id.blank?
+
+    template = ComplianceTemplate.active.find_by(id: template_id)
+    return unless template
+
+    template.apply_to_project!(project)
   end
 
   def project_params

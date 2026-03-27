@@ -92,6 +92,53 @@ RSpec.describe "Project Management", type: :system do
       click_link "Cancel"
       expect(page).to have_current_path(projects_path)
     end
+
+    context "with compliance templates" do
+      before do
+        ComplianceTemplate.create!(name: "ISO 26262 — Functional Safety", standard: "iso_26262", template_data: ComplianceTemplate.iso_26262_template_data)
+        ComplianceTemplate.create!(name: "Automotive SPICE", standard: "aspice", template_data: ComplianceTemplate.aspice_template_data)
+      end
+
+      it "shows the compliance template selector" do
+        visit new_project_path
+        expect(page).to have_content("Compliance Template")
+        expect(page).to have_select("compliance_template_id")
+      end
+
+      it "lists available templates in the selector" do
+        visit new_project_path
+        expect(page).to have_select("compliance_template_id", with_options: [
+          "None — blank project",
+          "ISO 26262 — Functional Safety (ISO 26262)",
+          "Automotive SPICE (ASPICE)"
+        ])
+      end
+
+      it "creates a project with an ISO 26262 template" do
+        visit new_project_path
+        fill_in "Name", with: "Safety ECU"
+        fill_in "Prefix", with: "SEC"
+        select "ISO 26262 — Functional Safety (ISO 26262)", from: "compliance_template_id"
+        click_button "Create Project"
+
+        expect(page).to have_content("Project created successfully")
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(7)
+        expect(project.attribute_schema.length).to eq(4)
+      end
+
+      it "creates a project without a template when None is selected" do
+        visit new_project_path
+        fill_in "Name", with: "Plain Project"
+        fill_in "Prefix", with: "PLN"
+        select "None — blank project", from: "compliance_template_id"
+        click_button "Create Project"
+
+        expect(page).to have_content("Project created successfully")
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(0)
+      end
+    end
   end
 
   describe "viewing a project" do

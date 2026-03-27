@@ -73,6 +73,44 @@ RSpec.describe "Projects", type: :request do
       expect(response.body).to include("attribute-schema")
     end
 
+    context "when compliance templates exist" do
+      before do
+        ComplianceTemplate.create!(name: "ISO 26262 — Functional Safety", standard: "iso_26262", template_data: ComplianceTemplate.iso_26262_template_data)
+        ComplianceTemplate.create!(name: "Automotive SPICE", standard: "aspice", template_data: ComplianceTemplate.aspice_template_data)
+      end
+
+      it "shows the compliance template selector" do
+        get new_project_path
+        expect(response.body).to include("Compliance Template")
+        expect(response.body).to include("template-select")
+      end
+
+      it "lists available templates" do
+        get new_project_path
+        expect(response.body).to include("ISO 26262")
+        expect(response.body).to include("Automotive SPICE")
+      end
+
+      it "includes a blank option" do
+        get new_project_path
+        expect(response.body).to include("None — blank project")
+      end
+
+      it "does not show inactive templates" do
+        ComplianceTemplate.find_by(standard: "aspice").update!(active: false)
+        get new_project_path
+        expect(response.body).to include("ISO 26262")
+        expect(response.body).not_to include("ASPICE")
+      end
+    end
+
+    context "when no compliance templates exist" do
+      it "does not show the compliance template section" do
+        get new_project_path
+        expect(response.body).not_to include("Compliance Template")
+      end
+    end
+
     context "when user is an author (no create permission)" do
       let!(:membership) { create(:membership, user: user, organization: organization, role: :author) }
 
@@ -149,6 +187,61 @@ RSpec.describe "Projects", type: :request do
       attrs = [{ "name" => "Safety Level", "attr_type" => "enum", "required" => true, "options" => "QM,ASIL-A" }]
       post projects_path, params: { project: { name: "Test", prefix: "TST", attribute_schema: attrs.to_json } }
       expect(Project.last.attribute_schema).to eq(attrs)
+    end
+
+    context "with compliance template" do
+      let!(:template) { ComplianceTemplate.create!(name: "ISO 26262 — Functional Safety", standard: "iso_26262", template_data: ComplianceTemplate.iso_26262_template_data) }
+
+      it "applies the selected template to the project" do
+        post projects_path, params: valid_params.merge(compliance_template_id: template.id)
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(7)
+        expect(project.requirement_modules.pluck(:name)).to include("System Requirements", "Software Requirements")
+      end
+
+      it "creates sections from the template" do
+        post projects_path, params: valid_params.merge(compliance_template_id: template.id)
+        project = Project.last
+        sections = Section.where(requirement_module: project.requirement_modules)
+        expect(sections.count).to eq(18)
+      end
+
+      it "sets attribute_schema from the template" do
+        post projects_path, params: valid_params.merge(compliance_template_id: template.id)
+        project = Project.last
+        expect(project.attribute_schema.length).to eq(4)
+        expect(project.attribute_schema.map { |a| a["name"] }).to include("Safety Goal", "ASIL Allocation")
+      end
+
+      it "ignores blank compliance_template_id" do
+        post projects_path, params: valid_params.merge(compliance_template_id: "")
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(0)
+      end
+
+      it "ignores invalid compliance_template_id" do
+        post projects_path, params: valid_params.merge(compliance_template_id: 999999)
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(0)
+      end
+
+      it "ignores inactive templates" do
+        template.update!(active: false)
+        post projects_path, params: valid_params.merge(compliance_template_id: template.id)
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(0)
+      end
+    end
+
+    context "with ASPICE compliance template" do
+      let!(:template) { ComplianceTemplate.create!(name: "Automotive SPICE", standard: "aspice", template_data: ComplianceTemplate.aspice_template_data) }
+
+      it "applies the ASPICE template" do
+        post projects_path, params: valid_params.merge(compliance_template_id: template.id)
+        project = Project.last
+        expect(project.requirement_modules.count).to eq(9)
+        expect(project.requirement_modules.pluck(:name)).to include("SWE.1 — Software Requirements Analysis")
+      end
     end
 
     context "when user is an author (no create permission)" do
@@ -250,6 +343,12 @@ RSpec.describe "Projects", type: :request do
     it "shows the status selector for existing projects" do
       get edit_project_path(project)
       expect(response.body).to include("Status")
+    end
+
+    it "does not show the compliance template selector on edit" do
+      ComplianceTemplate.create!(name: "ISO 26262", standard: "iso_26262", template_data: ComplianceTemplate.iso_26262_template_data)
+      get edit_project_path(project)
+      expect(response.body).not_to include("Compliance Template")
     end
 
     context "when user is a viewer (no edit permission)" do
