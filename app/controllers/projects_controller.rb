@@ -3,18 +3,22 @@ class ProjectsController < ApplicationController
 
   def index
     @projects = scoped_query(Project).order(updated_at: :desc)
+    authorize Project
   end
 
   def show
+    authorize @project
     @modules = @project.requirement_modules.order(:position).includes(sections: :requirements)
   end
 
   def new
     @project = build_scoped(Project)
+    authorize @project
   end
 
   def create
     @project = build_scoped(Project, project_params)
+    authorize @project
 
     if @project.save
       redirect_to project_path(@project), notice: "Project created successfully."
@@ -24,9 +28,11 @@ class ProjectsController < ApplicationController
   end
 
   def edit
+    authorize @project
   end
 
   def update
+    authorize @project
     if @project.update(project_params)
       redirect_to project_path(@project), notice: "Project updated successfully."
     else
@@ -35,6 +41,7 @@ class ProjectsController < ApplicationController
   end
 
   def destroy
+    authorize @project
     @project.destroy
     redirect_to projects_path, notice: "Project deleted successfully."
   end
