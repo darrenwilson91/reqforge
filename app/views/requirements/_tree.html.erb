@@ -1,0 +1,58 @@
+<%# Requirement hierarchy tree — modules > sections > requirements %>
+<div data-controller="tree" data-tree-active-id-value="<%= @active_requirement_id %>" class="text-sm">
+  <%# Tree toolbar %>
+  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-200 bg-slate-50/80">
+    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Explorer</span>
+    <div class="flex items-center gap-1">
+      <button type="button" data-action="tree#expandAll" title="Expand all"
+              class="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+      <button type="button" data-action="tree#collapseAll" title="Collapse all"
+              class="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="py-1">
+    <% if @modules.any? %>
+      <% @modules.each do |mod| %>
+        <%# Module node %>
+        <div class="tree-node">
+          <button type="button"
+                  data-action="tree#toggle"
+                  data-tree-node-id="mod-<%= mod.id %>"
+                  class="w-full flex items-center gap-1.5 px-3 py-1.5 text-left hover:bg-slate-100 transition-colors group">
+            <svg data-tree-icon xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150" style="transform: rotate(90deg)" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>
+            <span class="font-medium text-slate-700 truncate"><%= mod.name %></span>
+            <span class="ml-auto text-xs text-slate-400 tabular-nums shrink-0"><%= mod.requirements.size %></span>
+          </button>
+
+          <div data-tree-target="children"
+               data-tree-children-id="mod-<%= mod.id %>"
+               data-expanded="true">
+            <% root_sections = mod.sections.select { |s| s.parent_section_id.nil? }.sort_by(&:position) %>
+            <% root_sections.each do |section| %>
+              <%= render partial: "requirements/tree_section", locals: { section: section, depth: 1, project: @project } %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="px-3 py-8 text-center">
+        <p class="text-xs text-slate-400">No modules defined.</p>
+        <p class="text-xs text-slate-400 mt-1">Create modules in project settings first.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -30,11 +30,13 @@ class RequirementsController < ApplicationController
       @requirements = @requirements.search_by_text(params[:q])
     end
 
-    @modules = @project.requirement_modules.order(:position).includes(sections: :requirements)
+    load_tree_data
   end
 
   def show
     authorize @requirement
+    @active_requirement_id = @requirement.id
+    load_tree_data
   end
 
   def new
@@ -104,6 +106,12 @@ class RequirementsController < ApplicationController
     end
 
     permitted
+  end
+
+  def load_tree_data
+    @modules = @project.requirement_modules
+      .order(:position)
+      .includes(sections: [ :child_sections, :requirements ])
   end
 
   def load_form_data
