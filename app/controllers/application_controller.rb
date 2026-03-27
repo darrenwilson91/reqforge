@@ -57,6 +57,18 @@ class ApplicationController < ActionController::Base
     redirect_to new_organization_path, alert: "Please create or join an organization to continue."
   end
 
+  # Multi-tenancy scoping: use in controllers to scope queries to the current organization.
+  # Example: scoped_query(Project).find(params[:id])
+  def scoped_query(model_class)
+    model_class.for_organization(current_organization)
+  end
+
+  # Build a new record scoped to the current organization.
+  # Example: build_scoped(Project, project_params)
+  def build_scoped(model_class, attributes = {})
+    model_class.new(attributes.merge(organization: current_organization))
+  end
+
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
     redirect_back(fallback_location: root_path)
