@@ -71,12 +71,12 @@
   <div class="rf-card-padded">
     <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
     <div class="mt-4 flex flex-wrap gap-3">
-      <a href="#" class="rf-btn-primary">
+      <%= link_to new_project_path, class: "rf-btn-primary" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
         </svg>
         New Project
-      </a>
+      <% end %>
       <a href="#" class="rf-btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
