@@ -64,6 +64,12 @@ class RequirementsController < ApplicationController
   def edit
     authorize @requirement
     load_form_data
+
+    if turbo_frame_request?
+      load_tree_data
+      @active_requirement_id = @requirement.id
+      render :show
+    end
   end
 
   def update
@@ -72,7 +78,13 @@ class RequirementsController < ApplicationController
       redirect_to project_requirement_path(@project, @requirement), notice: "Requirement updated successfully."
     else
       load_form_data
-      render :edit, status: :unprocessable_entity
+      if turbo_frame_request?
+        load_tree_data
+        @active_requirement_id = @requirement.id
+        render :show, status: :unprocessable_entity
+      else
+        render :edit, status: :unprocessable_entity
+      end
     end
   end
 
