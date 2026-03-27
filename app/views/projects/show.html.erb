@@ -58,6 +58,35 @@
     </div>
   </div>
 
+  <%# Custom Attributes %>
+  <% if @project.attribute_schema.is_a?(Array) && @project.attribute_schema.any? %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-900">Custom Attributes</h2>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <% @project.attribute_schema.each do |attr| %>
+            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-slate-700 truncate"><%= attr["name"] %></div>
+                <div class="text-xs text-slate-400">
+                  <%= attr["attr_type"]&.humanize || "Text" %>
+                  <% if attr["required"] %>
+                    <span class="text-amber-600 font-medium">&middot; Required</span>
+                  <% end %>
+                  <% if attr["attr_type"] == "enum" && attr["options"].present? %>
+                    <span class="text-slate-400">&middot; <%= Array(attr["options"]).join(", ") %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <%# Modules Tree %>
   <div class="rf-card">
     <div class="p-5 border-b border-slate-100">

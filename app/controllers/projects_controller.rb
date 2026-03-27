@@ -53,6 +53,10 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:name, :description, :prefix, :status, :attribute_schema)
+    permitted = params.require(:project).permit(:name, :description, :prefix, :status, :attribute_schema)
+    if permitted[:attribute_schema].is_a?(String)
+      permitted[:attribute_schema] = JSON.parse(permitted[:attribute_schema]) rescue []
+    end
+    permitted
   end
 end

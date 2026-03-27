@@ -50,6 +50,29 @@
     </div>
   <% end %>
 
+  <%# Custom Attribute Schema %>
+  <div class="border-t border-slate-200 pt-6">
+    <div data-controller="attribute-schema"
+         data-attribute-schema-attributes-value="<%= (project.attribute_schema.presence || []).to_json %>">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700">Custom Attributes</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Define additional fields that requirements in this project will have.</p>
+        </div>
+        <button type="button"
+                data-action="click->attribute-schema#addAttribute"
+                class="rf-btn-secondary text-xs flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Add Attribute
+        </button>
+      </div>
+      <div data-attribute-schema-target="container" class="space-y-3"></div>
+      <%= f.hidden_field :attribute_schema, value: (project.attribute_schema.presence || []).to_json, data: { attribute_schema_target: "hiddenField" } %>
+    </div>
+  </div>
+
   <%# Actions %>
   <div class="flex items-center gap-3 pt-2">
     <%= f.submit project.persisted? ? "Update Project" : "Create Project", class: "rf-btn-primary cursor-pointer" %>

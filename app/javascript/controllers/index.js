@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import AttributeSchemaController from "./attribute_schema_controller"
+application.register("attribute-schema", AttributeSchemaController)
+
 import DropdownController from "./dropdown_controller"
 application.register("dropdown", DropdownController)
 
