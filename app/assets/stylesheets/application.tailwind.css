@@ -227,6 +227,27 @@
   .sortable-drag {
     @apply opacity-90 shadow-md rounded;
   }
+
+  /* Version history diff highlighting */
+  .rf-diff-del {
+    @apply bg-red-100 text-red-800 line-through rounded-sm px-0.5;
+  }
+
+  .rf-diff-add {
+    @apply bg-emerald-100 text-emerald-800 rounded-sm px-0.5;
+  }
+
+  .rf-diff-old-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-red-50 text-red-700 border border-red-200;
+  }
+
+  .rf-diff-new-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .rf-diff-content {
+    word-break: break-word;
+  }
 }
 
 /* ============================================================

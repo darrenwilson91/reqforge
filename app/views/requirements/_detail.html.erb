@@ -236,38 +236,5 @@
   </div>
 
   <%# Version History %>
-  <div class="rf-card">
-    <div class="p-5 border-b border-slate-100">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-semibold text-slate-900">Version History</h2>
-        <% if requirement.versions.any? %>
-          <span class="text-xs text-slate-400"><%= requirement.versions.count %> <%= "revision".pluralize(requirement.versions.count) %></span>
-        <% end %>
-      </div>
-    </div>
-    <% if requirement.versions.any? %>
-      <div class="divide-y divide-slate-100">
-        <% requirement.versions.order(created_at: :desc).limit(10).each_with_index do |version, idx| %>
-          <div class="px-5 py-3 flex items-center gap-3">
-            <div class="flex items-center justify-center w-7 h-7 rounded-full <%= idx == 0 ? 'bg-brand-accent-subtle text-brand-accent-dark' : 'bg-slate-100 text-slate-500' %> shrink-0">
-              <span class="text-xs font-mono font-semibold">v<%= version.index || 0 %></span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <span class="text-sm font-medium text-slate-700"><%= version.event.capitalize %></span>
-              <% if version.changeset.present? %>
-                <span class="text-xs text-slate-400 ml-2">
-                  (<%= version.changeset.keys.reject { |k| k == "updated_at" }.map(&:humanize).join(", ").presence || "metadata" %>)
-                </span>
-              <% end %>
-            </div>
-            <span class="text-xs text-slate-400 shrink-0"><%= version.created_at.strftime("%b %-d, %Y %l:%M %p") %></span>
-          </div>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="rf-empty-state py-8">
-        <p class="text-sm text-slate-400">No version history available.</p>
-      </div>
-    <% end %>
-  </div>
+  <%= render "requirements/version_history", requirement: requirement %>
 </div>

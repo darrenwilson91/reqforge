@@ -27,3 +27,6 @@ application.register("sortable", SortableController)
 
 import TreeController from "./tree_controller"
 application.register("tree", TreeController)
+
+import VersionHistoryController from "./version_history_controller"
+application.register("version-history", VersionHistoryController)
