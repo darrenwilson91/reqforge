@@ -12,9 +12,8 @@ RSpec.describe User, type: :model do
   end
 
   describe "associations" do
-    # These will pass once Membership and Organization models are generated
-    pending "has_many memberships (Membership model not yet generated)"
-    pending "has_many organizations through memberships (Organization model not yet generated)"
+    it { should have_many(:memberships).dependent(:destroy) }
+    it { should have_many(:organizations).through(:memberships) }
   end
 
   describe "#full_name" do

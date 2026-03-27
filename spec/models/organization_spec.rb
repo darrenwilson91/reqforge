@@ -42,9 +42,8 @@ RSpec.describe Organization, type: :model do
   end
 
   describe "associations" do
-    # These will pass once Membership and Project models are generated
-    pending "has_many memberships (Membership model not yet generated)"
-    pending "has_many users through memberships (Membership model not yet generated)"
+    it { should have_many(:memberships).dependent(:destroy) }
+    it { should have_many(:users).through(:memberships) }
     pending "has_many projects (Project model not yet generated)"
   end
 
