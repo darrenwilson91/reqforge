@@ -9,7 +9,7 @@ RSpec.describe RequirementModule, type: :model do
 
   describe "associations" do
     it { is_expected.to belong_to(:project) }
-    pending "has_many sections (Section model not yet generated)"
+    it { is_expected.to have_many(:sections).dependent(:destroy) }
   end
 
   describe "validations" do
