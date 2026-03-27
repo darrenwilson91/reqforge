@@ -1,6 +1,6 @@
 class RequirementsController < ApplicationController
   before_action :set_project
-  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status, :analyze_quality ]
+  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status, :analyze_quality, :suggest_links ]
 
   def index
     authorize @project, :show?
@@ -126,6 +126,28 @@ class RequirementsController < ApplicationController
       format.html do
         redirect_to project_requirement_path(@project, @requirement),
           notice: "Quality analysis started."
+      end
+    end
+  end
+
+  def suggest_links
+    authorize @requirement, :update?
+    AiAnalysisResult.mark_running!(@requirement, "link_suggestion")
+    LinkSuggestionJob.perform_later(@requirement.id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        @requirement.reload
+        @requirement.association(:ai_analysis_results).load_target
+        render turbo_stream: turbo_stream.replace(
+          "ai_analysis_panel",
+          partial: "requirements/ai_panel",
+          locals: { requirement: @requirement, project: @project }
+        )
+      end
+      format.html do
+        redirect_to project_requirement_path(@project, @requirement),
+          notice: "Link suggestion analysis started."
       end
     end
   end
