@@ -7,6 +7,9 @@ Rails.application.routes.draw do
       member do
         patch :transition_status
       end
+      collection do
+        patch :reorder
+      end
     end
   end
 

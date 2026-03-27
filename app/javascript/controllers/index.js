@@ -22,5 +22,8 @@ application.register("rich-text", RichTextController)
 import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)
 
+import SortableController from "./sortable_controller"
+application.register("sortable", SortableController)
+
 import TreeController from "./tree_controller"
 application.register("tree", TreeController)

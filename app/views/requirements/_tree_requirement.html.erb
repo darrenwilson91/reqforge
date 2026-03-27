@@ -1,17 +1,30 @@
-<%# Requirement leaf node in the tree hierarchy %>
+<%# Requirement leaf node in the tree hierarchy — draggable within its section %>
 <% padding_left = "padding-left: #{depth * 1.25}rem" %>
 <% is_active = defined?(@active_requirement_id) && @active_requirement_id.to_s == req.id.to_s %>
 
-<%= link_to project_requirement_path(project, req),
-    class: "w-full flex items-center gap-1.5 px-3 py-1.5 text-left transition-colors #{is_active ? 'bg-amber-50 text-amber-900' : 'hover:bg-slate-100'}",
-    style: padding_left,
-    data: { tree_requirement_id: req.id, turbo_frame: "_top" } do %>
-  <span class="w-3.5 h-3.5 shrink-0"></span>
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 <%= is_active ? 'text-amber-500' : 'text-slate-400' %>" viewBox="0 0 20 20" fill="currentColor">
-    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-  </svg>
-  <span class="truncate <%= is_active ? 'font-medium' : 'text-slate-600' %>">
-    <span class="font-mono text-xs <%= is_active ? 'text-amber-600' : 'text-slate-400' %>"><%= req.uid %></span>
-    <span class="ml-1"><%= truncate(req.title, length: 40) %></span>
-  </span>
-<% end %>
+<div data-sortable-item data-sortable-item-id="<%= req.id %>"
+     class="sortable-item group/req">
+  <div class="flex items-center" style="<%= padding_left %>">
+    <%# Drag handle — visible on hover %>
+    <span data-sortable-handle
+          class="w-3.5 h-3.5 shrink-0 cursor-grab active:cursor-grabbing flex items-center justify-center opacity-0 group-hover/req:opacity-100 transition-opacity"
+          title="Drag to reorder">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+        <circle cx="5" cy="4" r="1.2" /><circle cx="11" cy="4" r="1.2" />
+        <circle cx="5" cy="8" r="1.2" /><circle cx="11" cy="8" r="1.2" />
+        <circle cx="5" cy="12" r="1.2" /><circle cx="11" cy="12" r="1.2" />
+      </svg>
+    </span>
+    <%= link_to project_requirement_path(project, req),
+        class: "flex-1 flex items-center gap-1.5 px-1 py-1.5 text-left transition-colors rounded #{is_active ? 'bg-amber-50 text-amber-900' : 'hover:bg-slate-100'}",
+        data: { tree_requirement_id: req.id, turbo_frame: "_top" } do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 <%= is_active ? 'text-amber-500' : 'text-slate-400' %>" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+      </svg>
+      <span class="truncate <%= is_active ? 'font-medium' : 'text-slate-600' %>">
+        <span class="font-mono text-xs <%= is_active ? 'text-amber-600' : 'text-slate-400' %>"><%= req.uid %></span>
+        <span class="ml-1"><%= truncate(req.title, length: 40) %></span>
+      </span>
+    <% end %>
+  </div>
+</div>

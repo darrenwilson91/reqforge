@@ -107,6 +107,23 @@ class RequirementsController < ApplicationController
     end
   end
 
+  def reorder
+    authorize @project, :update?
+    ordered_ids = params[:ordered_ids]
+
+    unless ordered_ids.is_a?(Array) && ordered_ids.all? { |id| id.to_s.match?(/\A\d+\z/) }
+      return head :unprocessable_entity
+    end
+
+    Requirement.transaction do
+      ordered_ids.each_with_index do |id, index|
+        @project.requirements.where(id: id).update_all(position: index + 1)
+      end
+    end
+
+    head :ok
+  end
+
   private
 
   def set_project

@@ -214,6 +214,19 @@
   .rf-empty-state-description {
     @apply mt-1 text-sm text-slate-500 max-w-sm;
   }
+
+  /* Sortable drag-and-drop states */
+  .sortable-ghost {
+    @apply bg-amber-50 border border-dashed border-amber-300 rounded opacity-60;
+  }
+
+  .sortable-chosen {
+    @apply bg-white shadow-sm rounded;
+  }
+
+  .sortable-drag {
+    @apply opacity-90 shadow-md rounded;
+  }
 }
 
 /* ============================================================
