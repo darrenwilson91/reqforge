@@ -19,6 +19,9 @@ application.register("dropdown", DropdownController)
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
 
+import GlobalSearchController from "./global_search_controller"
+application.register("global-search", GlobalSearchController)
+
 import GraphController from "./graph_controller"
 application.register("graph", GraphController)
 

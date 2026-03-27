@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   devise_for :users
 
   resources :organizations, only: [ :new, :create ]
+
+  # Global search
+  get "search", to: "search#index", as: :search
+  get "search/autocomplete", to: "search#autocomplete", as: :search_autocomplete
   resources :projects do
     resources :requirements do
       member do

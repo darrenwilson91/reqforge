@@ -8,12 +8,26 @@
 
   <!-- Right: Actions -->
   <div class="flex items-center gap-4">
-    <!-- Search -->
-    <div class="relative">
-      <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-      </svg>
-      <input type="text" placeholder="Search requirements..." class="rf-input w-64 pl-9 bg-slate-50" />
+    <!-- Global Search -->
+    <div class="relative" data-controller="global-search" data-global-search-url-value="<%= search_autocomplete_path %>">
+      <form action="<%= search_path %>" method="get" data-action="submit->global-search#submit">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        </svg>
+        <input type="text"
+               name="q"
+               placeholder="Search requirements..."
+               autocomplete="off"
+               class="rf-input w-64 pl-9 bg-slate-50"
+               data-global-search-target="input"
+               data-action="input->global-search#search blur->global-search#blur" />
+      </form>
+
+      <!-- Autocomplete dropdown -->
+      <div class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+           data-global-search-target="dropdown">
+        <div data-global-search-target="results"></div>
+      </div>
     </div>
 
     <!-- User Dropdown -->
