@@ -81,9 +81,9 @@
     </div>
   <% end %>
 
-  <div class="grid grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Diff Panel (2/3) -->
-    <div class="col-span-2 space-y-4">
+    <div class="lg:col-span-2 space-y-4">
       <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Requirement Changes</h2>
 
       <% @diff_fields.each do |field| %>
@@ -100,7 +100,7 @@
           <% if field.field == "body" %>
             <%# Body field — side-by-side or diff view %>
             <% if field.changed %>
-              <div class="grid grid-cols-2 divide-x divide-slate-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0 divide-slate-200">
                 <div class="p-5">
                   <div class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Snapshot</div>
                   <div class="rf-rich-text text-sm text-slate-600"><%= sanitize(field.snapshot_value, tags: %w[p br strong em b i u a ul ol li blockquote pre code del s h1 h2 h3], attributes: %w[href target]) %></div>

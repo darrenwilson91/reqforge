@@ -68,7 +68,7 @@
   <% end %>
 
   <%# Stats Row %>
-  <div id="review_stats_<%= @review.id %>" class="grid grid-cols-4 gap-4">
+  <div id="review_stats_<%= @review.id %>" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
     <%= render partial: "reviews/review_stats", locals: { progress: @progress, review_items: @review_items } %>
   </div>
 
@@ -103,7 +103,7 @@
   <% end %>
   </div>
 
-  <div class="grid grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Review Items (2/3) -->
     <div class="col-span-2 space-y-3">
       <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Review Items</h2>

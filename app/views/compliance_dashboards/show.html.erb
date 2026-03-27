@@ -256,7 +256,7 @@
         </div>
 
         <%# Detail grid %>
-        <div class="grid grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <% asil_labels = { "qm" => "QM", "asil_a" => "ASIL A", "asil_b" => "ASIL B", "asil_c" => "ASIL C", "asil_d" => "ASIL D" } %>
           <% asil_badge_classes = { "qm" => "rf-asil-qm", "asil_a" => "rf-asil-a", "asil_b" => "rf-asil-b", "asil_c" => "rf-asil-c", "asil_d" => "rf-asil-d" } %>
           <% @asil_data.each do |asil| %>

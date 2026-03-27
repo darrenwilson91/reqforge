@@ -19,10 +19,20 @@
     <% end %>
   </div>
 
+  <%# Mobile tree toggle %>
+  <div class="lg:hidden">
+    <button type="button" onclick="document.getElementById('req-tree-panel').classList.toggle('hidden')" class="rf-btn-secondary text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+      </svg>
+      Toggle Module Tree
+    </button>
+  </div>
+
   <%# Two-panel layout: tree + content %>
-  <div class="flex gap-6 items-start">
-    <%# Left panel — hierarchy tree %>
-    <div class="w-72 shrink-0 rf-card overflow-hidden sticky top-4">
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <%# Left panel — hierarchy tree (hidden on mobile by default) %>
+    <div id="req-tree-panel" class="hidden lg:block w-full lg:w-72 shrink-0 rf-card overflow-hidden lg:sticky lg:top-4">
       <%= render partial: "requirements/tree" %>
     </div>
 
@@ -30,8 +40,8 @@
     <div class="flex-1 min-w-0 space-y-4">
       <%# Filters %>
       <div class="rf-card-padded">
-        <%= form_tag project_requirements_path(@project), method: :get, class: "flex flex-wrap items-end gap-4" do %>
-          <div class="flex-1 min-w-[200px]">
+        <%= form_tag project_requirements_path(@project), method: :get, class: "flex flex-wrap items-end gap-3 sm:gap-4" do %>
+          <div class="w-full sm:flex-1 sm:min-w-[200px]">
             <label class="rf-label">Search</label>
             <%= text_field_tag :q, params[:q], placeholder: "Search by UID, title, or body...", class: "rf-input" %>
           </div>
@@ -60,11 +70,11 @@
               <tr class="border-b border-slate-200 bg-slate-50/50">
                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">UID</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Module / Section</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Module / Section</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ASIL</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Priority</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">ASIL</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -81,7 +91,7 @@
                       <p class="mt-0.5 text-xs text-slate-400 truncate max-w-md"><%= truncate(req.body, length: 80) %></p>
                     <% end %>
                   </td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 hidden md:table-cell">
                     <div class="text-xs text-slate-500">
                       <% if req.section&.requirement_module %>
                         <span class="font-medium"><%= req.section.requirement_module.name %></span>
@@ -90,16 +100,16 @@
                       <span><%= req.section&.name %></span>
                     </div>
                   </td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 hidden sm:table-cell">
                     <span class="<%= requirement_type_badge_class(req) %>"><%= req.requirement_type.humanize %></span>
                   </td>
                   <td class="px-4 py-3">
                     <span class="<%= requirement_status_badge_class(req) %>"><%= req.status.humanize %></span>
                   </td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 hidden lg:table-cell">
                     <span class="<%= requirement_priority_badge_class(req) %>"><%= req.priority.humanize %></span>
                   </td>
-                  <td class="px-4 py-3">
+                  <td class="px-4 py-3 hidden lg:table-cell">
                     <span class="<%= asil_badge_class(req) %>"><%= req.asil_level.upcase.sub("_", " ") %></span>
                   </td>
                 </tr>
