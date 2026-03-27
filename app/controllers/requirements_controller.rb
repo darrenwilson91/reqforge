@@ -1,6 +1,6 @@
 class RequirementsController < ApplicationController
   before_action :set_project
-  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status ]
+  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status, :analyze_quality ]
 
   def index
     authorize @project, :show?
@@ -105,6 +105,28 @@ class RequirementsController < ApplicationController
     else
       redirect_to project_requirement_path(@project, @requirement),
         alert: @requirement.errors.full_messages.join(", ")
+    end
+  end
+
+  def analyze_quality
+    authorize @requirement, :update?
+    AiAnalysisResult.mark_running!(@requirement, "quality_analysis")
+    QualityAnalysisJob.perform_later(@requirement.id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        @requirement.reload
+        @requirement.association(:ai_analysis_results).load_target
+        render turbo_stream: turbo_stream.replace(
+          "ai_analysis_panel",
+          partial: "requirements/ai_panel",
+          locals: { requirement: @requirement, project: @project }
+        )
+      end
+      format.html do
+        redirect_to project_requirement_path(@project, @requirement),
+          notice: "Quality analysis started."
+      end
     end
   end
 

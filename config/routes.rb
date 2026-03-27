@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     resources :requirements do
       member do
         patch :transition_status
+        post :analyze_quality
       end
       collection do
         patch :reorder

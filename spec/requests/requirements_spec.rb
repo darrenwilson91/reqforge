@@ -424,4 +424,72 @@ RSpec.describe "Requirements", type: :request do
       end
     end
   end
+
+  describe "POST /projects/:project_id/requirements/:id/analyze_quality" do
+    let!(:requirement) { create_requirement(title: "System shall activate brakes", body: "The braking system shall activate within 100ms of pedal input.") }
+
+    it "enqueues a QualityAnalysisJob" do
+      expect {
+        post analyze_quality_project_requirement_path(project, requirement)
+      }.to have_enqueued_job(QualityAnalysisJob).with(requirement.id)
+    end
+
+    it "creates a running AiAnalysisResult record" do
+      post analyze_quality_project_requirement_path(project, requirement)
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result).to be_present
+      expect(result.status).to eq("running")
+    end
+
+    it "redirects to the requirement page for HTML requests" do
+      post analyze_quality_project_requirement_path(project, requirement)
+      expect(response).to redirect_to(project_requirement_path(project, requirement))
+      expect(flash[:notice]).to include("Quality analysis started")
+    end
+
+    it "responds with Turbo Stream when requested" do
+      post analyze_quality_project_requirement_path(project, requirement),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("ai_analysis_panel")
+      expect(response.body).to include("Analyzing")
+    end
+
+    it "re-analyzes when a previous result exists" do
+      AiAnalysisResult.store_result!(requirement, "quality_analysis", { "overall_score" => 85 })
+      expect {
+        post analyze_quality_project_requirement_path(project, requirement)
+      }.to have_enqueued_job(QualityAnalysisJob).with(requirement.id)
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "quality_analysis")
+      expect(result.status).to eq("running")
+    end
+
+    context "when user is a viewer" do
+      let!(:membership) { create(:membership, user: user, organization: organization, role: :viewer) }
+
+      it "denies access" do
+        post analyze_quality_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(root_path)
+      end
+    end
+
+    context "when user is an author" do
+      let!(:membership) { create(:membership, user: user, organization: organization, role: :author) }
+
+      it "allows access" do
+        post analyze_quality_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(project_requirement_path(project, requirement))
+      end
+    end
+
+    context "when not signed in" do
+      before { sign_out user }
+
+      it "redirects to sign in" do
+        post analyze_quality_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+  end
 end
