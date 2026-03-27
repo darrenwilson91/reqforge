@@ -3,6 +3,7 @@ class Project < ApplicationRecord
 
   has_many :requirement_modules, dependent: :destroy
   has_many :requirements, dependent: :destroy
+  has_many :reviews, dependent: :destroy
 
   enum :status, { active: 0, archived: 1, template: 2 }
 

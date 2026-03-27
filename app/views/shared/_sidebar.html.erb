@@ -50,13 +50,15 @@
 
     <div class="mt-6 mb-3 rf-section-label px-2">Collaboration</div>
 
-    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors">
+    <% reviews_path_target = @project&.persisted? ? project_reviews_path(@project) : projects_path %>
+    <% reviews_active = controller_name == "reviews" %>
+    <%= link_to reviews_path_target, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors #{reviews_active ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}" do %>
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
       </svg>
       Reviews
-    </a>
+    <% end %>
 
     <div class="mt-6 mb-3 rf-section-label px-2">AI Tools</div>
 
