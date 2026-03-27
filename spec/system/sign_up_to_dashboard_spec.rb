@@ -117,21 +117,25 @@ RSpec.describe "Sign up to dashboard flow", type: :system do
       expect(page).to have_content("overview of your requirements management workspace")
     end
 
-    it "shows stat cards with correct counts" do
+    it "shows getting started empty state when no projects exist" do
+      visit root_path
+
+      expect(page).to have_content("Get started with ReqForge")
+      expect(page).to have_content("Create First Project")
+      expect(page).to have_content("Create a project")
+      expect(page).to have_content("Add requirements")
+      expect(page).to have_content("Build traceability")
+    end
+
+    it "shows stat cards when projects exist" do
+      create(:project, organization: organization, name: "Test Project")
       visit root_path
 
       expect(page).to have_content("Projects")
       expect(page).to have_content("Requirements")
       expect(page).to have_content("Active Reviews")
       expect(page).to have_content("Team Members")
-    end
-
-    it "shows quick action buttons" do
-      visit root_path
-
       expect(page).to have_content("New Project")
-      expect(page).to have_content("New Requirement")
-      expect(page).to have_content("Import CSV")
     end
 
     it "shows the sidebar navigation" do

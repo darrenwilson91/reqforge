@@ -3,92 +3,189 @@
 <div class="space-y-6">
   <%# Welcome Banner %>
   <div class="rf-card-padded">
-    <h2 class="text-xl font-semibold text-slate-900">Welcome back<%= ", #{current_user.first_name}" if current_user %></h2>
+    <h2 class="text-xl font-bold text-slate-900">Welcome back<%= ", #{current_user.first_name}" if current_user %></h2>
     <p class="mt-1 text-sm text-slate-500">Here's an overview of your requirements management workspace.</p>
   </div>
 
-  <%# Stats Grid %>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="rf-card p-5">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-          </svg>
+  <% if @projects_count && @projects_count > 0 %>
+    <%# Stats Grid %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="rf-card p-5">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= @projects_count %></div>
+            <div class="text-xs font-medium text-slate-500">Projects</div>
+          </div>
         </div>
-        <div>
-          <div class="text-2xl font-bold text-slate-900"><%= current_organization ? current_organization.projects.count : 0 %></div>
-          <div class="text-xs font-medium text-slate-500">Projects</div>
+      </div>
+
+      <div class="rf-card p-5">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= @requirements_count %></div>
+            <div class="text-xs font-medium text-slate-500">Requirements</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rf-card p-5">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-50 text-amber-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= @active_reviews_count %></div>
+            <div class="text-xs font-medium text-slate-500">Active Reviews</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rf-card p-5">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-50 text-violet-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-slate-900"><%= @team_members_count %></div>
+            <div class="text-xs font-medium text-slate-500">Team Members</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="rf-card p-5">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-          </svg>
+    <%# Recent Activity %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <%# Recent Projects %>
+      <div class="rf-card">
+        <div class="px-5 py-4 border-b border-slate-100">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-900">Recent Projects</h3>
+            <%= link_to "View all", projects_path, class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" %>
+          </div>
         </div>
-        <div>
-          <div class="text-2xl font-bold text-slate-900"><%= current_organization ? Requirement.joins(section: { requirement_module: :project }).where(projects: { organization_id: current_organization.id }).count : 0 %></div>
-          <div class="text-xs font-medium text-slate-500">Requirements</div>
+        <div class="divide-y divide-slate-100">
+          <% @recent_projects.each do |project| %>
+            <%= link_to project_path(project), class: "flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors" do %>
+              <span class="rf-badge bg-blue-50 text-blue-700 text-xs"><%= project.prefix %></span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-slate-900 truncate"><%= project.name %></p>
+                <p class="text-xs text-slate-500"><%= project.requirements.count %> requirements</p>
+              </div>
+              <span class="text-xs text-slate-400"><%= time_ago_in_words(project.updated_at) %> ago</span>
+            <% end %>
+          <% end %>
         </div>
+      </div>
+
+      <%# Recent Requirements %>
+      <div class="rf-card">
+        <div class="px-5 py-4 border-b border-slate-100">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-900">Recent Requirements</h3>
+          </div>
+        </div>
+        <% if @recent_requirements.any? %>
+          <div class="divide-y divide-slate-100">
+            <% @recent_requirements.each do |req| %>
+              <%= link_to project_requirement_path(req.project, req), class: "flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors" do %>
+                <span class="rf-uid"><%= req.uid %></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-slate-900 truncate"><%= req.title %></p>
+                  <p class="text-xs text-slate-500"><%= req.project.prefix %></p>
+                </div>
+                <span class="text-xs text-slate-400"><%= time_ago_in_words(req.updated_at) %> ago</span>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="rf-empty-state py-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon w-8 h-8" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+            </svg>
+            <p class="rf-empty-state-title">No requirements yet</p>
+            <p class="rf-empty-state-description">Add requirements to your projects to see them here.</p>
+          </div>
+        <% end %>
       </div>
     </div>
 
-    <div class="rf-card p-5">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-50 text-amber-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+    <%# Quick Actions %>
+    <div class="rf-card-padded">
+      <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <%= link_to new_project_path, class: "rf-btn-primary" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-        </div>
-        <div>
-          <div class="text-2xl font-bold text-slate-900">0</div>
-          <div class="text-xs font-medium text-slate-500">Active Reviews</div>
-        </div>
+          New Project
+        <% end %>
       </div>
     </div>
 
-    <div class="rf-card p-5">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-50 text-violet-600">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-          </svg>
-        </div>
-        <div>
-          <div class="text-2xl font-bold text-slate-900"><%= current_organization ? current_organization.users.count : 0 %></div>
-          <div class="text-xs font-medium text-slate-500">Team Members</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <%# Quick Actions %>
-  <div class="rf-card-padded">
-    <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
-    <div class="mt-4 flex flex-wrap gap-3">
-      <%= link_to new_project_path, class: "rf-btn-primary" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+  <% else %>
+    <%# Getting Started Empty State %>
+    <div class="rf-card">
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon w-16 h-16" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
         </svg>
-        New Project
-      <% end %>
-      <a href="#" class="rf-btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-        </svg>
-        New Requirement
-      </a>
-      <a href="#" class="rf-btn-secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-        </svg>
-        Import CSV
-      </a>
+        <p class="rf-empty-state-title text-base">Get started with ReqForge</p>
+        <p class="rf-empty-state-description mt-2">Create your first project to start managing requirements, building traceability, and running reviews.</p>
+        <div class="mt-6">
+          <%= link_to new_project_path, class: "rf-btn-primary" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Create First Project
+          <% end %>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <%# Getting Started Steps %>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="rf-card-padded">
+        <div class="flex items-start gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 text-sm font-bold shrink-0">1</div>
+          <div>
+            <h4 class="text-sm font-semibold text-slate-900">Create a project</h4>
+            <p class="mt-1 text-xs text-slate-500">Choose a compliance template (ISO 26262, ASPICE) or start blank with custom attributes.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rf-card-padded">
+        <div class="flex items-start gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 text-sm font-bold shrink-0">2</div>
+          <div>
+            <h4 class="text-sm font-semibold text-slate-900">Add requirements</h4>
+            <p class="mt-1 text-xs text-slate-500">Write requirements in modules and sections, or import from CSV/ReqIF.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rf-card-padded">
+        <div class="flex items-start gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-600 text-sm font-bold shrink-0">3</div>
+          <div>
+            <h4 class="text-sm font-semibold text-slate-900">Build traceability</h4>
+            <p class="mt-1 text-xs text-slate-500">Link requirements across phases, run AI analysis, and start reviews.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </div>
