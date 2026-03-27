@@ -19,7 +19,7 @@ RSpec.describe ReviewItem, type: :model do
   describe "associations" do
     it { should belong_to(:review) }
     it { should belong_to(:requirement) }
-    it { pending "ReviewComment model not yet generated"; should have_many(:review_comments).dependent(:destroy) }
+    it { should have_many(:review_comments).dependent(:destroy) }
   end
 
   describe "validations" do

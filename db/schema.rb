@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_025623) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_025848) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -91,6 +91,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025623) do
     t.index ["section_id", "position"], name: "index_requirements_on_section_id_and_position"
     t.index ["section_id"], name: "index_requirements_on_section_id"
     t.index ["uid"], name: "index_requirements_on_uid", unique: true
+  end
+
+  create_table "review_comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "parent_comment_id"
+    t.boolean "resolved", default: false, null: false
+    t.datetime "resolved_at"
+    t.bigint "resolved_by_id"
+    t.bigint "review_item_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["parent_comment_id"], name: "index_review_comments_on_parent_comment_id"
+    t.index ["resolved_by_id"], name: "index_review_comments_on_resolved_by_id"
+    t.index ["review_item_id", "created_at"], name: "index_review_comments_on_review_item_id_and_created_at"
+    t.index ["review_item_id"], name: "index_review_comments_on_review_item_id"
+    t.index ["user_id"], name: "index_review_comments_on_user_id"
   end
 
   create_table "review_items", force: :cascade do |t|
@@ -182,6 +199,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025623) do
   add_foreign_key "requirements", "projects"
   add_foreign_key "requirements", "sections"
   add_foreign_key "requirements", "users", column: "created_by_id"
+  add_foreign_key "review_comments", "review_comments", column: "parent_comment_id"
+  add_foreign_key "review_comments", "review_items"
+  add_foreign_key "review_comments", "users"
+  add_foreign_key "review_comments", "users", column: "resolved_by_id"
   add_foreign_key "review_items", "requirements"
   add_foreign_key "review_items", "reviews"
   add_foreign_key "reviews", "projects"
