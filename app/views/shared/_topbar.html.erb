@@ -13,7 +13,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
       </svg>
-      <input type="text" placeholder="Search requirements..." class="w-64 pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-colors" />
+      <input type="text" placeholder="Search requirements..." class="rf-input w-64 pl-9 bg-slate-50" />
     </div>
 
     <!-- User Dropdown -->
@@ -35,7 +35,7 @@
           </div>
           <% if current_membership %>
             <div class="px-4 py-1.5">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 capitalize"><%= current_membership.role %></span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-accent-subtle text-brand-accent-dark capitalize"><%= current_membership.role %></span>
             </div>
           <% end %>
           <%= link_to "Sign out", destroy_user_session_path, data: { turbo_method: :delete }, class: "block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors" %>

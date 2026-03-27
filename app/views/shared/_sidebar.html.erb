@@ -1,8 +1,8 @@
-<nav class="flex flex-col w-64 min-h-screen bg-slate-900 text-slate-300 shrink-0" data-controller="sidebar">
+<nav class="flex flex-col w-64 min-h-screen bg-brand-navy-dark text-slate-300 shrink-0" data-controller="sidebar">
   <!-- Brand -->
-  <div class="flex items-center h-16 px-5 border-b border-slate-700/50">
+  <div class="flex items-center h-16 px-5 border-b border-white/10">
     <div class="flex items-center gap-2.5">
-      <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 text-slate-900">
+      <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-accent text-brand-navy-dark">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
         </svg>
@@ -13,7 +13,7 @@
 
   <!-- Organization Selector -->
   <% if current_organization %>
-    <div class="px-4 py-3 border-b border-slate-700/50">
+    <div class="px-4 py-3 border-b border-white/10">
       <div class="text-xs font-medium tracking-wider uppercase text-slate-500">Organization</div>
       <div class="mt-1 text-sm font-medium text-slate-200 truncate"><%= current_organization.name %></div>
     </div>
@@ -21,7 +21,7 @@
 
   <!-- Navigation -->
   <div class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-    <div class="mb-3 text-xs font-medium tracking-wider uppercase text-slate-500 px-2">Main</div>
+    <div class="mb-3 rf-section-label px-2">Main</div>
 
     <%= link_to root_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors #{current_page?(root_path) ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}" do %>
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -30,7 +30,7 @@
       Dashboard
     <% end %>
 
-    <div class="mt-6 mb-3 text-xs font-medium tracking-wider uppercase text-slate-500 px-2">Requirements</div>
+    <div class="mt-6 mb-3 rf-section-label px-2">Requirements</div>
 
     <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -46,7 +46,7 @@
       Traceability
     </a>
 
-    <div class="mt-6 mb-3 text-xs font-medium tracking-wider uppercase text-slate-500 px-2">Collaboration</div>
+    <div class="mt-6 mb-3 rf-section-label px-2">Collaboration</div>
 
     <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -56,7 +56,7 @@
       Reviews
     </a>
 
-    <div class="mt-6 mb-3 text-xs font-medium tracking-wider uppercase text-slate-500 px-2">AI Tools</div>
+    <div class="mt-6 mb-3 rf-section-label px-2">AI Tools</div>
 
     <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -68,7 +68,7 @@
 
   <!-- User Info (bottom) -->
   <% if current_user %>
-    <div class="px-4 py-3 border-t border-slate-700/50">
+    <div class="px-4 py-3 border-t border-white/10">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-700 text-slate-300 text-sm font-medium">
           <%= current_user.first_name[0] %><%= current_user.last_name[0] %>

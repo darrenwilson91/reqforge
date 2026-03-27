@@ -2,14 +2,14 @@
 
 <div class="space-y-6">
   <%# Welcome Banner %>
-  <div class="bg-white border border-slate-200 rounded-xl p-6">
+  <div class="rf-card-padded">
     <h2 class="text-xl font-semibold text-slate-900">Welcome back<%= ", #{current_user.first_name}" if current_user %></h2>
     <p class="mt-1 text-sm text-slate-500">Here's an overview of your requirements management workspace.</p>
   </div>
 
   <%# Stats Grid %>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white border border-slate-200 rounded-xl p-5">
+    <div class="rf-card p-5">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-xl p-5">
+    <div class="rf-card p-5">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-xl p-5">
+    <div class="rf-card p-5">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-50 text-amber-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-xl p-5">
+    <div class="rf-card p-5">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-50 text-violet-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
@@ -68,22 +68,22 @@
   </div>
 
   <%# Quick Actions %>
-  <div class="bg-white border border-slate-200 rounded-xl p-6">
+  <div class="rf-card-padded">
     <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Quick Actions</h3>
     <div class="mt-4 flex flex-wrap gap-3">
-      <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+      <a href="#" class="rf-btn-primary">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
         </svg>
         New Project
       </a>
-      <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+      <a href="#" class="rf-btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
         </svg>
         New Requirement
       </a>
-      <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+      <a href="#" class="rf-btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
         </svg>
