@@ -1,0 +1,46 @@
+<header class="flex items-center justify-between h-16 px-6 bg-white border-b border-slate-200 shrink-0">
+  <!-- Left: Page title / Breadcrumbs -->
+  <div class="flex items-center gap-4">
+    <% if content_for?(:page_title) %>
+      <h1 class="text-lg font-semibold text-slate-900"><%= yield(:page_title) %></h1>
+    <% end %>
+  </div>
+
+  <!-- Right: Actions -->
+  <div class="flex items-center gap-4">
+    <!-- Search -->
+    <div class="relative">
+      <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+      </svg>
+      <input type="text" placeholder="Search requirements..." class="w-64 pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-colors" />
+    </div>
+
+    <!-- User Dropdown -->
+    <% if current_user %>
+      <div class="relative" data-controller="dropdown">
+        <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-600 text-sm font-medium">
+            <%= current_user.first_name[0] %><%= current_user.last_name[0] %>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        <div data-dropdown-target="menu" class="hidden absolute right-0 mt-1 w-48 py-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+          <div class="px-4 py-2 border-b border-slate-100">
+            <div class="text-sm font-medium text-slate-900"><%= current_user.full_name %></div>
+            <div class="text-xs text-slate-500"><%= current_user.email %></div>
+          </div>
+          <% if current_membership %>
+            <div class="px-4 py-1.5">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 capitalize"><%= current_membership.role %></span>
+            </div>
+          <% end %>
+          <%= link_to "Sign out", destroy_user_session_path, data: { turbo_method: :delete }, class: "block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</header>
