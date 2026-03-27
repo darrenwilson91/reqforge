@@ -27,8 +27,8 @@ const ATTRIBUTE_OPTIONS = {
 const ATTRIBUTE_FIELDS = ["requirement_type", "priority", "asil_level"]
 
 export default class extends Controller {
-  static targets = ["titleInput", "sectionSelect", "sectionSwitcher", "nextUid", "sessionCount", "totalCount", "inputArea", "actionBar", "attributeBar", "attrTypeBadge", "attrPriorityBadge", "attrAsilBadge"]
-  static values = { url: String, section: String }
+  static targets = ["titleInput", "sectionSelect", "sectionSwitcher", "nextUid", "sessionCount", "totalCount", "inputArea", "actionBar", "attributeBar", "attrTypeBadge", "attrPriorityBadge", "attrAsilBadge", "requirementList"]
+  static values = { url: String, section: String, deleteUrl: String }
 
   connect() {
     this._sessionCount = 0
@@ -36,6 +36,7 @@ export default class extends Controller {
     this._attributeBarOpen = false
     this._activeFieldIndex = 0
     this._selectedIndices = { requirement_type: 0, priority: 0, asil_level: 0 }
+    this._selectedRowIndex = -1 // -1 means no row selected (input area is focused)
     this.autoResizeInput()
     this._updateDefaultBadges()
   }
@@ -55,7 +56,51 @@ export default class extends Controller {
         return
       }
     }
+
+    // Up arrow from empty input: navigate to last requirement row
+    if (event.key === "ArrowUp" && this.titleInputTarget.value.trim() === "") {
+      const rows = this._getRequirementRows()
+      if (rows.length > 0) {
+        event.preventDefault()
+        this._selectRow(rows.length - 1)
+      }
+      return
+    }
     // Shift+Enter: default textarea behavior (newline) — no action needed
+  }
+
+  handleRowKeydown(event) {
+    if (this._selectedRowIndex < 0) return
+    const rows = this._getRequirementRows()
+
+    switch (event.key) {
+      case "ArrowUp":
+        event.preventDefault()
+        if (this._selectedRowIndex > 0) {
+          this._selectRow(this._selectedRowIndex - 1)
+        }
+        break
+      case "ArrowDown":
+        event.preventDefault()
+        if (this._selectedRowIndex < rows.length - 1) {
+          this._selectRow(this._selectedRowIndex + 1)
+        } else {
+          // Past the last row: return focus to input
+          this._deselectAllRows()
+          this.titleInputTarget.focus()
+        }
+        break
+      case "Backspace":
+      case "Delete":
+        event.preventDefault()
+        this._deleteSelectedRow()
+        break
+      case "Escape":
+        event.preventDefault()
+        this._deselectAllRows()
+        this.titleInputTarget.focus()
+        break
+    }
   }
 
   handleAttributeKeydown(event) {
@@ -93,6 +138,90 @@ export default class extends Controller {
 
   closeAttributeBar() {
     this._closeAttributeBar()
+  }
+
+  // Row navigation helpers
+
+  _getRequirementRows() {
+    if (!this.hasRequirementListTarget) return []
+    return Array.from(this.requirementListTarget.querySelectorAll("[data-requirement-id]"))
+  }
+
+  _selectRow(index) {
+    const rows = this._getRequirementRows()
+    if (index < 0 || index >= rows.length) return
+
+    this._deselectAllRows()
+    this._selectedRowIndex = index
+    const row = rows[index]
+    row.classList.add("ring-2", "ring-brand-accent/40", "bg-amber-50/50", "dark:bg-amber-900/10")
+    row.setAttribute("tabindex", "0")
+    row.focus()
+  }
+
+  _deselectAllRows() {
+    this._selectedRowIndex = -1
+    const rows = this._getRequirementRows()
+    rows.forEach(row => {
+      row.classList.remove("ring-2", "ring-brand-accent/40", "bg-amber-50/50", "dark:bg-amber-900/10")
+      row.removeAttribute("tabindex")
+    })
+  }
+
+  async _deleteSelectedRow() {
+    const rows = this._getRequirementRows()
+    if (this._selectedRowIndex < 0 || this._selectedRowIndex >= rows.length) return
+
+    const row = rows[this._selectedRowIndex]
+    const requirementId = row.dataset.requirementId
+    const titleEl = row.querySelector("p")
+    const title = titleEl ? titleEl.textContent.trim() : ""
+
+    // Confirm deletion — always confirm since these are saved requirements
+    const message = title
+      ? `Delete requirement "${title.substring(0, 60)}${title.length > 60 ? '...' : ''}"?`
+      : "Delete this requirement?"
+    if (!confirm(message)) return
+
+    try {
+      const token = document.querySelector('meta[name="csrf-token"]')?.content
+      const response = await fetch(this.deleteUrlValue.replace("__ID__", requirementId), {
+        method: "DELETE",
+        headers: {
+          "X-CSRF-Token": token,
+          "Accept": "text/html"
+        }
+      })
+
+      if (response.ok || response.redirected) {
+        // Remove the row from DOM
+        row.remove()
+
+        // Update total count
+        if (this.hasTotalCountTarget) {
+          const current = parseInt(this.totalCountTarget.textContent, 10) || 0
+          if (current > 0) this.totalCountTarget.textContent = current - 1
+        }
+
+        // Navigate to adjacent row or input
+        const updatedRows = this._getRequirementRows()
+        if (updatedRows.length === 0) {
+          this._selectedRowIndex = -1
+          this.titleInputTarget.focus()
+        } else if (this._selectedRowIndex >= updatedRows.length) {
+          this._selectRow(updatedRows.length - 1)
+        } else {
+          this._selectRow(this._selectedRowIndex)
+        }
+      } else {
+        // Flash error on the row
+        row.classList.add("ring-2", "ring-red-400")
+        setTimeout(() => row.classList.remove("ring-2", "ring-red-400"), 1500)
+      }
+    } catch (error) {
+      row.classList.add("ring-2", "ring-red-400")
+      setTimeout(() => row.classList.remove("ring-2", "ring-red-400"), 1500)
+    }
   }
 
   _openAttributeBar() {

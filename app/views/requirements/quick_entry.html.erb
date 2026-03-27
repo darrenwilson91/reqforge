@@ -1,6 +1,6 @@
 <% content_for(:page_title, "#{@project.name} — Quick Entry") %>
 
-<div class="space-y-4" data-controller="quick-entry" data-quick-entry-url-value="<%= quick_create_project_requirements_path(@project) %>" data-quick-entry-section-value="<%= params[:section_id] %>">
+<div class="space-y-4" data-controller="quick-entry" data-quick-entry-url-value="<%= quick_create_project_requirements_path(@project) %>" data-quick-entry-section-value="<%= params[:section_id] %>" data-quick-entry-delete-url-value="<%= project_requirement_path(@project, '__ID__') %>">
   <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Requirements", project_requirements_path(@project)], "Quick Entry") %>
 
   <%# Header — minimal, focused %>
@@ -39,7 +39,7 @@
   <div class="rf-card overflow-hidden">
     <% if params[:section_id].present? %>
       <%# Existing requirements in this section %>
-      <div id="quick-entry-list" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+      <div id="quick-entry-list" class="divide-y divide-slate-100 dark:divide-slate-700/50" data-quick-entry-target="requirementList" data-action="keydown->quick-entry#handleRowKeydown">
         <% @existing_requirements.each do |req| %>
           <%= render partial: "requirements/quick_entry_row", locals: { requirement: req, project: @project } %>
         <% end %>
@@ -78,6 +78,8 @@
           <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Enter</kbd> save &amp; next</span>
           <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Shift+Enter</kbd> new line</span>
           <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Tab</kbd> set attributes</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">&uarr;&darr;</kbd> navigate rows</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Backspace</kbd> delete selected</span>
           <span class="flex items-center gap-1.5">
             Defaults:
             <span data-quick-entry-target="attrTypeBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">Functional</span>
