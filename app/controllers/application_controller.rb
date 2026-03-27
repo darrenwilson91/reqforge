@@ -1,3 +1,5 @@
+UserContext = Struct.new(:user, :organization, keyword_init: true)
+
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
@@ -12,6 +14,12 @@ class ApplicationController < ActionController::Base
   helper_method :current_organization, :current_membership
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
+  # Override Pundit's user context to include the current organization
+  # so policies can resolve membership for class-level authorization (index?, create?)
+  def pundit_user
+    UserContext.new(user: current_user, organization: current_organization)
+  end
 
   private
 

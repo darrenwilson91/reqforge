@@ -23,32 +23,30 @@ class ProjectPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if membership.present?
-        scope.for_organization(organization)
+      org = context_organization || user.organizations.first
+      if org && user.memberships.exists?(organization: org)
+        scope.for_organization(org)
       else
         scope.none
       end
-    end
-
-    private
-
-    def organization
-      user.organizations.first # Overridden by controller context
-    end
-
-    def membership
-      user.memberships.find_by(organization: organization)
     end
   end
 
   private
 
   def membership
-    return nil unless user && record
+    return nil unless user
 
-    organization = record.respond_to?(:organization) ? record.organization : nil
-    return nil unless organization
+    # For instance records, use the record's organization
+    # For class records (index?, create?), use the context organization
+    org = if record.respond_to?(:organization) && record.try(:organization)
+      record.organization
+    else
+      context_organization
+    end
 
-    @membership ||= user.memberships.find_by(organization: organization)
+    return nil unless org
+
+    @membership ||= user.memberships.find_by(organization: org)
   end
 end

@@ -1,11 +1,21 @@
 # frozen_string_literal: true
 
 class ApplicationPolicy
-  attr_reader :user, :record
+  attr_reader :record
 
-  def initialize(user, record)
-    @user = user
+  def initialize(context, record)
+    @context = context
     @record = record
+  end
+
+  # Extract user from context (supports both UserContext and plain User)
+  def user
+    @context.respond_to?(:user) ? @context.user : @context
+  end
+
+  # Extract organization from context (nil when plain User is passed, e.g. in policy specs)
+  def context_organization
+    @context.respond_to?(:organization) ? @context.organization : nil
   end
 
   def index?
@@ -37,8 +47,8 @@ class ApplicationPolicy
   end
 
   class Scope
-    def initialize(user, scope)
-      @user = user
+    def initialize(context, scope)
+      @context = context
       @scope = scope
     end
 
@@ -48,6 +58,14 @@ class ApplicationPolicy
 
     private
 
-    attr_reader :user, :scope
+    attr_reader :scope
+
+    def user
+      @context.respond_to?(:user) ? @context.user : @context
+    end
+
+    def context_organization
+      @context.respond_to?(:organization) ? @context.organization : nil
+    end
   end
 end
