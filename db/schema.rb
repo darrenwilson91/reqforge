@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_114650) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_124525) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_114650) do
     t.index ["requirement_id", "analysis_type"], name: "index_ai_analysis_results_on_requirement_id_and_analysis_type", unique: true
     t.index ["requirement_id"], name: "index_ai_analysis_results_on_requirement_id"
     t.index ["status"], name: "index_ai_analysis_results_on_status"
+  end
+
+  create_table "compliance_templates", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.string "standard", null: false
+    t.jsonb "template_data", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_compliance_templates_on_active"
+    t.index ["name"], name: "index_compliance_templates_on_name", unique: true
+    t.index ["standard"], name: "index_compliance_templates_on_standard"
   end
 
   create_table "memberships", force: :cascade do |t|
