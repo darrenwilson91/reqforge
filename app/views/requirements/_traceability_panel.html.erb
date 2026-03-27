@@ -1,0 +1,203 @@
+<%# Traceability Links panel — groups links by link type for clear traceability analysis %>
+<%
+  outgoing = requirement.outgoing_links.includes(:target_requirement).to_a
+  incoming = requirement.incoming_links.includes(:source_requirement).to_a
+  all_links = outgoing + incoming
+  total_count = all_links.size
+
+  # Group by link type
+  links_by_type = {}
+  TraceabilityLink.link_types.keys.each do |lt|
+    out = outgoing.select { |l| l.link_type == lt }
+    inc = incoming.select { |l| l.link_type == lt }
+    next if out.empty? && inc.empty?
+    links_by_type[lt] = { outgoing: out, incoming: inc, count: out.size + inc.size }
+  end
+%>
+
+<div class="rf-card" data-controller="traceability-panel">
+  <%# Header %>
+  <div class="p-5 border-b border-slate-100">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <h2 class="text-base font-semibold text-slate-900">Traceability Links</h2>
+        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
+          <%= total_count > 0 ? 'bg-brand-accent-subtle text-brand-accent-dark' : 'bg-slate-100 text-slate-400' %>">
+          <%= total_count %>
+        </span>
+      </div>
+      <% if total_count > 1 %>
+        <div class="flex items-center gap-1">
+          <button type="button" data-action="click->traceability-panel#expandAll"
+                  class="text-xs text-slate-400 hover:text-slate-600 transition-colors px-1.5 py-0.5 rounded hover:bg-slate-50">
+            Expand all
+          </button>
+          <span class="text-slate-200">|</span>
+          <button type="button" data-action="click->traceability-panel#collapseAll"
+                  class="text-xs text-slate-400 hover:text-slate-600 transition-colors px-1.5 py-0.5 rounded hover:bg-slate-50">
+            Collapse all
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Summary badges — quick overview of link type distribution %>
+    <% if links_by_type.any? %>
+      <div class="flex items-center gap-2 mt-3 flex-wrap">
+        <% links_by_type.each do |lt, data| %>
+          <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full <%= link_type_badge_class(lt) %>">
+            <span class="<%= link_type_dot_class(lt) %> w-1.5 h-1.5 rounded-full"></span>
+            <%= lt.humanize %> <span class="font-semibold"><%= data[:count] %></span>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if links_by_type.any? %>
+    <div class="divide-y divide-slate-100">
+      <% links_by_type.each do |lt, data| %>
+        <div data-traceability-panel-target="section">
+          <%# Link type section header — clickable to expand/collapse %>
+          <button type="button"
+                  data-action="click->traceability-panel#toggle"
+                  class="w-full px-5 py-3 flex items-center gap-3 hover:bg-slate-50/50 transition-colors text-left">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-4 h-4 text-slate-400 transition-transform duration-200"
+                 data-traceability-panel-target="chevron"
+                 viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="inline-flex items-center gap-2">
+              <span class="<%= link_type_dot_class(lt) %> w-2 h-2 rounded-full"></span>
+              <span class="text-sm font-medium text-slate-700"><%= lt.humanize %></span>
+            </span>
+            <span class="text-xs text-slate-400"><%= data[:count] %> <%= "link".pluralize(data[:count]) %></span>
+            <%# Direction breakdown %>
+            <span class="ml-auto flex items-center gap-2 text-xs text-slate-400">
+              <% if data[:outgoing].any? %>
+                <span class="inline-flex items-center gap-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                  <%= data[:outgoing].size %>
+                </span>
+              <% end %>
+              <% if data[:incoming].any? %>
+                <span class="inline-flex items-center gap-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                  </svg>
+                  <%= data[:incoming].size %>
+                </span>
+              <% end %>
+            </span>
+          </button>
+
+          <%# Expandable link list %>
+          <div data-traceability-panel-target="content" class="border-t border-slate-50">
+            <%# Outgoing links of this type %>
+            <% data[:outgoing].each do |link| %>
+              <div class="group pl-12 pr-5 py-2.5 flex items-center gap-3 hover:bg-slate-50/30 transition-colors">
+                <div class="flex items-center justify-center w-5 h-5 rounded bg-blue-50 text-blue-500 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0 flex items-center gap-2">
+                  <%= link_to project_requirement_path(project, link.target_requirement), class: "inline-flex items-center gap-1.5 group/link" do %>
+                    <span class="rf-uid text-xs"><%= link.target_requirement.uid %></span>
+                    <span class="text-sm text-slate-700 group-hover/link:text-brand-accent-dark transition-colors truncate"><%= link.target_requirement.title %></span>
+                  <% end %>
+                  <% if link.target_requirement.respond_to?(:status) %>
+                    <span class="<%= requirement_status_badge_class(link.target_requirement) %> text-[10px] shrink-0"><%= link.target_requirement.status.humanize %></span>
+                  <% end %>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <% if link.ai_suggested? %>
+                    <span class="rf-badge bg-violet-50 text-violet-600 text-[10px]" title="AI suggested (confidence: <%= link.confidence ? "#{(link.confidence * 100).round}%" : "N/A" %>)">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline -mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+                      </svg>
+                      AI
+                    </span>
+                  <% end %>
+                  <% if link.description.present? %>
+                    <span class="text-xs text-slate-400 max-w-24 truncate hidden sm:inline" title="<%= link.description %>"><%= link.description %></span>
+                  <% end %>
+                  <% if policy(link).destroy? %>
+                    <%= button_to project_traceability_link_path(project, link), method: :delete,
+                        class: "opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all",
+                        data: { turbo_confirm: "Remove this traceability link?" } do %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <%# Incoming links of this type %>
+            <% data[:incoming].each do |link| %>
+              <div class="group pl-12 pr-5 py-2.5 flex items-center gap-3 hover:bg-slate-50/30 transition-colors">
+                <div class="flex items-center justify-center w-5 h-5 rounded bg-emerald-50 text-emerald-500 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0 flex items-center gap-2">
+                  <%= link_to project_requirement_path(project, link.source_requirement), class: "inline-flex items-center gap-1.5 group/link" do %>
+                    <span class="rf-uid text-xs"><%= link.source_requirement.uid %></span>
+                    <span class="text-sm text-slate-700 group-hover/link:text-brand-accent-dark transition-colors truncate"><%= link.source_requirement.title %></span>
+                  <% end %>
+                  <% if link.source_requirement.respond_to?(:status) %>
+                    <span class="<%= requirement_status_badge_class(link.source_requirement) %> text-[10px] shrink-0"><%= link.source_requirement.status.humanize %></span>
+                  <% end %>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <% if link.ai_suggested? %>
+                    <span class="rf-badge bg-violet-50 text-violet-600 text-[10px]" title="AI suggested (confidence: <%= link.confidence ? "#{(link.confidence * 100).round}%" : "N/A" %>)">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline -mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+                      </svg>
+                      AI
+                    </span>
+                  <% end %>
+                  <% if link.description.present? %>
+                    <span class="text-xs text-slate-400 max-w-24 truncate hidden sm:inline" title="<%= link.description %>"><%= link.description %></span>
+                  <% end %>
+                  <% if policy(link).destroy? %>
+                    <%= button_to project_traceability_link_path(project, link), method: :delete,
+                        class: "opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all",
+                        data: { turbo_confirm: "Remove this traceability link?" } do %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <%# Empty state %>
+    <div class="rf-empty-state py-8">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300 mx-auto mb-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+      </svg>
+      <p class="text-sm text-slate-400">No traceability links yet.</p>
+      <p class="text-xs text-slate-300 mt-1">Add links to trace relationships between requirements.</p>
+    </div>
+  <% end %>
+
+  <%# Add link form (only for users who can create links) %>
+  <% if policy(TraceabilityLink.new(source_requirement: requirement)).create? %>
+    <div class="px-5 py-4 border-t border-slate-100">
+      <%= render "traceability_links/link_form", project: project, requirement: requirement %>
+    </div>
+  <% end %>
+</div>

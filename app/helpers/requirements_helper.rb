@@ -42,4 +42,30 @@ module RequirementsHelper
     else "rf-asil-qm"
     end
   end
+
+  def link_type_badge_class(link_type)
+    case link_type.to_s
+    when "derives_from"   then "bg-blue-50 text-blue-700"
+    when "satisfies"      then "bg-emerald-50 text-emerald-700"
+    when "verifies"       then "bg-violet-50 text-violet-700"
+    when "conflicts_with" then "bg-red-50 text-red-700"
+    when "refines"        then "bg-amber-50 text-amber-700"
+    when "implements"     then "bg-teal-50 text-teal-700"
+    when "parent_child"   then "bg-slate-100 text-slate-600"
+    else "bg-slate-100 text-slate-600"
+    end
+  end
+
+  def link_type_dot_class(link_type)
+    case link_type.to_s
+    when "derives_from"   then "bg-blue-500"
+    when "satisfies"      then "bg-emerald-500"
+    when "verifies"       then "bg-violet-500"
+    when "conflicts_with" then "bg-red-500"
+    when "refines"        then "bg-amber-500"
+    when "implements"     then "bg-teal-500"
+    when "parent_child"   then "bg-slate-400"
+    else "bg-slate-400"
+    end
+  end
 end
