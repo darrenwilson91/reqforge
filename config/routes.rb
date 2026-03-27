@@ -18,6 +18,12 @@ Rails.application.routes.draw do
     resources :traceability_links, only: [ :create, :destroy ]
     resource :traceability_matrix, only: [ :show ]
     resource :traceability_graph, only: [ :show ]
+    resource :import_export, only: [ :show ] do
+      post :import_csv
+      post :import_reqif
+      get :export_csv
+      get :export_reqif
+    end
     resources :reviews do
       member do
         patch :transition_status

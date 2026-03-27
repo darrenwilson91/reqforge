@@ -114,7 +114,7 @@ RSpec.describe "Project Management", type: :system do
       visit project_path(project)
       expect(page).to have_content("Modules")
       expect(page).to have_content("Requirements")
-      expect(page).to have_content("Created")
+      expect(page).to have_content("Import / Export")
     end
 
     it "shows empty state for modules" do
