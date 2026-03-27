@@ -115,11 +115,16 @@ RSpec.describe ChangeSetRule, type: :model do
     let(:rule) { create(:change_set_rule, project: project, min_approvals: 1) }
     let(:change_set) { create(:change_set, project: project) }
 
-    context "when ChangeSetApproval model exists" do
-      # ChangeSetApproval is not yet generated — these will be tested once it is
-      it "returns false when there are no approvals" do
-        pending "ChangeSetApproval model not yet generated"
+    context "when no approvals exist" do
+      it "returns false" do
         expect(rule.merge_eligible?(change_set)).to be false
+      end
+    end
+
+    context "when approval count meets minimum" do
+      it "returns true" do
+        create(:change_set_approval, :approved, change_set: change_set)
+        expect(rule.merge_eligible?(change_set)).to be true
       end
     end
 
@@ -127,7 +132,19 @@ RSpec.describe ChangeSetRule, type: :model do
       let(:rule) { create(:change_set_rule, project: project, min_approvals: 2) }
 
       it "returns false when approval count is below minimum" do
-        pending "ChangeSetApproval model not yet generated"
+        create(:change_set_approval, :approved, change_set: change_set)
+        expect(rule.merge_eligible?(change_set)).to be false
+      end
+
+      it "returns true when approval count meets minimum" do
+        create(:change_set_approval, :approved, change_set: change_set)
+        create(:change_set_approval, :approved, change_set: change_set)
+        expect(rule.merge_eligible?(change_set)).to be true
+      end
+
+      it "ignores non-approved statuses" do
+        create(:change_set_approval, :approved, change_set: change_set)
+        create(:change_set_approval, :changes_requested, change_set: change_set)
         expect(rule.merge_eligible?(change_set)).to be false
       end
     end

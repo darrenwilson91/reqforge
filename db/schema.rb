@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_235153) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_235537) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235153) do
     t.index ["requirement_id", "analysis_type"], name: "index_ai_analysis_results_on_requirement_id_and_analysis_type", unique: true
     t.index ["requirement_id"], name: "index_ai_analysis_results_on_requirement_id"
     t.index ["status"], name: "index_ai_analysis_results_on_status"
+  end
+
+  create_table "change_set_approvals", force: :cascade do |t|
+    t.text "body"
+    t.bigint "change_set_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["change_set_id", "status"], name: "index_change_set_approvals_on_change_set_id_and_status"
+    t.index ["change_set_id", "user_id"], name: "index_change_set_approvals_on_change_set_id_and_user_id", unique: true
+    t.index ["change_set_id"], name: "index_change_set_approvals_on_change_set_id"
+    t.index ["user_id"], name: "index_change_set_approvals_on_user_id"
   end
 
   create_table "change_set_rules", force: :cascade do |t|
@@ -264,6 +277,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235153) do
   end
 
   add_foreign_key "ai_analysis_results", "requirements"
+  add_foreign_key "change_set_approvals", "change_sets"
+  add_foreign_key "change_set_approvals", "users"
   add_foreign_key "change_set_rules", "projects"
   add_foreign_key "change_sets", "projects"
   add_foreign_key "change_sets", "reviews", column: "source_baseline_id"

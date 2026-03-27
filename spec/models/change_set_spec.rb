@@ -24,10 +24,8 @@ RSpec.describe ChangeSet, type: :model do
       is_expected.to have_many(:change_set_changes).dependent(:destroy)
     end
 
-    it "has_many :change_set_approvals" do
-      pending "ChangeSetApproval model not yet generated"
-      is_expected.to have_many(:change_set_approvals).dependent(:destroy)
-    end
+    it { is_expected.to have_many(:change_set_approvals).dependent(:destroy) }
+    it { is_expected.to have_many(:approvers).through(:change_set_approvals).source(:user) }
   end
 
   describe "validations" do
@@ -158,47 +156,61 @@ RSpec.describe ChangeSet, type: :model do
 
   describe "#progress" do
     it "returns zero progress with no approvals" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      expect(change_set.progress).to eq({ total: 0, decided: 0, percentage: 0 })
     end
 
     it "calculates progress with mixed approvals" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_approval, change_set: change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      create(:change_set_approval, :changes_requested, change_set: change_set)
+      result = change_set.progress
+      expect(result[:total]).to eq(3)
+      expect(result[:decided]).to eq(2)
+      expect(result[:percentage]).to eq(67)
     end
 
     it "returns 100% when all decided" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      result = change_set.progress
+      expect(result[:percentage]).to eq(100)
     end
   end
 
   describe "#all_approved?" do
     it "returns false with no approvals" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      expect(change_set.all_approved?).to be false
     end
 
     it "returns true when all approved" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      expect(change_set.all_approved?).to be true
     end
 
     it "returns false with mixed statuses" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_approval, :approved, change_set: change_set)
+      create(:change_set_approval, :changes_requested, change_set: change_set)
+      expect(change_set.all_approved?).to be false
     end
   end
 
   describe "#any_changes_requested?" do
     it "returns false with no approvals" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      expect(change_set.any_changes_requested?).to be false
     end
 
     it "returns true with changes_requested" do
-      pending "ChangeSetApproval model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_approval, :changes_requested, change_set: change_set)
+      expect(change_set.any_changes_requested?).to be true
     end
   end
 
