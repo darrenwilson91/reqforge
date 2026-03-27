@@ -1,19 +1,25 @@
 <%= turbo_stream_from @review_item %>
 
-<div class="max-w-7xl mx-auto px-6 py-8">
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
-    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent transition-colors" %>
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent transition-colors" %>
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-    <%= link_to @review.title, project_review_path(@project, @review), class: "hover:text-brand-accent transition-colors" %>
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-    <span class="text-slate-700 font-medium"><%= @review_item.requirement.uid %></span>
+<div class="space-y-6">
+  <%# Breadcrumb %>
+  <nav class="flex items-center gap-2 text-sm text-slate-500">
+    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <%= link_to @review.title, project_review_path(@project, @review), class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <span class="text-slate-900 font-medium"><%= @review_item.requirement.uid %></span>
   </nav>
 
-  <!-- Header -->
-  <div class="flex items-start justify-between mb-6">
+  <%# Header %>
+  <div class="flex items-start justify-between">
     <div>
       <div class="flex items-center gap-3">
         <span class="rf-uid text-sm"><%= @review_item.requirement.uid %></span>
@@ -27,7 +33,7 @@
           </span>
         <% end %>
       </div>
-      <h1 class="text-2xl font-semibold text-slate-900 mt-2"><%= @review_item.requirement.title %></h1>
+      <h1 class="text-2xl font-bold text-slate-900 mt-2"><%= @review_item.requirement.title %></h1>
       <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
         <span>Review: <%= @review.title %></span>
         <span>Status: <span class="font-medium text-slate-600"><%= @review.status.humanize %></span></span>
@@ -42,9 +48,9 @@
     <% end %>
   </div>
 
-  <!-- Decision Buttons -->
+  <%# Decision Buttons %>
   <% if @participant&.can_decide? && @review.in_progress? %>
-    <div class="rf-card-padded mb-6">
+    <div class="rf-card-padded">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-medium text-slate-700">Your Decision</h3>
         <div class="flex items-center gap-2">
@@ -225,11 +231,11 @@
     </div>
   </div>
 
-  <!-- Item Navigation -->
+  <%# Item Navigation %>
   <% all_items = @review.review_items.includes(:requirement).order("requirements.uid").references(:requirements) %>
   <% current_index = all_items.to_a.index(@review_item) %>
   <% if all_items.size > 1 %>
-    <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+    <div class="flex items-center justify-between pt-6 border-t border-slate-100">
       <% if current_index && current_index > 0 %>
         <% prev_item = all_items[current_index - 1] %>
         <%= link_to project_review_review_item_path(@project, @review, prev_item), class: "rf-btn-secondary text-sm" do %>

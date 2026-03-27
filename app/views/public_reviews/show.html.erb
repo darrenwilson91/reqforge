@@ -1,16 +1,18 @@
 <% content_for(:title) { "#{@review.title} — #{@project.name} — ReqForge" } %>
 
-<div class="max-w-7xl mx-auto px-6 py-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <div class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+<div class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+  <%# Header %>
+  <div>
+    <nav class="flex items-center gap-2 text-sm text-slate-500 mb-4">
       <span class="font-medium text-slate-600"><%= @project.name %></span>
-      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+      </svg>
       <span>Review</span>
-    </div>
+    </nav>
 
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-semibold text-slate-900"><%= @review.title %></h1>
+      <h1 class="text-2xl font-bold text-slate-900"><%= @review.title %></h1>
       <span class="<%= review_status_badge_class(@review) %>"><%= @review.status.humanize %></span>
     </div>
     <% if @review.description.present? %>
@@ -27,23 +29,23 @@
     </div>
   </div>
 
-  <!-- Stats Row -->
-  <div class="grid grid-cols-4 gap-4 mb-6">
-    <div class="rf-card-padded text-center">
-      <div class="text-2xl font-semibold text-slate-900"><%= @progress[:total] %></div>
-      <div class="text-xs text-slate-500 mt-1">Total Items</div>
+  <%# Stats Row %>
+  <div class="grid grid-cols-4 gap-4">
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-slate-900"><%= @progress[:total] %></div>
+      <div class="text-xs text-slate-400 mt-1">Total Items</div>
     </div>
-    <div class="rf-card-padded text-center">
-      <div class="text-2xl font-semibold text-emerald-600"><%= @review_items.select(&:approved?).size %></div>
-      <div class="text-xs text-slate-500 mt-1">Approved</div>
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-emerald-600"><%= @review_items.select(&:approved?).size %></div>
+      <div class="text-xs text-slate-400 mt-1">Approved</div>
     </div>
-    <div class="rf-card-padded text-center">
-      <div class="text-2xl font-semibold text-red-600"><%= @review_items.select(&:rejected?).size %></div>
-      <div class="text-xs text-slate-500 mt-1">Rejected</div>
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-red-600"><%= @review_items.select(&:rejected?).size %></div>
+      <div class="text-xs text-slate-400 mt-1">Rejected</div>
     </div>
-    <div class="rf-card-padded text-center">
+    <div class="rf-card p-4 text-center">
       <% pct = @progress[:percentage] %>
-      <div class="text-2xl font-semibold text-slate-900"><%= pct %>%</div>
+      <div class="text-2xl font-bold text-slate-900"><%= pct %>%</div>
       <div class="text-xs text-slate-500 mt-1">Progress</div>
       <div class="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
         <div class="h-full rounded-full transition-all <%= review_progress_bar_color(pct) %>" style="width: <%= pct %>%"></div>
@@ -51,11 +53,11 @@
     </div>
   </div>
 
-  <!-- Outcome Banner -->
+  <%# Outcome Banner %>
   <% if @review.completed? && @outcome %>
     <% config = review_outcome_config(@outcome) %>
     <% if config %>
-      <div class="rounded-lg border p-4 mb-6 flex items-center gap-4 <%= config[:bg] %>" data-testid="review-outcome">
+      <div class="rounded-lg border p-4 flex items-center gap-4 <%= config[:bg] %>" data-testid="review-outcome">
         <% if @outcome == :approved %>
           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 shrink-0 <%= config[:icon_color] %>" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />

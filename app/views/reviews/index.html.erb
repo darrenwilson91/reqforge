@@ -1,22 +1,28 @@
-<div class="max-w-7xl mx-auto px-6 py-8">
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
-    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent transition-colors" %>
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent transition-colors" %>
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-    <span class="text-slate-700 font-medium">Reviews</span>
+<% content_for(:page_title, "#{@project.name} — Reviews") %>
+
+<div class="space-y-6">
+  <%# Breadcrumb %>
+  <nav class="flex items-center gap-2 text-sm text-slate-500">
+    <%= link_to "Projects", projects_path, class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <%= link_to @project.name, project_path(@project), class: "hover:text-brand-accent-dark transition-colors" %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+    <span class="text-slate-900 font-medium">Reviews</span>
   </nav>
 
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-8">
+  <%# Header %>
+  <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-900">Reviews</h1>
-      <p class="mt-1 text-sm text-slate-500"><%= @project.name %> &mdash; <%= @reviews.size %> review<%= @reviews.size == 1 ? "" : "s" %></p>
+      <h1 class="text-2xl font-bold text-slate-900">Reviews</h1>
+      <p class="mt-1 text-sm text-slate-500"><%= @project.name %> &middot; <%= @reviews.size %> review<%= @reviews.size == 1 ? "" : "s" %></p>
     </div>
     <% if policy(Review).create? %>
       <%= link_to new_project_review_path(@project), class: "rf-btn-primary" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
         </svg>
         New Review
@@ -28,81 +34,86 @@
     <div class="space-y-4">
       <% @reviews.each do |review| %>
         <% progress = review.progress %>
-        <%= link_to project_review_path(@project, review), class: "block rf-card-padded hover:shadow-md transition-shadow group" do %>
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3">
-                <h3 class="text-base font-semibold text-slate-900 group-hover:text-brand-accent transition-colors truncate">
-                  <%= review.title %>
-                </h3>
-                <span class="<%= review_status_badge_class(review) %> shrink-0">
-                  <%= review.status.humanize %>
-                </span>
-              </div>
-              <% if review.description.present? %>
-                <p class="mt-1 text-sm text-slate-500 line-clamp-2"><%= review.description %></p>
-              <% end %>
-              <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                  </svg>
-                  <%= review.created_by.full_name %>
-                </span>
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd" />
-                  </svg>
-                  <%= review.review_items.size %> items
-                </span>
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                  </svg>
-                  Updated <%= time_ago_in_words(review.updated_at) %> ago
-                </span>
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                  </svg>
-                  <%= review.review_participants.size %> participants
-                </span>
-              </div>
-            </div>
-
-            <!-- Progress -->
-            <% if progress[:total] > 0 %>
-              <div class="ml-6 shrink-0 text-right">
-                <div class="text-sm font-semibold text-slate-700"><%= progress[:percentage] %>%</div>
-                <div class="text-xs text-slate-400 mt-0.5"><%= progress[:decided] %>/<%= progress[:total] %> decided</div>
-                <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                  <div class="h-full rounded-full transition-all <%= review_progress_bar_color(progress[:percentage]) %>" style="width: <%= progress[:percentage] %>%"></div>
+        <%= link_to project_review_path(@project, review), class: "block rf-card group hover:border-brand-accent/40 hover:shadow-md transition-all duration-200" do %>
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3">
+                  <h3 class="text-base font-semibold text-slate-900 group-hover:text-brand-accent-dark transition-colors truncate">
+                    <%= review.title %>
+                  </h3>
+                  <span class="<%= review_status_badge_class(review) %> shrink-0">
+                    <%= review.status.humanize %>
+                  </span>
+                </div>
+                <% if review.description.present? %>
+                  <p class="mt-1 text-sm text-slate-500 line-clamp-2"><%= review.description %></p>
+                <% end %>
+                <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                    <%= review.created_by.full_name %>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                      <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd" />
+                    </svg>
+                    <%= review.review_items.size %> items
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Updated <%= time_ago_in_words(review.updated_at) %> ago
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                    <%= review.review_participants.size %> participants
+                  </span>
                 </div>
               </div>
-            <% end %>
+
+              <%# Progress %>
+              <% if progress[:total] > 0 %>
+                <div class="ml-6 shrink-0 text-right">
+                  <div class="text-sm font-semibold text-slate-700"><%= progress[:percentage] %>%</div>
+                  <div class="text-xs text-slate-400 mt-0.5"><%= progress[:decided] %>/<%= progress[:total] %> decided</div>
+                  <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                    <div class="h-full rounded-full transition-all <%= review_progress_bar_color(progress[:percentage]) %>" style="width: <%= progress[:percentage] %>%"></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
           </div>
         <% end %>
       <% end %>
     </div>
   <% else %>
-    <!-- Empty state -->
-    <div class="rf-card-padded text-center py-16">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-      <h3 class="mt-4 text-sm font-medium text-slate-900">No reviews yet</h3>
-      <p class="mt-1 text-sm text-slate-500">Create a review to start the approval workflow for your requirements.</p>
-      <% if policy(Review).create? %>
-        <div class="mt-6">
-          <%= link_to new_project_review_path(@project), class: "rf-btn-primary" do %>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            Create First Review
-          <% end %>
-        </div>
-      <% end %>
+    <%# Empty State %>
+    <div class="rf-card">
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm5 3a1 1 0 000 2h2a1 1 0 100-2H9zm0 4a1 1 0 100 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+        </svg>
+        <p class="rf-empty-state-title">No reviews yet</p>
+        <p class="rf-empty-state-description">Create a review to start the approval workflow for your requirements.</p>
+        <% if policy(Review).create? %>
+          <div class="mt-5">
+            <%= link_to new_project_review_path(@project), class: "rf-btn-primary" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              Create First Review
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
   <% end %>
 </div>
