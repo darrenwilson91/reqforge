@@ -20,6 +20,19 @@ gem "cssbundling-rails"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
+# Authentication [https://github.com/heartcombo/devise]
+gem "devise"
+# Authorization [https://github.com/varvet/pundit]
+gem "pundit"
+# Audit trail for models [https://github.com/paper-trail-gem/paper_trail]
+gem "paper_trail"
+# Full-text search for PostgreSQL [https://github.com/Casecommons/pg_search]
+gem "pg_search"
+# Sortable lists [https://github.com/brendon/acts_as_list]
+gem "acts_as_list"
+# Background job processing [https://github.com/sidekiq/sidekiq]
+gem "sidekiq"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
@@ -52,6 +65,19 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Testing framework [https://github.com/rspec/rspec-rails]
+  gem "rspec-rails"
+  # Test factories [https://github.com/thoughtbot/factory_bot_rails]
+  gem "factory_bot_rails"
+  # Fake data generation [https://github.com/faker-ruby/faker]
+  gem "faker"
+  # One-liner matchers for Rails [https://github.com/thoughtbot/shoulda-matchers]
+  gem "shoulda-matchers"
+  # Integration testing [https://github.com/teamcapybara/capybara]
+  gem "capybara"
+  # Browser driver for system tests [https://github.com/SeleniumHQ/selenium]
+  gem "selenium-webdriver"
 end
 
 group :development do
