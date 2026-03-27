@@ -184,6 +184,85 @@ RSpec.describe Requirement, type: :model do
     end
   end
 
+  describe "pg_search" do
+    let(:project) { create(:project, prefix: "SRC") }
+    let(:mod) { create(:requirement_module, project: project) }
+    let(:section) { create(:section, requirement_module: mod) }
+    let(:user) { create(:user) }
+
+    let!(:req_braking) do
+      create(:requirement,
+        section: section, project: project, created_by: user,
+        title: "Braking System Response Time",
+        body: "The braking system shall respond within 100 milliseconds of pedal activation.")
+    end
+
+    let!(:req_steering) do
+      create(:requirement,
+        section: section, project: project, created_by: user,
+        title: "Steering Torque Limit",
+        body: "The electronic power steering shall limit assist torque to 50 Nm.")
+    end
+
+    let!(:req_engine) do
+      create(:requirement,
+        section: section, project: project, created_by: user,
+        title: "Engine Idle Speed",
+        body: "The engine control unit shall maintain idle speed at 750 RPM under normal conditions.")
+    end
+
+    describe ".search_by_text" do
+      it "finds requirements matching title" do
+        results = Requirement.search_by_text("braking")
+        expect(results).to include(req_braking)
+        expect(results).not_to include(req_steering, req_engine)
+      end
+
+      it "finds requirements matching body content" do
+        results = Requirement.search_by_text("torque")
+        expect(results).to include(req_steering)
+        expect(results).not_to include(req_braking, req_engine)
+      end
+
+      it "finds requirements by UID" do
+        results = Requirement.search_by_text(req_engine.uid)
+        expect(results).to include(req_engine)
+      end
+
+      it "supports prefix matching" do
+        results = Requirement.search_by_text("brak")
+        expect(results).to include(req_braking)
+      end
+
+      it "returns empty when no match" do
+        results = Requirement.search_by_text("nonexistent_xyz_term")
+        expect(results).to be_empty
+      end
+    end
+
+    describe "multisearchable" do
+      it "creates pg_search_document records" do
+        expect(PgSearch::Document.where(searchable: req_braking)).to exist
+      end
+
+      it "finds requirements via PgSearch.multisearch" do
+        results = PgSearch.multisearch("braking")
+        expect(results.map(&:searchable)).to include(req_braking)
+      end
+
+      it "updates search document when requirement changes" do
+        req_braking.update!(title: "Acceleration System Response Time")
+        results = PgSearch.multisearch("acceleration")
+        expect(results.map(&:searchable)).to include(req_braking)
+      end
+
+      it "removes search document when requirement is destroyed" do
+        req_braking.destroy!
+        expect(PgSearch::Document.where(searchable_type: "Requirement", searchable_id: req_braking.id)).not_to exist
+      end
+    end
+  end
+
   describe "default values" do
     it "defaults requirement_type to functional" do
       expect(Requirement.new.requirement_type).to eq("functional")

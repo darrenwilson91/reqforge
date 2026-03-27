@@ -1,4 +1,6 @@
 class Requirement < ApplicationRecord
+  include PgSearch::Model
+
   belongs_to :section
   belongs_to :project
   belongs_to :created_by, class_name: "User"
@@ -6,6 +8,14 @@ class Requirement < ApplicationRecord
   has_paper_trail
 
   acts_as_list scope: :section_id
+
+  multisearchable against: [ :uid, :title, :body ]
+
+  pg_search_scope :search_by_text,
+    against: { uid: "A", title: "A", body: "B" },
+    using: {
+      tsearch: { prefix: true, dictionary: "english" }
+    }
 
   enum :requirement_type, {
     functional: 0,
