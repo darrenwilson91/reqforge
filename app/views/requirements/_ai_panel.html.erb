@@ -1,0 +1,437 @@
+<%# AI Analysis Panel — shows quality score, link suggestions, and impact analysis %>
+<%
+  quality_result = requirement.ai_analysis_results.find_by(analysis_type: "quality_analysis")
+  link_result = requirement.ai_analysis_results.find_by(analysis_type: "link_suggestion")
+  impact_result = requirement.ai_analysis_results.find_by(analysis_type: "impact_analysis")
+%>
+
+<div class="rf-card" data-controller="ai-panel" data-ai-panel-active-tab-value="quality">
+  <%# Panel Header %>
+  <div class="p-5 border-b border-slate-100">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-violet-500" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+        </svg>
+        <h2 class="text-base font-semibold text-slate-900">AI Analysis</h2>
+        <% if quality_result&.completed? %>
+          <% score = quality_result.quality_score || 0 %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold <%= ai_score_badge_class(score) %>">
+            <%= score %>/100
+          </span>
+        <% end %>
+      </div>
+      <div class="flex items-center gap-1">
+        <button type="button" data-action="ai-panel#expandAll" class="p-1 text-slate-400 hover:text-slate-600 transition-colors" title="Expand all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button type="button" data-action="ai-panel#collapseAll" class="p-1 text-slate-400 hover:text-slate-600 transition-colors" title="Collapse all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <%# Tab Navigation %>
+    <div class="flex gap-0 mt-4 -mb-5 border-b border-slate-100">
+      <button type="button"
+        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors border-brand-accent text-brand-accent-dark"
+        data-ai-panel-target="tab"
+        data-tab="quality"
+        data-action="ai-panel#switchTab">
+        Quality
+        <% if quality_result&.completed? %>
+          <span class="ml-1 text-xs opacity-70"><%= quality_result.quality_score || 0 %></span>
+        <% end %>
+      </button>
+      <button type="button"
+        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors border-transparent text-slate-500"
+        data-ai-panel-target="tab"
+        data-tab="links"
+        data-action="ai-panel#switchTab">
+        Suggested Links
+        <% if link_result&.completed? && (link_result.suggestions_count || 0) > 0 %>
+          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold"><%= link_result.suggestions_count %></span>
+        <% end %>
+      </button>
+      <button type="button"
+        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors border-transparent text-slate-500"
+        data-ai-panel-target="tab"
+        data-tab="impact"
+        data-action="ai-panel#switchTab">
+        Impact
+        <% if impact_result&.completed? && (impact_result.impacts_count || 0) > 0 %>
+          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold"><%= impact_result.impacts_count %></span>
+        <% end %>
+      </button>
+    </div>
+  </div>
+
+  <%# ==================== QUALITY TAB ==================== %>
+  <div class="p-5" data-ai-panel-target="tabContent" data-tab="quality">
+    <% if quality_result.nil? %>
+      <%# No analysis run yet %>
+      <div class="rf-empty-state py-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+        </svg>
+        <p class="text-sm text-slate-500">No quality analysis has been run yet.</p>
+        <p class="text-xs text-slate-400 mt-1">Click "Analyze" to check this requirement against INCOSE quality rules.</p>
+      </div>
+
+    <% elsif quality_result.running? %>
+      <%# Analysis in progress %>
+      <div class="rf-empty-state py-8">
+        <div class="inline-flex items-center gap-2 text-sm text-violet-600">
+          <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Quality analysis in progress...
+        </div>
+      </div>
+
+    <% elsif quality_result.failed? %>
+      <%# Analysis failed %>
+      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+        <div class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800">Analysis failed</p>
+            <p class="text-xs text-red-600 mt-1"><%= quality_result.error_message %></p>
+          </div>
+        </div>
+      </div>
+
+    <% elsif quality_result.completed? %>
+      <%# Completed quality analysis %>
+      <% data = quality_result.result_data || {} %>
+      <% overall_score = data["overall_score"] || 0 %>
+      <% checks = data["checks"] || [] %>
+      <% summary = data["summary"] %>
+      <% suggestions = data["suggestions"] || [] %>
+
+      <%# Score ring + summary %>
+      <div class="flex items-start gap-5 mb-5">
+        <div class="shrink-0 relative w-20 h-20">
+          <svg viewBox="0 0 36 36" class="w-20 h-20 -rotate-90">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3" class="stroke-slate-100" />
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3"
+              stroke-dasharray="<%= (overall_score * 97.4 / 100.0).round(1) %> 97.4"
+              stroke-linecap="round"
+              class="<%= ai_score_ring_class(overall_score) %>" />
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-lg font-bold <%= ai_score_text_class(overall_score) %>"><%= overall_score %></span>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-slate-900">Overall Quality Score</p>
+          <% if summary.present? %>
+            <p class="text-sm text-slate-500 mt-1"><%= summary %></p>
+          <% end %>
+          <% if quality_result.completed_at %>
+            <p class="text-xs text-slate-400 mt-2">
+              Analyzed <%= time_ago_in_words(quality_result.completed_at) %> ago
+              <% if quality_result.stale? %>
+                <span class="text-amber-500 font-medium">(stale)</span>
+              <% end %>
+            </p>
+          <% end %>
+        </div>
+      </div>
+
+      <%# INCOSE Rule Checks %>
+      <% if checks.any? %>
+        <div class="space-y-2">
+          <% checks.each do |check| %>
+            <% rule_name = check["rule"] || check[:rule] %>
+            <% rule_score = check["score"] || check[:score] || 0 %>
+            <% passed = check["passed"] == true || check[:passed] == true %>
+            <% issues = check["issues"] || check[:issues] || [] %>
+            <% check_suggestions = check["suggestions"] || check[:suggestions] || [] %>
+
+            <div data-ai-panel-target="section">
+              <button type="button" data-action="ai-panel#toggle"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left">
+                <%# Pass/fail indicator %>
+                <% if passed %>
+                  <span class="shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                <% else %>
+                  <span class="shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                <% end %>
+
+                <span class="flex-1 min-w-0">
+                  <span class="text-sm font-medium text-slate-700 capitalize"><%= rule_name %></span>
+                </span>
+
+                <%# Score bar %>
+                <span class="shrink-0 w-16 flex items-center gap-1.5">
+                  <span class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <span class="block h-full rounded-full <%= ai_score_bar_class(rule_score) %>" style="width: <%= rule_score %>%"></span>
+                  </span>
+                  <span class="text-xs font-medium w-7 text-right <%= ai_score_text_class(rule_score) %>"><%= rule_score %></span>
+                </span>
+
+                <svg data-chevron xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+
+              <div data-content class="hidden pl-11 pr-3 pb-2">
+                <% if issues.any? %>
+                  <div class="mb-2">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Issues</p>
+                    <ul class="space-y-1">
+                      <% issues.each do |issue| %>
+                        <li class="text-xs text-red-600 flex items-start gap-1.5">
+                          <span class="shrink-0 mt-0.5 w-1 h-1 rounded-full bg-red-400"></span>
+                          <%= issue %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  </div>
+                <% end %>
+                <% if check_suggestions.any? %>
+                  <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Suggestions</p>
+                    <ul class="space-y-1">
+                      <% check_suggestions.each do |suggestion| %>
+                        <li class="text-xs text-violet-600 flex items-start gap-1.5">
+                          <span class="shrink-0 mt-0.5 w-1 h-1 rounded-full bg-violet-400"></span>
+                          <%= suggestion %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  </div>
+                <% end %>
+                <% if issues.empty? && check_suggestions.empty? %>
+                  <p class="text-xs text-slate-400">No issues found for this rule.</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# Top-level suggestions (from the outer result, not per-check) %>
+      <% if suggestions.any? %>
+        <div class="mt-4 pt-4 border-t border-slate-100">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Improvement Suggestions</p>
+          <ul class="space-y-1.5">
+            <% suggestions.each do |suggestion| %>
+              <li class="text-sm text-slate-600 flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-violet-400 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                <%= suggestion %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# ==================== LINKS TAB ==================== %>
+  <div class="p-5 hidden" data-ai-panel-target="tabContent" data-tab="links">
+    <% if link_result.nil? %>
+      <div class="rf-empty-state py-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+        <p class="text-sm text-slate-500">No link suggestions available.</p>
+        <p class="text-xs text-slate-400 mt-1">Click "Suggest Links" to find related requirements.</p>
+      </div>
+
+    <% elsif link_result.running? %>
+      <div class="rf-empty-state py-8">
+        <div class="inline-flex items-center gap-2 text-sm text-violet-600">
+          <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Analyzing links...
+        </div>
+      </div>
+
+    <% elsif link_result.failed? %>
+      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+        <div class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800">Link suggestion failed</p>
+            <p class="text-xs text-red-600 mt-1"><%= link_result.error_message %></p>
+          </div>
+        </div>
+      </div>
+
+    <% elsif link_result.completed? %>
+      <% link_data = link_result.result_data || {} %>
+      <% link_suggestions = link_data["suggestions"] || [] %>
+
+      <% if link_suggestions.empty? %>
+        <div class="rf-empty-state py-6">
+          <p class="text-sm text-slate-500">No related requirements found.</p>
+          <p class="text-xs text-slate-400 mt-1">This requirement appears to be independent.</p>
+        </div>
+      <% else %>
+        <% if link_result.completed_at %>
+          <p class="text-xs text-slate-400 mb-3">
+            <%= link_suggestions.size %> <%= "suggestion".pluralize(link_suggestions.size) %> found
+            <%= time_ago_in_words(link_result.completed_at) %> ago
+            <% if link_result.stale? %>
+              <span class="text-amber-500 font-medium">(stale)</span>
+            <% end %>
+          </p>
+        <% end %>
+
+        <div class="space-y-2">
+          <% link_suggestions.each do |suggestion| %>
+            <% target_uid = suggestion["target_uid"] || suggestion[:target_uid] %>
+            <% link_type = suggestion["link_type"] || suggestion[:link_type] %>
+            <% confidence = suggestion["confidence"] || suggestion[:confidence] || 0 %>
+            <% rationale = suggestion["rationale"] || suggestion[:rationale] %>
+            <% confidence_pct = (confidence * 100).round %>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+              <%# Confidence indicator %>
+              <div class="shrink-0 flex flex-col items-center">
+                <span class="text-xs font-bold <%= ai_score_text_class(confidence_pct) %>"><%= confidence_pct %>%</span>
+                <div class="w-1 h-6 rounded-full bg-slate-100 mt-1 overflow-hidden">
+                  <div class="w-full rounded-full <%= ai_score_bar_class(confidence_pct) %>" style="height: <%= confidence_pct %>%"></div>
+                </div>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="rf-uid text-xs"><%= target_uid %></span>
+                  <span class="rf-badge text-xs <%= link_type_badge_class(link_type) %>"><%= link_type.to_s.humanize %></span>
+                </div>
+                <% if rationale.present? %>
+                  <p class="text-xs text-slate-500 leading-relaxed"><%= rationale %></p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# ==================== IMPACT TAB ==================== %>
+  <div class="p-5 hidden" data-ai-panel-target="tabContent" data-tab="impact">
+    <% if impact_result.nil? %>
+      <div class="rf-empty-state py-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <p class="text-sm text-slate-500">No impact analysis available.</p>
+        <p class="text-xs text-slate-400 mt-1">Impact analysis runs automatically when requirements change.</p>
+      </div>
+
+    <% elsif impact_result.running? %>
+      <div class="rf-empty-state py-8">
+        <div class="inline-flex items-center gap-2 text-sm text-violet-600">
+          <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Analyzing impact...
+        </div>
+      </div>
+
+    <% elsif impact_result.failed? %>
+      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+        <div class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800">Impact analysis failed</p>
+            <p class="text-xs text-red-600 mt-1"><%= impact_result.error_message %></p>
+          </div>
+        </div>
+      </div>
+
+    <% elsif impact_result.completed? %>
+      <% impact_data = impact_result.result_data || {} %>
+      <% impacts = impact_data["impacts"] || [] %>
+      <% impact_summary = impact_data["summary"] %>
+      <% risk_level = impact_data["risk_level"] %>
+
+      <% if impacts.empty? %>
+        <div class="rf-empty-state py-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-emerald-300 mx-auto mb-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <p class="text-sm text-slate-500">No downstream impacts detected.</p>
+        </div>
+      <% else %>
+        <%# Risk level banner %>
+        <% if risk_level.present? %>
+          <div class="flex items-center gap-2 p-3 rounded-lg mb-3 <%= impact_risk_level_class(risk_level) %>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm font-medium capitalize"><%= risk_level %> Risk</span>
+          </div>
+        <% end %>
+
+        <% if impact_summary.present? %>
+          <p class="text-sm text-slate-600 mb-3"><%= impact_summary %></p>
+        <% end %>
+
+        <% if impact_result.completed_at %>
+          <p class="text-xs text-slate-400 mb-3">
+            <%= impacts.size %> <%= "impact".pluralize(impacts.size) %> found
+            <%= time_ago_in_words(impact_result.completed_at) %> ago
+            <% if impact_result.stale? %>
+              <span class="text-amber-500 font-medium">(stale)</span>
+            <% end %>
+          </p>
+        <% end %>
+
+        <div class="space-y-2">
+          <% impacts.each do |impact| %>
+            <% target_uid = impact["target_uid"] || impact["requirement_uid"] || impact[:target_uid] || impact[:requirement_uid] %>
+            <% severity = impact["severity"] || impact[:severity] || "low" %>
+            <% impact_type = impact["impact_type"] || impact[:impact_type] || "potential" %>
+            <% description = impact["description"] || impact[:description] %>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg border <%= impact_severity_border_class(severity) %>">
+              <%# Severity dot %>
+              <span class="shrink-0 mt-1 w-2.5 h-2.5 rounded-full <%= impact_severity_dot_class(severity) %>"></span>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                  <span class="rf-uid text-xs"><%= target_uid %></span>
+                  <span class="rf-badge text-xs <%= impact_severity_badge_class(severity) %>"><%= severity.to_s.capitalize %></span>
+                  <span class="rf-badge text-xs bg-slate-100 text-slate-600"><%= impact_type.to_s.capitalize %></span>
+                </div>
+                <% if description.present? %>
+                  <p class="text-xs text-slate-500 leading-relaxed"><%= description %></p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -164,6 +164,9 @@
     </div>
   </div>
 
+  <%# AI Analysis Panel %>
+  <%= render "requirements/ai_panel", requirement: requirement, project: project %>
+
   <%# Traceability Links — grouped by link type %>
   <%= render "requirements/traceability_panel", requirement: requirement, project: project %>
 

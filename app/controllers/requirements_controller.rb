@@ -36,6 +36,7 @@ class RequirementsController < ApplicationController
   def show
     authorize @requirement
     @active_requirement_id = @requirement.id
+    @requirement.association(:ai_analysis_results).load_target
     load_tree_data
   end
 

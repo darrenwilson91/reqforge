@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import AiPanelController from "./ai_panel_controller"
+application.register("ai-panel", AiPanelController)
+
 import AttributeSchemaController from "./attribute_schema_controller"
 application.register("attribute-schema", AttributeSchemaController)
 

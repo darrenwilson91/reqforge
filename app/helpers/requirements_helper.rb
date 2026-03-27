@@ -68,4 +68,83 @@ module RequirementsHelper
     else "bg-slate-400"
     end
   end
+
+  # AI Panel helpers — score-based color coding
+
+  def ai_score_badge_class(score)
+    if score >= 80
+      "bg-emerald-100 text-emerald-800"
+    elsif score >= 60
+      "bg-amber-100 text-amber-800"
+    else
+      "bg-red-100 text-red-800"
+    end
+  end
+
+  def ai_score_ring_class(score)
+    if score >= 80
+      "stroke-emerald-500"
+    elsif score >= 60
+      "stroke-amber-500"
+    else
+      "stroke-red-500"
+    end
+  end
+
+  def ai_score_text_class(score)
+    if score >= 80
+      "text-emerald-600"
+    elsif score >= 60
+      "text-amber-600"
+    else
+      "text-red-600"
+    end
+  end
+
+  def ai_score_bar_class(score)
+    if score >= 80
+      "bg-emerald-500"
+    elsif score >= 60
+      "bg-amber-500"
+    else
+      "bg-red-500"
+    end
+  end
+
+  def impact_risk_level_class(risk_level)
+    case risk_level.to_s
+    when "critical"    then "bg-red-50 text-red-800 border border-red-200"
+    when "significant" then "bg-orange-50 text-orange-800 border border-orange-200"
+    when "moderate"    then "bg-amber-50 text-amber-800 border border-amber-200"
+    when "minimal"     then "bg-emerald-50 text-emerald-800 border border-emerald-200"
+    else "bg-slate-50 text-slate-800 border border-slate-200"
+    end
+  end
+
+  def impact_severity_border_class(severity)
+    case severity.to_s
+    when "high"   then "border-red-200 bg-red-50/30"
+    when "medium" then "border-amber-200 bg-amber-50/30"
+    when "low"    then "border-slate-150 bg-slate-50/30"
+    else "border-slate-100"
+    end
+  end
+
+  def impact_severity_dot_class(severity)
+    case severity.to_s
+    when "high"   then "bg-red-500"
+    when "medium" then "bg-amber-500"
+    when "low"    then "bg-slate-400"
+    else "bg-slate-300"
+    end
+  end
+
+  def impact_severity_badge_class(severity)
+    case severity.to_s
+    when "high"   then "bg-red-100 text-red-700"
+    when "medium" then "bg-amber-100 text-amber-700"
+    when "low"    then "bg-slate-100 text-slate-600"
+    else "bg-slate-100 text-slate-600"
+    end
+  end
 end
