@@ -222,28 +222,172 @@ An AI-first, modern web application for requirements management that directly ad
 
 **Verification checkpoint:** `bundle exec rspec` — all specs green. App looks professional and polished.
 
-### Phase 13: QA Verification
+### Phase 13: Flow-State Authoring Mode
 
-- [ ] Start the Rails server and verify: sign up flow works end-to-end
-- [ ] Verify: create organization, create project with ISO 26262 template
-- [ ] Verify: create requirements with custom attributes, organize in hierarchy
-- [ ] Verify: create traceability links, view traceability matrix
-- [ ] Verify: create review, add comments, approve/reject items
-- [ ] Verify: AI quality analysis returns results
-- [ ] Verify: CSV import/export round-trip
-- [ ] Verify: version history shows diffs correctly
-- [ ] Verify: UI is clean, professional, responsive
-- [ ] Take screenshots of key pages as evidence
-- [ ] If any verification fails, add fix tasks to the plan and re-verify
+The current requirement creation form requires filling out a full form with mouse interactions. Engineers need a rapid-entry mode where they can get into flow state — type a requirement, hit Enter, next requirement. No mouse, no form completion. Attributes (type, ASIL, priority) can be bulk-edited afterwards.
 
-### Phase 14: PR & Code Review
+- [ ] Create a new "Quick Entry" view at `/projects/:id/requirements/quick_entry` — a clean, minimal full-width editor (no sidebar tree, no filters, just a focused writing surface)
+- [ ] The view shows: project name, selected module/section at the top (changeable via dropdown), then a vertical list of requirement input rows
+- [ ] Each row is a single text input spanning the full width, with a subtle UID badge on the left (auto-assigned). Pressing **Enter** creates the requirement and immediately adds a new empty row below with focus — no page reload (Turbo Stream append)
+- [ ] Pressing **Shift+Enter** allows multi-line within a single requirement (the body field)
+- [ ] Pressing **Tab** on an empty row opens a minimal inline attribute bar: type, priority, ASIL selectable via keyboard (arrow keys + Enter). Pressing **Escape** closes the attribute bar
+- [ ] Pressing **Up/Down arrows** when not editing navigates between requirements. **Backspace** on an empty row deletes it (with confirmation if it has content)
+- [ ] Add a floating action bar at the bottom: shows count of requirements entered this session, "Done" button that goes to the requirements list, and a module/section switcher
+- [ ] Each requirement is saved immediately on Enter (optimistic create via Turbo) — no "Save" button needed, no data loss if browser closes
+- [ ] Create Stimulus controller `quick_entry_controller.js` handling all keyboard interactions: Enter (create + focus next), Shift+Enter (newline), Tab (attributes), Up/Down (navigate), Backspace (delete empty), Escape (close attributes)
+- [ ] Style the quick entry view: clean white background, generous line spacing, subtle separators between requirements, the UID badge in monospace on the left, a soft amber focus ring on the active row
+- [ ] Add a "Quick Entry" button/link on the requirements index page and project show page (prominent — this is the primary authoring flow)
+- [ ] Write request specs for quick entry: create requirement on Enter, auto-UID assignment, section scoping, attribute editing, deletion
+- [ ] Write system specs for keyboard flow: Enter creates next, Shift+Enter for multiline, navigation, attribute bar
+- [ ] Run specs to verify they pass
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green. Quick entry feels fast and keyboard-driven.
+
+### Phase 14: Bulk Attribute Editing
+
+After rapid entry, users need to quickly tag requirements with attributes. Rather than editing each one individually, provide a bulk editor.
+
+- [ ] Create a "Bulk Edit" view at `/projects/:id/requirements/bulk_edit` — a spreadsheet-like table view of requirements
+- [ ] Columns: checkbox (select), UID, Title (editable inline), Type (dropdown), Status (dropdown), Priority (dropdown), ASIL (dropdown), Section (dropdown)
+- [ ] Clicking a cell makes it editable. Tab moves to the next cell, Shift+Tab moves back. Enter confirms and moves down
+- [ ] Checkbox column allows selecting multiple requirements. Toolbar above the table has bulk actions: "Set Type", "Set Priority", "Set ASIL", "Move to Section", "Delete Selected"
+- [ ] Bulk actions open a small popover to pick the value, then apply to all selected requirements in one request (single Turbo Stream update)
+- [ ] Create Stimulus controller `bulk_edit_controller.js` handling: cell navigation (Tab/Shift+Tab/Enter/Arrow keys), inline editing, checkbox selection (Shift+click for range select), bulk action toolbar visibility
+- [ ] Add "Bulk Edit" button on requirements index page next to "Quick Entry"
+- [ ] Write request specs for bulk edit: inline update, bulk type/priority/ASIL change, bulk move, bulk delete
+- [ ] Write system specs for keyboard navigation and bulk selection
+- [ ] Run specs to verify they pass
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green.
+
+### Phase 15: Change Sets (PR-Style Reviews)
+
+Replace the current review system with a PR-style model. A Change Set is like a branch — users make changes to requirements within it, and those changes don't affect the approved baseline until the Change Set is reviewed and merged.
+
+- [ ] Generate ChangeSet model: `rails generate model ChangeSet project:references title:string description:text status:integer created_by:references source_baseline:references merge_commit_message:text merged_by:references merged_at:datetime`
+  - status enum: draft=0, open=1, in_review=2, approved=3, merged=4, closed=5
+- [ ] Generate ChangeSetRule model: `rails generate model ChangeSetRule project:references min_approvals:integer require_all_conversations_resolved:boolean auto_merge_on_approval:boolean`
+  - Configurable per project: how many approvals needed, whether unresolved comments block merge, whether to auto-merge
+- [ ] Generate ChangeSetApproval model: `rails generate model ChangeSetApproval change_set:references user:references status:integer body:text`
+  - status enum: pending=0, approved=1, changes_requested=2, commented=3
+- [ ] Generate ChangeSetChange model: `rails generate model ChangeSetChange change_set:references requirement:references change_type:integer before_snapshot:jsonb after_snapshot:jsonb`
+  - change_type enum: created=0, modified=1, deleted=2
+  - before_snapshot: requirement attributes at time of change set creation (null for new requirements)
+  - after_snapshot: current state of the requirement within this change set
+  - This tracks every individual requirement change within the change set
+- [ ] Add has_paper_trail to ChangeSet, ChangeSetApproval, ChangeSetChange
+- [ ] Write model specs for all four models (validations, associations, enums, snapshots)
+- [ ] Run specs to verify they pass
+- [ ] Create ChangeSetsController with full workflow:
+  - `new/create`: Create a change set (starts as draft)
+  - `show`: Display the change set with all changes as a diff view (like a PR diff)
+  - `edit/update`: Edit title/description while in draft/open
+  - Workflow actions: `open` (submit for review), `approve`, `request_changes`, `merge`, `close`
+- [ ] Create change set **diff view** (the core PR experience):
+  - List all changed requirements grouped by: Added, Modified, Deleted
+  - Each modified requirement shows a side-by-side or unified diff of changed fields (title, body, type, status, priority, ASIL)
+  - New requirements show as green additions, deleted as red strikethroughs
+  - Each requirement change has its own comment thread (like line comments on a PR)
+  - Overall change set has a "conversation" tab for general discussion
+- [ ] Create change set **approval UI**:
+  - Reviewers can "Approve", "Request Changes", or just "Comment"
+  - Show approval status next to each reviewer's avatar (green check, orange dot, red X)
+  - Show merge eligibility: "X of Y required approvals", "N unresolved conversations"
+  - "Merge" button enabled only when approval rules are met
+- [ ] Create change set **merge logic**:
+  - On merge: apply all after_snapshots to the actual requirements (create new, update modified, soft-delete deleted)
+  - Record merge commit message, merged_by, merged_at
+  - Create Paper Trail versions for all affected requirements
+  - If a requirement was modified by someone else since the change set was created (conflict), show a conflict warning and require resolution before merge
+- [ ] Integrate change sets into requirement editing:
+  - When a user edits a requirement, if they're working within a change set, the edit is recorded as a ChangeSetChange (before/after snapshot) rather than directly modifying the requirement
+  - Add "Start Change Set" button in the requirement detail view and requirements list
+  - When working in a change set, show a banner at the top: "You're editing in Change Set: [title]" with a link to the change set
+- [ ] Create ChangeSetPolicy: all members can view, authors/PMs/admins can create, configurable who can approve (based on ChangeSetRule), only PMs/admins can merge
+- [ ] Add change set approval rules configuration to project settings page
+- [ ] Update sidebar: rename "Reviews" to "Change Sets" (or keep both — Change Sets for requirement changes, Reviews for formal compliance reviews)
+- [ ] Create change set dashboard: list of open change sets with status, approval progress, age
+- [ ] Write comprehensive request specs for change set CRUD, workflow transitions, approval flow, merge logic, conflict detection
+- [ ] Write system specs for the full PR flow: create change set → edit requirements → submit for review → approve → merge
+- [ ] Run specs to verify they pass
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green. Full PR-style workflow works end-to-end.
+
+### Phase 16: Test Cases
+
+Test engineers need to write test cases linked to requirements, providing verification traceability.
+
+- [ ] Generate TestCase model: `rails generate model TestCase project:references requirement:references title:string description:text preconditions:text steps:text expected_result:text test_type:integer status:integer priority:integer created_by:references uid:string:uniq`
+  - test_type enum: unit=0, integration=1, system=2, acceptance=3, safety=4
+  - status enum: draft=0, ready=1, passed=2, failed=3, blocked=4, not_run=5
+  - Auto-generate UID with project prefix + "TC" + sequence (e.g., BRK-TC-001)
+- [ ] Add has_paper_trail to TestCase
+- [ ] Add has_many :test_cases to Requirement and Project
+- [ ] Write model specs for TestCase (validations, associations, UID generation, enums)
+- [ ] Run specs to verify they pass
+- [ ] Create TestCasesController with CRUD nested under projects
+- [ ] Create TestCasePolicy: authors/PMs/admins can create/edit, all members can view
+- [ ] Create test case list view: table with UID, title, linked requirement UID, type, status, priority
+- [ ] Create test case detail view: shows all fields, linked requirement with traceability link, version history
+- [ ] Create test case form: title, description, preconditions, steps (multi-line), expected result, type, status, priority, linked requirement (searchable dropdown)
+- [ ] Add "Test Cases" section to the requirement detail view: shows linked test cases with their status, quick-add button
+- [ ] Add test coverage metrics to the traceability matrix: percentage of requirements with at least one test case, grouped by test status (passed/failed/not run)
+- [ ] Add "Test Cases" to sidebar navigation under "Requirements" section
+- [ ] Update compliance dashboard to show test coverage per V-model phase
+- [ ] Write request specs and system specs for test case CRUD and traceability
+- [ ] Run specs to verify they pass
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green.
+
+### Phase 17: Dashboard Improvements for Managers
+
+Managers and chasers need at-a-glance dashboards showing project health, progress, and bottlenecks.
+
+- [ ] Enhance the main dashboard with role-aware content:
+  - For admins/PMs: show org-wide metrics (total requirements, approval rates, review velocity, overdue reviews)
+  - For engineers: show their assigned work (requirements they authored, pending reviews they need to action)
+- [ ] Create a project-level dashboard (replace current project show page stats with richer metrics):
+  - Requirements breakdown: pie chart or bar showing draft/in-review/approved/verified/obsolete counts
+  - Traceability health: percentage of requirements with forward links, backward links, test cases
+  - Change set velocity: open/merged/closed change sets over time
+  - Review bottlenecks: change sets waiting for review > 3 days, reviewers with outstanding approvals
+  - ASIL coverage: requirements by ASIL level with approval status
+- [ ] Add a "My Work" page: personal view showing requirements the user authored (filterable by status), change sets they created or need to review, test cases assigned to them
+- [ ] Write specs for dashboard metrics and my-work page
+- [ ] Run specs to verify they pass
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green.
+
+### Phase 18: Final Polish & QA
+
+- [ ] Rebuild CSS assets to ensure all new views use the design system correctly
+- [ ] Run full test suite: `bundle exec rspec`
+- [ ] Fix any failing tests
+- [ ] Start the Rails server and verify the complete flow:
+  - Sign up → create org → create project with ISO 26262 template
+  - Quick entry: rapid-fire 5 requirements using only keyboard
+  - Bulk edit: select all, set ASIL to ASIL-D
+  - Create a change set, modify 2 requirements, submit for review
+  - As another user (or same), approve and merge the change set
+  - Create test cases linked to requirements
+  - View traceability matrix with test coverage
+  - View project dashboard metrics
+  - CSV export and re-import
+  - AI quality analysis on a requirement
+- [ ] Visual review: ensure all pages are clean, professional, consistent, responsive
+- [ ] If any verification fails, add fix tasks and re-verify
+- [ ] Update seed data to include sample change sets, test cases, and richer dashboard data
+
+**Verification checkpoint:** `bundle exec rspec` — all specs green. App is polished and complete.
+
+### Phase 19: PR & Code Review
 
 - [ ] Run `/pr` to create a pull request with all changes
 - [ ] Review PR feedback and create fix tasks for any issues scoring 50% or higher confidence
 - [ ] Implement fixes and push
 - [ ] Comment on PR with summary of changes
 
-### Phase 15: Cleanup
+### Phase 20: Cleanup
 
 - [ ] Reflect on learnings and document any non-obvious decisions
 - [ ] Ensure all services are properly shut down
