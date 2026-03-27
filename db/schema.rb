@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_025346) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_025623) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025346) do
     t.index ["uid"], name: "index_requirements_on_uid", unique: true
   end
 
+  create_table "review_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "requirement_id", null: false
+    t.bigint "review_id", null: false
+    t.jsonb "snapshot", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["requirement_id"], name: "index_review_items_on_requirement_id"
+    t.index ["review_id", "requirement_id"], name: "index_review_items_on_review_id_and_requirement_id", unique: true
+    t.index ["review_id", "status"], name: "index_review_items_on_review_id_and_status"
+    t.index ["review_id"], name: "index_review_items_on_review_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.jsonb "baseline_snapshot", default: {}, null: false
     t.datetime "created_at", null: false
@@ -169,6 +182,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025346) do
   add_foreign_key "requirements", "projects"
   add_foreign_key "requirements", "sections"
   add_foreign_key "requirements", "users", column: "created_by_id"
+  add_foreign_key "review_items", "requirements"
+  add_foreign_key "review_items", "reviews"
   add_foreign_key "reviews", "projects"
   add_foreign_key "reviews", "users", column: "created_by_id"
   add_foreign_key "sections", "requirement_modules"

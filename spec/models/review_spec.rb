@@ -11,7 +11,7 @@ RSpec.describe Review, type: :model do
   describe "associations" do
     it { should belong_to(:project) }
     it { should belong_to(:created_by).class_name("User") }
-    it { pending "ReviewItem model not yet generated"; should have_many(:review_items).dependent(:destroy) }
+    it { should have_many(:review_items).dependent(:destroy) }
     it { pending "ReviewParticipant model not yet generated"; should have_many(:review_participants).dependent(:destroy) }
   end
 
@@ -184,10 +184,42 @@ RSpec.describe Review, type: :model do
   end
 
   describe "#progress" do
+    let(:organization) { create(:organization) }
+    let(:project) { create(:project, organization: organization) }
+    let(:user) { create(:user) }
+    let(:review) { create(:review, project: project, created_by: user) }
+
     it "returns zero progress with no items" do
-      pending "ReviewItem model not yet generated"
-      review = create(:review)
       expect(review.progress).to eq({ total: 0, decided: 0, percentage: 0 })
+    end
+
+    it "returns correct progress with mixed items" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      req3 = create(:requirement, project: project, section: section, created_by: user)
+
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :rejected)
+      create(:review_item, review: review, requirement: req3, status: :pending)
+
+      progress = review.progress
+      expect(progress[:total]).to eq(3)
+      expect(progress[:decided]).to eq(2)
+      expect(progress[:percentage]).to eq(67)
+    end
+
+    it "returns 100% when all items decided" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+
+      create(:review_item, review: review, requirement: req1, status: :approved)
+      create(:review_item, review: review, requirement: req2, status: :approved)
+
+      expect(review.progress[:percentage]).to eq(100)
     end
   end
 end
