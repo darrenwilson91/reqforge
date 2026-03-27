@@ -37,10 +37,11 @@
         <%= f.text_field :title, class: "rf-input", placeholder: "Enter requirement title..." %>
       </div>
 
-      <%# Body %>
-      <div>
+      <%# Body — Rich Text Editor %>
+      <div data-controller="rich-text">
         <%= f.label :body, "Description", class: "rf-label" %>
-        <%= f.text_area :body, class: "rf-input min-h-[160px]", placeholder: "Describe the requirement in detail...", rows: 6 %>
+        <input type="hidden" id="requirement_body_trix_edit" name="requirement[body]" value="<%= requirement.body %>">
+        <trix-editor input="requirement_body_trix_edit" placeholder="Describe the requirement in detail..."></trix-editor>
       </div>
 
       <%# Section %>

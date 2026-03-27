@@ -8,6 +8,9 @@
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.23",
-    "esbuild": "^0.27.4"
+    "@tailwindcss/cli": "^4.2.2",
+    "esbuild": "^0.27.4",
+    "tailwindcss": "^4.2.2",
+    "trix": "^2.1.18"
   }
 }

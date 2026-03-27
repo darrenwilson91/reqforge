@@ -87,7 +87,7 @@
         <h2 class="text-base font-semibold text-slate-900">Description</h2>
       </div>
       <div class="p-5">
-        <div class="prose prose-sm prose-slate max-w-none"><%= simple_format(requirement.body) %></div>
+        <div class="rf-rich-text"><%= sanitize(requirement.body, tags: %w[div p br strong em b i u a ul ol li blockquote pre code del s h1 figure figcaption], attributes: %w[href target class]) %></div>
       </div>
     </div>
   <% end %>

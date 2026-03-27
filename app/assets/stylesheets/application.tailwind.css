@@ -217,6 +217,174 @@
 }
 
 /* ============================================================
+   Trix Rich Text Editor — styled to match ReqForge design system
+   ============================================================ */
+
+/* Editor container */
+trix-editor {
+  @apply block w-full text-sm bg-white border border-slate-300 rounded-b-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-accent/40 focus:border-brand-accent transition-colors;
+  min-height: 160px;
+  padding: 0.75rem;
+}
+
+trix-editor:empty::before {
+  @apply text-slate-400;
+}
+
+/* Toolbar */
+trix-toolbar {
+  @apply border border-slate-300 border-b-0 rounded-t-lg bg-slate-50 px-2 py-1.5;
+}
+
+trix-toolbar .trix-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+
+trix-toolbar .trix-button-group {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  margin-right: 0.5rem;
+  border: none;
+}
+
+trix-toolbar .trix-button-group:not(:first-child) {
+  border: none;
+  margin-left: 0;
+}
+
+trix-toolbar .trix-button-group::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 1.25rem;
+  background: #e2e8f0;
+  margin-left: 0.375rem;
+}
+
+trix-toolbar .trix-button-group:last-child::after {
+  display: none;
+}
+
+trix-toolbar .trix-button {
+  @apply rounded text-slate-600 hover:text-slate-900 hover:bg-white;
+  border: none;
+  background: transparent;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.25rem;
+}
+
+trix-toolbar .trix-button.trix-active {
+  @apply bg-white text-brand-navy shadow-sm;
+}
+
+trix-toolbar .trix-button--icon::before {
+  opacity: 0.7;
+}
+
+trix-toolbar .trix-button.trix-active .trix-button--icon::before,
+trix-toolbar .trix-button:hover .trix-button--icon::before {
+  opacity: 1;
+}
+
+/* Hide file tools button group (attachments not needed for requirements) */
+trix-toolbar .trix-button-group--file-tools {
+  display: none !important;
+}
+
+/* Dialog styling */
+trix-toolbar .trix-dialog {
+  @apply border border-slate-200 rounded-lg bg-white shadow-lg p-3;
+  top: calc(100% + 0.25rem);
+}
+
+trix-toolbar .trix-dialog__link-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+trix-toolbar .trix-dialog__link-fields .trix-input {
+  @apply rf-input text-xs;
+}
+
+trix-toolbar .trix-dialog__link-fields .trix-button-group {
+  margin-right: 0;
+}
+
+trix-toolbar .trix-dialog__link-fields .trix-button-group::after {
+  display: none;
+}
+
+trix-toolbar .trix-dialog__link-fields .trix-button-group .trix-button {
+  @apply text-xs px-2;
+  width: auto;
+}
+
+/* Rich text content rendering */
+.rf-rich-text {
+  @apply text-sm text-slate-700 leading-relaxed;
+}
+
+.rf-rich-text h1 {
+  @apply text-lg font-bold text-slate-900 mt-4 mb-2;
+}
+
+.rf-rich-text strong,
+.rf-rich-text b {
+  @apply font-semibold text-slate-900;
+}
+
+.rf-rich-text em,
+.rf-rich-text i {
+  @apply italic;
+}
+
+.rf-rich-text a {
+  @apply text-blue-600 underline decoration-blue-300 hover:text-blue-800 hover:decoration-blue-500;
+}
+
+.rf-rich-text ul {
+  @apply list-disc list-inside my-2 space-y-1;
+}
+
+.rf-rich-text ol {
+  @apply list-decimal list-inside my-2 space-y-1;
+}
+
+.rf-rich-text li {
+  @apply text-slate-700;
+}
+
+.rf-rich-text blockquote {
+  @apply border-l-3 border-slate-300 pl-4 my-3 text-slate-500 italic;
+}
+
+.rf-rich-text pre {
+  @apply font-mono text-xs bg-slate-50 border border-slate-200 rounded-lg p-3 my-3 overflow-x-auto;
+}
+
+.rf-rich-text code {
+  @apply font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded;
+}
+
+.rf-rich-text p {
+  @apply mb-2;
+}
+
+.rf-rich-text p:last-child {
+  @apply mb-0;
+}
+
+.rf-rich-text del,
+.rf-rich-text s {
+  @apply line-through text-slate-400;
+}
+
+/* ============================================================
    Utilities
    ============================================================ */
 

@@ -16,6 +16,9 @@ application.register("flash", FlashController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import RichTextController from "./rich_text_controller"
+application.register("rich-text", RichTextController)
+
 import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)
 
