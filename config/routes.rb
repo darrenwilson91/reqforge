@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       end
       collection do
         patch :reorder
+        get :search
       end
     end
     resources :traceability_links, only: [ :create, :destroy ]

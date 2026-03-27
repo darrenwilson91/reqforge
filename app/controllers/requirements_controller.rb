@@ -107,6 +107,25 @@ class RequirementsController < ApplicationController
     end
   end
 
+  def search
+    authorize @project, :show?
+    query = params[:q].to_s.strip
+    exclude_id = params[:exclude_id]
+
+    @results = @project.requirements
+      .includes(:section, section: :requirement_module)
+      .order(:uid)
+
+    if query.present?
+      @results = @results.search_by_text(query)
+    end
+
+    @results = @results.where.not(id: exclude_id) if exclude_id.present?
+    @results = @results.limit(20)
+
+    render partial: "requirements/search_results", locals: { results: @results, project: @project }
+  end
+
   def reorder
     authorize @project, :update?
     ordered_ids = params[:ordered_ids]

@@ -16,6 +16,9 @@ application.register("flash", FlashController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import LinkSearchController from "./link_search_controller"
+application.register("link-search", LinkSearchController)
+
 import RichTextController from "./rich_text_controller"
 application.register("rich-text", RichTextController)
 
