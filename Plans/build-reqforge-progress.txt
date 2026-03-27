@@ -6,3 +6,15 @@ Task: Create git branch `feature/build-reqforge`
 Status: completed
 Changes: Created branch feature/build-reqforge from main
 Notes: Branch created successfully, ready for Phase 1 implementation.
+
+--- Iteration 2: Thu 27 Mar 2026 ---
+Task: Add core gems to Gemfile
+Status: completed
+Changes: Gemfile, Gemfile.lock
+Notes: Added devise, pundit, paper_trail, pg_search, acts_as_list, sidekiq to main group. Added rspec-rails, factory_bot_rails, faker, shoulda-matchers, capybara, selenium-webdriver to development/test group. All gems installed successfully via bundle install.
+
+--- Iteration 3: Thu 27 Mar 2026 ---
+Task: Set up RSpec with FactoryBot, Shoulda Matchers, and support structure
+Status: completed
+Changes: .rspec, spec/rails_helper.rb, spec/spec_helper.rb, spec/support/shoulda_matchers.rb, spec/support/factory_bot.rb
+Notes: Ran rails generate rspec:install. Configured rails_helper.rb with FactoryBot::Syntax::Methods include, infer_spec_type_from_file_location, and auto-require of spec/support files. Created spec/support/shoulda_matchers.rb (integrates with rspec+rails) and spec/support/factory_bot.rb. Created spec/factories directory. Verified with bundle exec rspec — 0 examples, 0 failures.
