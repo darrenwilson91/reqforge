@@ -54,3 +54,27 @@ Task: Set up Pundit: rails generate pundit:install
 Status: completed
 Changes: app/policies/application_policy.rb
 Notes: Ran rails generate pundit:install. Generated default ApplicationPolicy with standard CRUD policy methods (index?, show?, create?, update?, destroy?) all defaulting to false, plus a Scope class for scoped queries. This provides the base policy class that all model-specific policies will inherit from. Verified with bundle exec rspec — 48 examples, 0 failures, 1 pending.
+
+--- Iteration 10: Thu 27 Mar 2026 ---
+Task: Create ApplicationController with Pundit::Authorization, current_organization helper, set_current_organization from session
+Status: completed
+Changes: app/controllers/application_controller.rb, spec/controllers/application_controller_spec.rb, spec/requests/multi_tenancy_spec.rb, spec/support/devise.rb, package.json, package-lock.json
+Notes: Added include Pundit::Authorization, before_action :authenticate_user! and :set_current_organization to ApplicationController. Implemented current_organization helper that resolves organization from: (1) params[:organization_id], (2) session[:current_organization_id], (3) user's first organization. Added current_membership helper, require_organization! guard method, and Pundit::NotAuthorizedError rescue handler. Created Devise test helpers support file. Wrote controller spec verifying Pundit inclusion and helper method exposure, plus 8 request specs testing organization resolution (unauthenticated redirect, session persistence, org switching via params, membership-guarded switching, stale session fallback, no-org user access). Also installed npm dependencies (@hotwired/turbo-rails, @hotwired/stimulus, esbuild) and built JS assets to fix test rendering. Verified with bundle exec rspec — 59 examples, 0 failures, 1 pending.
+
+--- Iteration 11: Thu 27 Mar 2026 ---
+Task: Add multi-tenancy scoping: controller-level scoping via current_organization
+Status: completed
+Changes: app/models/concerns/organization_scoped.rb, app/controllers/application_controller.rb
+Notes: Created OrganizationScoped model concern providing belongs_to :organization and for_organization(org) scope — any model that includes this concern is automatically scoped to an organization. Added two controller helpers to ApplicationController: scoped_query(ModelClass) returns records scoped to current_organization, and build_scoped(ModelClass, attrs) creates new records pre-assigned to current_organization. Used controller-level scoping (not default_scope) to avoid the well-known pitfalls of default scopes with joins and associations. Verified with bundle exec rspec — 59 examples, 0 failures, 1 pending.
+
+--- Iteration 12: Thu 27 Mar 2026 ---
+Task: Write and run tests for multi-tenancy scoping
+Status: completed
+Changes: spec/models/concerns/organization_scoped_spec.rb (new), spec/requests/multi_tenancy_spec.rb (enhanced)
+Notes: Created OrganizationScoped concern spec using a temporary table and named model class (ScopedTestResource) to test in isolation — covers belongs_to association, organization requirement validation, for_organization scope filtering by org, nil passthrough, empty results, and scope chainability (7 examples). Enhanced multi-tenancy request spec with controller scoping helper tests — defined TenantTestItemsController with temporary routes to exercise scoped_query (returns only current org records, switches correctly) and build_scoped (creates records scoped to current org) via real HTTP requests (4 examples). Total: 70 examples, 0 failures, 1 pending (expected).
+
+--- Iteration 13: Thu 27 Mar 2026 ---
+Task: Generate Project model: organization:references name:string description:text prefix:string status:integer attribute_schema:jsonb
+Status: completed
+Changes: app/models/project.rb, db/migrate/20260327005009_create_projects.rb, spec/factories/projects.rb, spec/models/project_spec.rb, db/schema.rb, spec/models/organization_spec.rb
+Notes: Ran rails generate model Project. Enhanced migration with NOT NULL constraints on name, prefix, status (default 0), attribute_schema (default {}), plus unique composite indexes on [organization_id, prefix] and [organization_id, name]. Model includes OrganizationScoped concern, status enum (active=0, archived=1, template=2), presence/uniqueness/format validations for prefix (uppercase start, 1-10 chars, letters/digits/hyphens/underscores), has_many associations for requirement_modules and requirements (pending specs since those models don't exist yet). Factory includes traits for :archived, :template, and :with_custom_attributes. Updated Organization spec to replace pending projects association test with real assertion. Verified with bundle exec rspec — 92 examples, 0 failures, 2 pending (requirement_modules, requirements associations).
