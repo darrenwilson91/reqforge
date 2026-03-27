@@ -34,7 +34,10 @@ class ReviewItemsController < ApplicationController
     end
 
     if @review_item.update(status: new_status)
+      broadcast_item_status_change
+
       if @review.auto_complete_if_all_decided!
+        broadcast_review_completion
         redirect_to project_review_path(@project, @review),
           notice: "Item marked as #{new_status.humanize}. All items decided — review completed automatically."
       else
@@ -59,5 +62,36 @@ class ReviewItemsController < ApplicationController
 
   def set_review_item
     @review_item = @review.review_items.includes(:requirement).find(params[:id])
+  end
+
+  def broadcast_item_status_change
+    # Update the item card on the review show page
+    Turbo::StreamsChannel.broadcast_replace_to(
+      @review,
+      target: "review_item_card_#{@review_item.id}",
+      partial: "reviews/review_item_card",
+      locals: { item: @review_item, project: @project, review: @review }
+    )
+
+    # Update stats on the review show page
+    @review.reload
+    review_items = @review.review_items.includes(:requirement, :review_comments)
+    progress = @review.progress
+    Turbo::StreamsChannel.broadcast_replace_to(
+      @review,
+      target: "review_stats_#{@review.id}",
+      partial: "reviews/review_stats",
+      locals: { progress: progress, review_items: review_items }
+    )
+  end
+
+  def broadcast_review_completion
+    @review.reload
+    # Update the review status badge
+    Turbo::StreamsChannel.broadcast_update_to(
+      @review,
+      target: "review_status_#{@review.id}",
+      html: @review.status.humanize
+    )
   end
 end

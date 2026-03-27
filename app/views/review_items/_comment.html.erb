@@ -1,3 +1,9 @@
+<%# Supports both inline rendering (with instance variables) and broadcast rendering (with locals) %>
+<% project = local_assigns[:project] || @project %>
+<% review = local_assigns[:review] || @review %>
+<% review_item = local_assigns[:review_item] || @review_item %>
+<% can_reply = local_assigns.key?(:can_reply) ? local_assigns[:can_reply] : @participant&.can_comment? %>
+
 <div id="comment-<%= comment.id %>" class="<%= depth > 0 ? 'ml-6 border-l-2 border-slate-100 pl-4' : '' %>" data-controller="review-comment">
   <div class="rf-card overflow-hidden <%= comment.resolved? ? 'opacity-60' : '' %>">
     <!-- Comment header -->
@@ -17,14 +23,14 @@
             </svg>
             Resolved
           </span>
-          <%= link_to unresolve_project_review_review_item_review_comment_path(@project, @review, @review_item, comment),
+          <%= link_to unresolve_project_review_review_item_review_comment_path(project, review, review_item, comment),
             data: { turbo_method: :patch },
             class: "text-xs text-slate-400 hover:text-slate-600 transition-colors",
             title: "Reopen this comment" do %>
             Reopen
           <% end %>
         <% else %>
-          <%= link_to resolve_project_review_review_item_review_comment_path(@project, @review, @review_item, comment),
+          <%= link_to resolve_project_review_review_item_review_comment_path(project, review, review_item, comment),
             data: { turbo_method: :patch },
             class: "text-xs text-slate-400 hover:text-emerald-600 transition-colors",
             title: "Mark as resolved" do %>
@@ -42,7 +48,7 @@
     </div>
 
     <!-- Comment actions -->
-    <% if @participant&.can_comment? && depth < 3 %>
+    <% if can_reply && depth < 3 %>
       <div class="px-4 pb-3">
         <button data-action="click->review-comment#toggleReply" class="text-xs text-slate-400 hover:text-brand-accent transition-colors">
           Reply
@@ -50,8 +56,8 @@
 
         <!-- Inline reply form -->
         <div class="hidden mt-3" data-review-comment-target="replyForm">
-          <%= form_with(model: [@project, @review, @review_item, ReviewComment.new],
-            url: project_review_review_item_review_comments_path(@project, @review, @review_item),
+          <%= form_with(model: [project, review, review_item, ReviewComment.new],
+            url: project_review_review_item_review_comments_path(project, review, review_item),
             class: "space-y-2") do |f| %>
             <%= f.hidden_field :parent_comment_id, value: comment.id %>
             <%= f.text_area :body,
@@ -76,10 +82,10 @@
   </div>
 
   <!-- Threaded replies -->
-  <% if comment.replies.any? %>
+  <% if comment.replies.loaded? ? comment.replies.any? : comment.replies.exists? %>
     <div class="mt-2 space-y-2">
       <% comment.replies.order(created_at: :asc).each do |reply| %>
-        <%= render partial: "review_items/comment", locals: { comment: reply, depth: depth + 1 } %>
+        <%= render partial: "review_items/comment", locals: { comment: reply, depth: depth + 1, project: project, review: review, review_item: review_item, can_reply: can_reply } %>
       <% end %>
     </div>
   <% end %>

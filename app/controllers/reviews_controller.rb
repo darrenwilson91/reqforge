@@ -84,6 +84,7 @@ class ReviewsController < ApplicationController
     new_status = params[:status]
 
     if @review.transition_to(new_status)
+      broadcast_review_status_change
       redirect_to project_review_path(@project, @review),
         notice: "Review status changed to #{new_status.humanize}."
     else
@@ -116,6 +117,15 @@ class ReviewsController < ApplicationController
       .where.not(id: current_user.id)
       .distinct
       .order(:first_name, :last_name)
+  end
+
+  def broadcast_review_status_change
+    # Update the review status badge for other viewers
+    Turbo::StreamsChannel.broadcast_update_to(
+      @review,
+      target: "review_status_#{@review.id}",
+      html: @review.status.humanize
+    )
   end
 
   def add_participants_from_params
