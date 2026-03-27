@@ -12,7 +12,8 @@ RSpec.describe Review, type: :model do
     it { should belong_to(:project) }
     it { should belong_to(:created_by).class_name("User") }
     it { should have_many(:review_items).dependent(:destroy) }
-    it { pending "ReviewParticipant model not yet generated"; should have_many(:review_participants).dependent(:destroy) }
+    it { should have_many(:review_participants).dependent(:destroy) }
+    it { should have_many(:participants).through(:review_participants).source(:user) }
   end
 
   describe "validations" do

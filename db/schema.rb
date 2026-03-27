@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_025848) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_030204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -123,6 +123,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025848) do
     t.index ["review_id"], name: "index_review_items_on_review_id"
   end
 
+  create_table "review_participants", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.integer "role", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["review_id", "role"], name: "index_review_participants_on_review_id_and_role"
+    t.index ["review_id", "user_id"], name: "index_review_participants_on_review_id_and_user_id", unique: true
+    t.index ["review_id"], name: "index_review_participants_on_review_id"
+    t.index ["user_id"], name: "index_review_participants_on_user_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.jsonb "baseline_snapshot", default: {}, null: false
     t.datetime "created_at", null: false
@@ -205,6 +217,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_025848) do
   add_foreign_key "review_comments", "users", column: "resolved_by_id"
   add_foreign_key "review_items", "requirements"
   add_foreign_key "review_items", "reviews"
+  add_foreign_key "review_participants", "reviews"
+  add_foreign_key "review_participants", "users"
   add_foreign_key "reviews", "projects"
   add_foreign_key "reviews", "users", column: "created_by_id"
   add_foreign_key "sections", "requirement_modules"
