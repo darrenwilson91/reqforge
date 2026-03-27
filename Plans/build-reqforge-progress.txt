@@ -42,3 +42,15 @@ Task: Generate Organization model: name:string slug:string:uniq settings:jsonb
 Status: completed
 Changes: app/models/organization.rb, db/migrate/20260327003741_create_organizations.rb, spec/factories/organizations.rb, spec/models/organization_spec.rb, db/schema.rb
 Notes: Ran rails generate model Organization name:string slug:string:uniq settings:jsonb. Added NOT NULL constraints for name and slug in migration, default {} for settings JSONB column. Model includes: presence/uniqueness/format validations for slug, presence validation for name, has_many associations (memberships, users through memberships, projects), and auto-slug generation from name via before_validation callback with collision handling (appends counter). Factory uses sequence for slug. Comprehensive specs covering validations, slug format, slug generation (auto-generate, explicit override, collision handling, no-regenerate-on-update), settings storage, and factory. Association specs pending until Membership/Project models exist. Verified with bundle exec rspec — 34 examples, 0 failures, 5 pending.
+
+--- Iteration 8: Thu 27 Mar 2026 ---
+Task: Generate Membership model (join table): user:references organization:references role:integer
+Status: completed
+Changes: app/models/membership.rb, db/migrate/20260327003954_create_memberships.rb, spec/factories/memberships.rb, spec/models/membership_spec.rb, app/models/user.rb, db/schema.rb, spec/models/organization_spec.rb, spec/models/user_spec.rb
+Notes: Ran rails generate model Membership user:references organization:references role:integer. Enhanced migration with NOT NULL + default 0 for role, unique composite index on [user_id, organization_id]. Model includes: role enum (admin=0, project_manager=1, author=2, reviewer=3, viewer=4), presence validation on role, uniqueness validation on user_id scoped to organization_id. Factory includes traits for each role. Uncommented has_many :memberships and has_many :organizations associations in User model. Updated User and Organization specs to replace pending association tests with real shoulda-matcher assertions. Comprehensive Membership specs covering associations, validations (uniqueness, cross-org allowed, multi-user allowed), role enum, defaults, and factory. Verified with bundle exec rspec — 48 examples, 0 failures, 1 pending (projects).
+
+--- Iteration 9: Thu 27 Mar 2026 ---
+Task: Set up Pundit: rails generate pundit:install
+Status: completed
+Changes: app/policies/application_policy.rb
+Notes: Ran rails generate pundit:install. Generated default ApplicationPolicy with standard CRUD policy methods (index?, show?, create?, update?, destroy?) all defaulting to false, plus a Scope class for scoped queries. This provides the base policy class that all model-specific policies will inherit from. Verified with bundle exec rspec — 48 examples, 0 failures, 1 pending.
