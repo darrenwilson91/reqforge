@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_124525) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_234703) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_124525) do
     t.index ["requirement_id", "analysis_type"], name: "index_ai_analysis_results_on_requirement_id_and_analysis_type", unique: true
     t.index ["requirement_id"], name: "index_ai_analysis_results_on_requirement_id"
     t.index ["status"], name: "index_ai_analysis_results_on_status"
+  end
+
+  create_table "change_sets", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.text "description"
+    t.text "merge_commit_message"
+    t.datetime "merged_at"
+    t.bigint "merged_by_id"
+    t.bigint "project_id", null: false
+    t.bigint "source_baseline_id"
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_change_sets_on_created_by_id"
+    t.index ["merged_by_id"], name: "index_change_sets_on_merged_by_id"
+    t.index ["project_id", "status"], name: "index_change_sets_on_project_id_and_status"
+    t.index ["project_id"], name: "index_change_sets_on_project_id"
+    t.index ["source_baseline_id"], name: "index_change_sets_on_source_baseline_id"
   end
 
   create_table "compliance_templates", force: :cascade do |t|
@@ -235,6 +254,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_124525) do
   end
 
   add_foreign_key "ai_analysis_results", "requirements"
+  add_foreign_key "change_sets", "projects"
+  add_foreign_key "change_sets", "reviews", column: "source_baseline_id"
+  add_foreign_key "change_sets", "users", column: "created_by_id"
+  add_foreign_key "change_sets", "users", column: "merged_by_id"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
   add_foreign_key "projects", "organizations"
