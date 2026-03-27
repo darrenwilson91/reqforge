@@ -44,7 +44,7 @@ RSpec.describe Organization, type: :model do
   describe "associations" do
     it { should have_many(:memberships).dependent(:destroy) }
     it { should have_many(:users).through(:memberships) }
-    pending "has_many projects (Project model not yet generated)"
+    it { should have_many(:projects).dependent(:destroy) }
   end
 
   describe "slug generation" do
