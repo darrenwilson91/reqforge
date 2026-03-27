@@ -441,7 +441,12 @@ trix-toolbar .trix-dialog__link-fields .trix-button-group .trix-button {
     @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700;
   }
 
-  .rf-skeleton::after {
+  .rf-skeleton::after,
+  .rf-skeleton-line::after,
+  .rf-skeleton-line-sm::after,
+  .rf-skeleton-line-lg::after,
+  .rf-skeleton-circle::after,
+  .rf-skeleton-badge::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -454,7 +459,7 @@ trix-toolbar .trix-dialog__link-fields .trix-button-group .trix-button {
     animation: rf-shimmer 1.5s ease-in-out infinite;
   }
 
-  :is(.dark, .dark *) .rf-skeleton::after {
+  :is(.dark, .dark *) :is(.rf-skeleton, .rf-skeleton-line, .rf-skeleton-line-sm, .rf-skeleton-line-lg, .rf-skeleton-circle, .rf-skeleton-badge)::after {
     background: linear-gradient(
       90deg,
       transparent 0%,
@@ -465,27 +470,27 @@ trix-toolbar .trix-dialog__link-fields .trix-button-group .trix-button {
 
   /* Skeleton card — mimics rf-card with placeholder content */
   .rf-skeleton-card {
-    @apply rf-card p-6 space-y-4;
+    @apply bg-white border border-slate-200 rounded-xl dark:bg-slate-800 dark:border-slate-700 p-6 space-y-4;
   }
 
   .rf-skeleton-line {
-    @apply rf-skeleton h-4;
+    @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700 h-4;
   }
 
   .rf-skeleton-line-sm {
-    @apply rf-skeleton h-3;
+    @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700 h-3;
   }
 
   .rf-skeleton-line-lg {
-    @apply rf-skeleton h-6;
+    @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700 h-6;
   }
 
   .rf-skeleton-circle {
-    @apply rf-skeleton rounded-full;
+    @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700 rounded-full;
   }
 
   .rf-skeleton-badge {
-    @apply rf-skeleton h-5 w-16 rounded-md;
+    @apply rounded bg-slate-200 relative overflow-hidden dark:bg-slate-700 h-5 w-16 rounded-md;
   }
 }
 
