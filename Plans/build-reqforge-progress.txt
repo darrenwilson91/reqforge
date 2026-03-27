@@ -18,3 +18,15 @@ Task: Set up RSpec with FactoryBot, Shoulda Matchers, and support structure
 Status: completed
 Changes: .rspec, spec/rails_helper.rb, spec/spec_helper.rb, spec/support/shoulda_matchers.rb, spec/support/factory_bot.rb
 Notes: Ran rails generate rspec:install. Configured rails_helper.rb with FactoryBot::Syntax::Methods include, infer_spec_type_from_file_location, and auto-require of spec/support files. Created spec/support/shoulda_matchers.rb (integrates with rspec+rails) and spec/support/factory_bot.rb. Created spec/factories directory. Verified with bundle exec rspec — 0 examples, 0 failures.
+
+--- Iteration 4: Thu 27 Mar 2026 ---
+Task: Create and migrate development/test databases
+Status: completed
+Changes: db/schema.rb
+Notes: Ran rails db:create to create reqforge_development and reqforge_test PostgreSQL databases. Ran rails db:migrate for both environments (no pending migrations yet). Verified with bundle exec rspec — 0 examples, 0 failures.
+
+--- Iteration 5: Thu 27 Mar 2026 ---
+Task: Install Devise and configure mailer defaults
+Status: completed
+Changes: config/initializers/devise.rb, config/locales/devise.en.yml, config/routes.rb, app/controllers/dashboard_controller.rb, app/views/dashboard/index.html.erb
+Notes: Ran rails generate devise:install. Set mailer_sender to noreply@reqforge.dev. Development and test environments already had default_url_options configured. Added root route pointing to dashboard#index (placeholder controller/view) as required by Devise. Verified with bundle exec rspec — 0 examples, 0 failures.
