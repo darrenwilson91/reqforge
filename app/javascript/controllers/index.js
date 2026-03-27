@@ -19,6 +19,9 @@ application.register("hello", HelloController)
 import LinkSearchController from "./link_search_controller"
 application.register("link-search", LinkSearchController)
 
+import MatrixController from "./matrix_controller"
+application.register("matrix", MatrixController)
+
 import RichTextController from "./rich_text_controller"
 application.register("rich-text", RichTextController)
 
