@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_010120) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_010311) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_010120) do
     t.index ["requirement_module_id"], name: "index_sections_on_requirement_module_id"
   end
 
+  create_table "traceability_links", force: :cascade do |t|
+    t.boolean "ai_suggested", default: false, null: false
+    t.float "confidence"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.text "description"
+    t.integer "link_type", default: 0, null: false
+    t.bigint "source_requirement_id", null: false
+    t.bigint "target_requirement_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_traceability_links_on_created_by_id"
+    t.index ["link_type"], name: "index_traceability_links_on_link_type"
+    t.index ["source_requirement_id", "target_requirement_id", "link_type"], name: "idx_traceability_links_unique", unique: true
+    t.index ["source_requirement_id"], name: "index_traceability_links_on_source_requirement_id"
+    t.index ["target_requirement_id"], name: "index_traceability_links_on_target_requirement_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
@@ -139,4 +156,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_010120) do
   add_foreign_key "requirements", "users", column: "created_by_id"
   add_foreign_key "sections", "requirement_modules"
   add_foreign_key "sections", "sections", column: "parent_section_id"
+  add_foreign_key "traceability_links", "requirements", column: "source_requirement_id"
+  add_foreign_key "traceability_links", "requirements", column: "target_requirement_id"
+  add_foreign_key "traceability_links", "users", column: "created_by_id"
 end

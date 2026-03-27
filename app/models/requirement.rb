@@ -5,6 +5,9 @@ class Requirement < ApplicationRecord
   belongs_to :project
   belongs_to :created_by, class_name: "User"
 
+  has_many :outgoing_links, class_name: "TraceabilityLink", foreign_key: :source_requirement_id, dependent: :destroy
+  has_many :incoming_links, class_name: "TraceabilityLink", foreign_key: :target_requirement_id, dependent: :destroy
+
   has_paper_trail
 
   acts_as_list scope: :section_id
