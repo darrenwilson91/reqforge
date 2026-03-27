@@ -28,6 +28,9 @@ application.register("hello", HelloController)
 import LinkSearchController from "./link_search_controller"
 application.register("link-search", LinkSearchController)
 
+import LoadingController from "./loading_controller"
+application.register("loading", LoadingController)
+
 import MatrixController from "./matrix_controller"
 application.register("matrix", MatrixController)
 

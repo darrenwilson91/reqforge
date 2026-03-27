@@ -419,6 +419,80 @@ trix-toolbar .trix-dialog__link-fields .trix-button-group .trix-button {
 }
 
 /* ============================================================
+   Turbo Progress Bar — brand-styled navigation indicator
+   ============================================================ */
+
+.turbo-progress-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-brand-accent), var(--color-brand-accent-light), var(--color-brand-accent));
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* ============================================================
+   Skeleton Loading States
+   ============================================================ */
+
+@layer components {
+  /* Skeleton shimmer animation */
+  .rf-skeleton {
+    @apply rounded bg-slate-200 relative overflow-hidden;
+  }
+
+  .rf-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%
+    );
+    animation: rf-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Skeleton card — mimics rf-card with placeholder content */
+  .rf-skeleton-card {
+    @apply rf-card p-6 space-y-4;
+  }
+
+  .rf-skeleton-line {
+    @apply rf-skeleton h-4;
+  }
+
+  .rf-skeleton-line-sm {
+    @apply rf-skeleton h-3;
+  }
+
+  .rf-skeleton-line-lg {
+    @apply rf-skeleton h-6;
+  }
+
+  .rf-skeleton-circle {
+    @apply rf-skeleton rounded-full;
+  }
+
+  .rf-skeleton-badge {
+    @apply rf-skeleton h-5 w-16 rounded-md;
+  }
+}
+
+@keyframes rf-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================================
+   Turbo Frame Loading State
+   ============================================================ */
+
+turbo-frame[busy] {
+  opacity: 0.6;
+  transition: opacity 200ms ease-out;
+  pointer-events: none;
+}
+
+/* ============================================================
    Utilities
    ============================================================ */
 

@@ -1,0 +1,55 @@
+<%# Skeleton loading state for detail/show pages (requirement detail, review item)
+    Usage: render "shared/skeleton_detail" %>
+<div class="space-y-6">
+  <%# Header area %>
+  <div class="rf-skeleton-card">
+    <div class="flex items-center gap-3">
+      <div class="rf-skeleton-line-sm w-20"></div>
+      <div class="rf-skeleton-badge"></div>
+      <div class="rf-skeleton-badge"></div>
+    </div>
+    <div class="rf-skeleton-line-lg w-3/5 mt-3"></div>
+    <div class="flex items-center gap-4 mt-4">
+      <div class="rf-skeleton-line-sm w-28"></div>
+      <div class="rf-skeleton-line-sm w-32"></div>
+      <div class="rf-skeleton-line-sm w-24"></div>
+    </div>
+  </div>
+
+  <%# Content area %>
+  <div class="rf-skeleton-card">
+    <div class="rf-skeleton-line-sm w-24 mb-3"></div>
+    <div class="space-y-2">
+      <div class="rf-skeleton-line w-full"></div>
+      <div class="rf-skeleton-line w-full"></div>
+      <div class="rf-skeleton-line w-4/5"></div>
+      <div class="rf-skeleton-line w-3/5"></div>
+    </div>
+  </div>
+
+  <%# Attributes area %>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="rf-skeleton-card">
+      <div class="rf-skeleton-line-sm w-20 mb-4"></div>
+      <div class="space-y-3">
+        <% 4.times do %>
+          <div class="flex items-center justify-between">
+            <div class="rf-skeleton-line-sm w-24"></div>
+            <div class="rf-skeleton-badge"></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="rf-skeleton-card">
+      <div class="rf-skeleton-line-sm w-28 mb-4"></div>
+      <div class="space-y-3">
+        <% 3.times do %>
+          <div class="flex items-center justify-between">
+            <div class="rf-skeleton-line-sm w-20"></div>
+            <div class="rf-skeleton-line w-32"></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
