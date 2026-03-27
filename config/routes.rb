@@ -8,6 +8,7 @@ Rails.application.routes.draw do
         patch :transition_status
         post :analyze_quality
         post :suggest_links
+        post :analyze_impact
       end
       collection do
         patch :reorder

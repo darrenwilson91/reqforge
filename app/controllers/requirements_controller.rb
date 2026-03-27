@@ -1,6 +1,6 @@
 class RequirementsController < ApplicationController
   before_action :set_project
-  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status, :analyze_quality, :suggest_links ]
+  before_action :set_requirement, only: [ :show, :edit, :update, :destroy, :transition_status, :analyze_quality, :suggest_links, :analyze_impact ]
 
   def index
     authorize @project, :show?
@@ -76,6 +76,7 @@ class RequirementsController < ApplicationController
   def update
     authorize @requirement
     if @requirement.update(requirement_params)
+      enqueue_impact_analysis_if_needed
       redirect_to project_requirement_path(@project, @requirement), notice: "Requirement updated successfully."
     else
       load_form_data
@@ -152,6 +153,28 @@ class RequirementsController < ApplicationController
     end
   end
 
+  def analyze_impact
+    authorize @requirement, :update?
+    AiAnalysisResult.mark_running!(@requirement, "impact_analysis")
+    ImpactAnalysisJob.perform_later(@requirement.id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        @requirement.reload
+        @requirement.association(:ai_analysis_results).load_target
+        render turbo_stream: turbo_stream.replace(
+          "ai_analysis_panel",
+          partial: "requirements/ai_panel",
+          locals: { requirement: @requirement, project: @project }
+        )
+      end
+      format.html do
+        redirect_to project_requirement_path(@project, @requirement),
+          notice: "Impact analysis started."
+      end
+    end
+  end
+
   def search
     authorize @project, :show?
     query = params[:q].to_s.strip
@@ -212,6 +235,17 @@ class RequirementsController < ApplicationController
     end
 
     permitted
+  end
+
+  IMPACT_ANALYSIS_FIELDS = %w[title body requirement_type status priority asil_level].freeze
+
+  def enqueue_impact_analysis_if_needed
+    changed_fields = @requirement.previous_changes.slice(*IMPACT_ANALYSIS_FIELDS)
+    return if changed_fields.empty?
+
+    changes_hash = changed_fields.transform_values { |old_new| [ old_new[0].to_s, old_new[1].to_s ] }
+    AiAnalysisResult.mark_running!(@requirement, "impact_analysis")
+    ImpactAnalysisJob.perform_later(@requirement.id, changes_hash)
   end
 
   def load_tree_data

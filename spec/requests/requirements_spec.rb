@@ -559,4 +559,189 @@ RSpec.describe "Requirements", type: :request do
       end
     end
   end
+
+  describe "POST /projects/:project_id/requirements/:id/analyze_impact" do
+    let!(:requirement) { create_requirement(title: "System shall activate brakes", body: "The braking system shall activate within 100ms of pedal input.") }
+
+    it "enqueues an ImpactAnalysisJob" do
+      expect {
+        post analyze_impact_project_requirement_path(project, requirement)
+      }.to have_enqueued_job(ImpactAnalysisJob).with(requirement.id)
+    end
+
+    it "creates a running AiAnalysisResult record" do
+      post analyze_impact_project_requirement_path(project, requirement)
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result).to be_present
+      expect(result.status).to eq("running")
+    end
+
+    it "redirects to the requirement page for HTML requests" do
+      post analyze_impact_project_requirement_path(project, requirement)
+      expect(response).to redirect_to(project_requirement_path(project, requirement))
+      expect(flash[:notice]).to include("Impact analysis started")
+    end
+
+    it "responds with Turbo Stream when requested" do
+      post analyze_impact_project_requirement_path(project, requirement),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("ai_analysis_panel")
+    end
+
+    it "re-analyzes when a previous result exists" do
+      AiAnalysisResult.store_result!(requirement, "impact_analysis", { "impacts" => [], "risk_level" => "minimal" })
+      expect {
+        post analyze_impact_project_requirement_path(project, requirement)
+      }.to have_enqueued_job(ImpactAnalysisJob).with(requirement.id)
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result.status).to eq("running")
+    end
+
+    context "when user is a viewer" do
+      let!(:membership) { create(:membership, user: user, organization: organization, role: :viewer) }
+
+      it "denies access" do
+        post analyze_impact_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(root_path)
+      end
+    end
+
+    context "when user is an author" do
+      let!(:membership) { create(:membership, user: user, organization: organization, role: :author) }
+
+      it "allows access" do
+        post analyze_impact_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(project_requirement_path(project, requirement))
+      end
+    end
+
+    context "when not signed in" do
+      before { sign_out user }
+
+      it "redirects to sign in" do
+        post analyze_impact_project_requirement_path(project, requirement)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+  end
+
+  describe "impact analysis auto-enqueue on update" do
+    let!(:requirement) { create_requirement(title: "Original Title", body: "Original body") }
+
+    it "enqueues ImpactAnalysisJob when title changes" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { title: "Updated Title" }
+        }
+      }.to have_enqueued_job(ImpactAnalysisJob).with(requirement.id, hash_including("title"))
+    end
+
+    it "enqueues ImpactAnalysisJob when body changes" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { body: "Updated body text" }
+        }
+      }.to have_enqueued_job(ImpactAnalysisJob).with(requirement.id, hash_including("body"))
+    end
+
+    it "enqueues ImpactAnalysisJob when status changes" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { priority: "should_have" }
+        }
+      }.to have_enqueued_job(ImpactAnalysisJob).with(requirement.id, hash_including("priority"))
+    end
+
+    it "does not enqueue ImpactAnalysisJob when only custom_attributes change" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { custom_attributes: { "key" => "value" } }
+        }
+      }.not_to have_enqueued_job(ImpactAnalysisJob)
+    end
+
+    it "does not enqueue ImpactAnalysisJob when no fields change" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { title: requirement.title }
+        }
+      }.not_to have_enqueued_job(ImpactAnalysisJob)
+    end
+
+    it "marks AiAnalysisResult as running when enqueuing" do
+      patch project_requirement_path(project, requirement), params: {
+        requirement: { title: "Changed Title" }
+      }
+      result = AiAnalysisResult.find_by(requirement: requirement, analysis_type: "impact_analysis")
+      expect(result).to be_present
+      expect(result.status).to eq("running")
+    end
+
+    it "passes old and new values in the changes hash" do
+      patch project_requirement_path(project, requirement), params: {
+        requirement: { title: "New Title" }
+      }
+      job = ActiveJob::Base.queue_adapter.enqueued_jobs.find { |j| j["job_class"] == "ImpactAnalysisJob" }
+      expect(job).to be_present
+      changes_arg = job["arguments"][1]
+      expect(changes_arg["title"]).to eq([ "Original Title", "New Title" ])
+    end
+
+    it "does not enqueue on validation failure" do
+      expect {
+        patch project_requirement_path(project, requirement), params: {
+          requirement: { title: "" }
+        }
+      }.not_to have_enqueued_job(ImpactAnalysisJob)
+    end
+  end
+
+  describe "impact notification on requirement show" do
+    let!(:requirement) { create_requirement(title: "Brake System") }
+
+    it "shows running notification when impact analysis is in progress" do
+      AiAnalysisResult.mark_running!(requirement, "impact_analysis")
+      get project_requirement_path(project, requirement)
+      expect(response.body).to include("Impact analysis is running")
+    end
+
+    it "shows completed notification with impacts" do
+      AiAnalysisResult.store_result!(requirement, "impact_analysis", {
+        "impacts" => [
+          { "uid" => "PRJ-0002", "severity" => "high", "impact_type" => "direct", "description" => "Directly affected" }
+        ],
+        "risk_level" => "significant",
+        "summary" => "One downstream requirement affected"
+      })
+      get project_requirement_path(project, requirement)
+      expect(response.body).to include("Impact Analysis Complete")
+      expect(response.body).to include("Significant risk")
+      expect(response.body).to include("1 high severity")
+      expect(response.body).to include("One downstream requirement affected")
+    end
+
+    it "does not show notification when no impact analysis exists" do
+      get project_requirement_path(project, requirement)
+      expect(response.body).not_to include("Impact Analysis Complete")
+      expect(response.body).not_to include("Impact analysis is running")
+    end
+
+    it "does not show completed notification for stale results (older than 5 minutes)" do
+      result = AiAnalysisResult.store_result!(requirement, "impact_analysis", {
+        "impacts" => [ { "uid" => "PRJ-0002", "severity" => "high", "impact_type" => "direct", "description" => "Affected" } ],
+        "risk_level" => "significant",
+        "summary" => "Stale result"
+      })
+      result.update_column(:completed_at, 10.minutes.ago)
+      get project_requirement_path(project, requirement)
+      expect(response.body).not_to include("Impact Analysis Complete")
+    end
+
+    it "includes turbo stream subscription for the requirement" do
+      get project_requirement_path(project, requirement)
+      expect(response.body).to include("turbo-cable-stream-source")
+    end
+  end
 end

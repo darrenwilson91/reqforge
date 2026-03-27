@@ -1,6 +1,11 @@
 <% content_for(:page_title, "#{@requirement.uid} — #{@requirement.title}") %>
 
+<%= turbo_stream_from @requirement %>
+
 <div class="space-y-4">
+  <%# Impact analysis notification banner %>
+  <%= render "requirements/impact_notification", requirement: @requirement %>
+
   <%# Breadcrumb %>
   <nav class="flex items-center gap-2 text-sm text-slate-500">
     <%= link_to "Projects", projects_path, class: "hover:text-brand-accent-dark transition-colors" %>
