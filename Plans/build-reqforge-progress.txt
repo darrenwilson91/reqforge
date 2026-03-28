@@ -730,3 +730,15 @@ FIX 3 (score 75) — active_change_set excludes approved status: In ApplicationC
 FIX 4 (score 75) — ReqIF importer link errors treated as failures: In ReqifImporter#result, separate requirement errors from link warnings. Change `success: @errors.empty?` to track link errors separately (e.g., @link_errors) so that success reflects only requirement import success, while link issues are reported as warnings.
 
 FIX 5 (score 65) — UID generation TOCTOU race condition: In Requirement#generate_uid, add a retry loop around save that catches ActiveRecord::RecordNotUnique on the uid column and regenerates the UID (up to 3 retries). Alternatively, use a database sequence or advisory lock.
+
+--- Iteration 37: Sat 28 Mar 2026 ---
+Task: Implement fixes and push
+Status: completed
+Changes: app/policies/change_set_comment_policy.rb (new), app/controllers/change_set_comments_controller.rb, app/controllers/application_controller.rb, app/controllers/requirements_controller.rb, app/controllers/import_exports_controller.rb, app/models/requirement.rb, app/models/test_case.rb, app/services/reqif_importer.rb, app/views/change_sets/show.html.erb, spec/requests/change_set_comments_spec.rb, spec/services/reqif_importer_spec.rb
+Notes: Implemented all 5 code review fixes from PR #3 and pushed. FIX 1: Created ChangeSetCommentPolicy (admin/PM/author/reviewer can comment, viewers denied), added authorize calls to all 3 controller actions, gated comment forms in view behind policy check. Updated viewer spec to expect denial. FIX 2: Added section_id validation in bulk_update — checks that section belongs to project's modules via joins before applying. FIX 3: Added :approved to active_change_set status filter so approved change sets remain active until merged. FIX 4: Separated link errors into @link_warnings array — result[:success] now only reflects requirement import status; link issues reported as result[:link_warnings]. Updated controller to show warning count in success message. Updated importer spec. FIX 5: Added create_or_update override in Requirement and TestCase that catches ActiveRecord::RecordNotUnique on auto-generated UIDs and retries up to 3 times with regenerated UID. User-supplied UIDs still fail immediately on uniqueness validation. All 2447 specs pass.
+
+--- Iteration 38: Sat 28 Mar 2026 ---
+Task: Comment on PR with summary of changes
+Status: completed
+Changes: Plans/build-reqforge-progress.txt
+Notes: Posted comprehensive summary comment on PR #3 (https://github.com/darrenwilson91/reqforge/pull/3#issuecomment-4146425505). Comment covers all 18 phases with sections for: Core Data Model, UI & Navigation, Review System, AI Features, Import/Export, Compliance, Flow-State Authoring, Change Sets, Test Cases, Dashboards. Includes confirmation that all 5 code review fixes were addressed with checkmarks. Reports final test coverage: 2,447 specs, 0 failures. Verified full test suite passes before posting. Phase 19 (PR & Code Review) is now complete.
