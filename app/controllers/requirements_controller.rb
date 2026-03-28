@@ -37,6 +37,7 @@ class RequirementsController < ApplicationController
     authorize @requirement
     @active_requirement_id = @requirement.id
     @requirement.association(:ai_analysis_results).load_target
+    @requirement.association(:test_cases).load_target
     load_tree_data
   end
 
