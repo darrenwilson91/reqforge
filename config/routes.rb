@@ -3,6 +3,9 @@ Rails.application.routes.draw do
 
   resources :organizations, only: [ :new, :create ]
 
+  # My Work
+  get "my_work", to: "my_work#show", as: :my_work
+
   # Global search
   get "search", to: "search#index", as: :search
   get "search/autocomplete", to: "search#autocomplete", as: :search_autocomplete
