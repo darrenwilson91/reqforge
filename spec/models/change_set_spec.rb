@@ -19,10 +19,7 @@ RSpec.describe ChangeSet, type: :model do
     it { is_expected.to belong_to(:source_baseline).class_name("Review").optional }
     it { is_expected.to belong_to(:merged_by).class_name("User").optional }
 
-    it "has_many :change_set_changes" do
-      pending "ChangeSetChange model not yet generated"
-      is_expected.to have_many(:change_set_changes).dependent(:destroy)
-    end
+    it { is_expected.to have_many(:change_set_changes).dependent(:destroy) }
 
     it { is_expected.to have_many(:change_set_approvals).dependent(:destroy) }
     it { is_expected.to have_many(:approvers).through(:change_set_approvals).source(:user) }
@@ -216,13 +213,17 @@ RSpec.describe ChangeSet, type: :model do
 
   describe "#changes_count" do
     it "returns zeros for empty change set" do
-      pending "ChangeSetChange model not yet generated"
-      fail
+      change_set = create(:change_set)
+      expect(change_set.changes_count).to eq({ created: 0, modified: 0, deleted: 0 })
     end
 
     it "returns counts by change type" do
-      pending "ChangeSetChange model not yet generated"
-      fail
+      change_set = create(:change_set)
+      create(:change_set_change, :created, change_set: change_set)
+      create(:change_set_change, :modified, change_set: change_set)
+      create(:change_set_change, :modified, change_set: change_set)
+      create(:change_set_change, :deleted, change_set: change_set)
+      expect(change_set.changes_count).to eq({ created: 1, modified: 2, deleted: 1 })
     end
   end
 
@@ -234,14 +235,40 @@ RSpec.describe ChangeSet, type: :model do
       expect(change_set.merge!(user: user)).to be false
     end
 
-    it "merges an approved change set" do
-      pending "ChangeSetChange model not yet generated"
-      fail
+    it "merges an approved change set with changes applied" do
+      project = create(:project)
+      change_set = create(:change_set, :approved, project: project)
+      requirement = create(:requirement, project: project, title: "Old Title")
+      create(:change_set_change, :modified, change_set: change_set, requirement: requirement,
+        after_snapshot: { "title" => "New Title", "body" => "Updated", "requirement_type" => "functional",
+                         "status" => "draft", "priority" => "must_have", "asil_level" => "qm",
+                         "custom_attributes" => {}, "uid" => requirement.uid })
+      user = create(:user)
+
+      result = change_set.merge!(user: user, message: "Approved by team")
+      expect(result).to be true
+
+      change_set.reload
+      expect(change_set).to be_merged
+      expect(change_set.merged_by).to eq(user)
+      expect(change_set.merged_at).to be_present
+      expect(change_set.merge_commit_message).to eq("Approved by team")
+
+      requirement.reload
+      expect(requirement.title).to eq("New Title")
     end
 
     it "merges without a message" do
-      pending "ChangeSetChange model not yet generated"
-      fail
+      project = create(:project)
+      change_set = create(:change_set, :approved, project: project)
+      user = create(:user)
+
+      result = change_set.merge!(user: user)
+      expect(result).to be true
+
+      change_set.reload
+      expect(change_set).to be_merged
+      expect(change_set.merge_commit_message).to be_nil
     end
   end
 

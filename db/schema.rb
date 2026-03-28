@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_235537) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_235951) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235537) do
     t.index ["change_set_id", "user_id"], name: "index_change_set_approvals_on_change_set_id_and_user_id", unique: true
     t.index ["change_set_id"], name: "index_change_set_approvals_on_change_set_id"
     t.index ["user_id"], name: "index_change_set_approvals_on_user_id"
+  end
+
+  create_table "change_set_changes", force: :cascade do |t|
+    t.jsonb "after_snapshot", default: {}
+    t.jsonb "before_snapshot", default: {}
+    t.bigint "change_set_id", null: false
+    t.integer "change_type", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.bigint "requirement_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["change_set_id", "change_type"], name: "index_change_set_changes_on_change_set_id_and_change_type"
+    t.index ["change_set_id", "requirement_id"], name: "index_change_set_changes_on_change_set_id_and_requirement_id", unique: true
+    t.index ["change_set_id"], name: "index_change_set_changes_on_change_set_id"
+    t.index ["requirement_id"], name: "index_change_set_changes_on_requirement_id"
   end
 
   create_table "change_set_rules", force: :cascade do |t|
@@ -279,6 +293,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235537) do
   add_foreign_key "ai_analysis_results", "requirements"
   add_foreign_key "change_set_approvals", "change_sets"
   add_foreign_key "change_set_approvals", "users"
+  add_foreign_key "change_set_changes", "change_sets"
+  add_foreign_key "change_set_changes", "requirements"
   add_foreign_key "change_set_rules", "projects"
   add_foreign_key "change_sets", "projects"
   add_foreign_key "change_sets", "reviews", column: "source_baseline_id"
