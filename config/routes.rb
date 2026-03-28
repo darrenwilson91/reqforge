@@ -58,6 +58,8 @@ Rails.application.routes.draw do
         post :approve
         post :request_changes
         post :merge
+        post :activate
+        delete :deactivate
       end
       resources :change_set_comments, only: [ :create ] do
         member do

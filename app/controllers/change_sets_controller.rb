@@ -1,6 +1,6 @@
 class ChangeSetsController < ApplicationController
   before_action :set_project
-  before_action :set_change_set, only: [ :show, :edit, :update, :destroy, :transition_status, :approve, :request_changes, :merge ]
+  before_action :set_change_set, only: [ :show, :edit, :update, :destroy, :transition_status, :approve, :request_changes, :merge, :activate, :deactivate ]
 
   def index
     authorize @project, :show?
@@ -44,7 +44,10 @@ class ChangeSetsController < ApplicationController
       # Add selected reviewers as pending approvals
       add_reviewers_from_params
 
-      redirect_to project_change_set_path(@project, @change_set), notice: "Change set created successfully."
+      # Auto-activate the new change set for editing
+      session[:active_change_set_id] = @change_set.id
+
+      redirect_to project_change_set_path(@project, @change_set), notice: "Change set created and activated. Edits to requirements will be recorded here."
     else
       load_form_data
       render :new, status: :unprocessable_entity
@@ -77,6 +80,10 @@ class ChangeSetsController < ApplicationController
     new_status = params[:status]
 
     if @change_set.transition_to(new_status)
+      # Clear active session if change set is now in a terminal state
+      if new_status.in?(%w[closed]) && session[:active_change_set_id] == @change_set.id
+        session.delete(:active_change_set_id)
+      end
       redirect_to project_change_set_path(@project, @change_set),
         notice: "Change set status changed to #{new_status.humanize}."
     else
@@ -127,12 +134,34 @@ class ChangeSetsController < ApplicationController
     authorize @change_set, :merge?
 
     if @change_set.merge!(user: current_user, message: params[:merge_commit_message])
+      session.delete(:active_change_set_id) if session[:active_change_set_id] == @change_set.id
       redirect_to project_change_set_path(@project, @change_set),
         notice: "Change set merged successfully. All changes have been applied."
     else
       redirect_to project_change_set_path(@project, @change_set),
         alert: "Cannot merge: change set must be in approved status."
     end
+  end
+
+  def activate
+    authorize @change_set, :show?
+
+    unless @change_set.status.in?(%w[draft open in_review])
+      redirect_to project_change_set_path(@project, @change_set),
+        alert: "Cannot activate a #{@change_set.status} change set."
+      return
+    end
+
+    session[:active_change_set_id] = @change_set.id
+    redirect_back fallback_location: project_requirements_path(@project),
+      notice: "Now editing in change set \"#{@change_set.title}\". Requirement edits will be recorded here."
+  end
+
+  def deactivate
+    authorize @change_set, :show?
+    session.delete(:active_change_set_id)
+    redirect_back fallback_location: project_change_set_path(@project, @change_set),
+      notice: "Exited change set editing mode."
   end
 
   private

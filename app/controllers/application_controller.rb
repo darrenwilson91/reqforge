@@ -11,7 +11,7 @@ class ApplicationController < ActionController::Base
   before_action :require_organization_setup!
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  helper_method :current_organization, :current_membership
+  helper_method :current_organization, :current_membership, :active_change_set
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
@@ -86,6 +86,22 @@ class ApplicationController < ActionController::Base
   # Example: build_scoped(Project, project_params)
   def build_scoped(model_class, attributes = {})
     model_class.new(attributes.merge(organization: current_organization))
+  end
+
+  # Returns the currently active change set for the current project context.
+  # Stored in session[:active_change_set_id], scoped to the current @project.
+  # Returns nil if no active change set, no project context, or the change set
+  # is in a terminal state (merged/closed).
+  def active_change_set
+    return @_active_change_set if defined?(@_active_change_set)
+
+    cs_id = session[:active_change_set_id]
+    return @_active_change_set = nil unless cs_id
+    return @_active_change_set = nil unless defined?(@project) && @project
+
+    @_active_change_set = @project.change_sets
+      .where(id: cs_id, status: [ :draft, :open, :in_review ])
+      .first
   end
 
   def configure_permitted_parameters

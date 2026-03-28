@@ -75,17 +75,22 @@ class RequirementsController < ApplicationController
 
   def update
     authorize @requirement
-    if @requirement.update(requirement_params)
-      enqueue_impact_analysis_if_needed
-      redirect_to project_requirement_path(@project, @requirement), notice: "Requirement updated successfully."
+
+    if active_change_set
+      record_change_in_change_set
     else
-      load_form_data
-      if turbo_frame_request?
-        load_tree_data
-        @active_requirement_id = @requirement.id
-        render :show, status: :unprocessable_entity
+      if @requirement.update(requirement_params)
+        enqueue_impact_analysis_if_needed
+        redirect_to project_requirement_path(@project, @requirement), notice: "Requirement updated successfully."
       else
-        render :edit, status: :unprocessable_entity
+        load_form_data
+        if turbo_frame_request?
+          load_tree_data
+          @active_requirement_id = @requirement.id
+          render :show, status: :unprocessable_entity
+        else
+          render :edit, status: :unprocessable_entity
+        end
       end
     end
   end
@@ -332,6 +337,51 @@ class RequirementsController < ApplicationController
     end
 
     permitted
+  end
+
+  def record_change_in_change_set
+    change = active_change_set.change_set_changes.find_or_initialize_by(requirement: @requirement)
+
+    # Snapshot before state only on first edit of this requirement in this change set
+    if change.new_record?
+      change.change_type = :modified
+      change.before_snapshot = build_requirement_snapshot
+    end
+
+    # Temporarily assign attributes to validate without saving
+    @requirement.assign_attributes(requirement_params)
+
+    unless @requirement.valid?
+      load_form_data
+      if turbo_frame_request?
+        load_tree_data
+        @active_requirement_id = @requirement.id
+        render :show, status: :unprocessable_entity
+      else
+        render :edit, status: :unprocessable_entity
+      end
+      return
+    end
+
+    # Build after_snapshot from the proposed (validated) state
+    change.after_snapshot = build_requirement_snapshot
+    change.save!
+
+    # Reload to discard assigned-but-unsaved attributes
+    @requirement.reload
+
+    redirect_to project_requirement_path(@project, @requirement),
+      notice: "Changes recorded in change set \"#{active_change_set.title}\"."
+  end
+
+  def build_requirement_snapshot
+    snapshot = {}
+    ChangeSetChange::SNAPSHOT_ATTRIBUTES.each do |attr|
+      snapshot[attr] = @requirement.send(attr)
+    end
+    snapshot["module_name"] = @requirement.section&.requirement_module&.name
+    snapshot["section_name"] = @requirement.section&.name
+    snapshot
   end
 
   IMPACT_ANALYSIS_FIELDS = %w[title body requirement_type status priority asil_level].freeze
