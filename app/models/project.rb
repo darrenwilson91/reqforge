@@ -6,6 +6,7 @@ class Project < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :change_sets, dependent: :destroy
   has_one :change_set_rule, dependent: :destroy
+  has_many :test_cases, dependent: :destroy
 
   enum :status, { active: 0, archived: 1, template: 2 }
 

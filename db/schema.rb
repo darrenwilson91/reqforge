@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_28_001612) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_005621) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -268,6 +268,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_001612) do
     t.index ["requirement_module_id"], name: "index_sections_on_requirement_module_id"
   end
 
+  create_table "test_cases", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.text "description"
+    t.text "expected_result"
+    t.text "preconditions"
+    t.integer "priority", default: 0, null: false
+    t.bigint "project_id", null: false
+    t.bigint "requirement_id"
+    t.integer "status", default: 5, null: false
+    t.text "steps"
+    t.integer "test_type", default: 0, null: false
+    t.string "title", null: false
+    t.string "uid", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_test_cases_on_created_by_id"
+    t.index ["project_id", "status"], name: "index_test_cases_on_project_id_and_status"
+    t.index ["project_id", "test_type"], name: "index_test_cases_on_project_id_and_test_type"
+    t.index ["project_id"], name: "index_test_cases_on_project_id"
+    t.index ["requirement_id"], name: "index_test_cases_on_requirement_id"
+    t.index ["uid"], name: "index_test_cases_on_uid", unique: true
+  end
+
   create_table "traceability_links", force: :cascade do |t|
     t.boolean "ai_suggested", default: false, null: false
     t.float "confidence"
@@ -344,6 +367,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_001612) do
   add_foreign_key "reviews", "users", column: "created_by_id"
   add_foreign_key "sections", "requirement_modules"
   add_foreign_key "sections", "sections", column: "parent_section_id"
+  add_foreign_key "test_cases", "projects"
+  add_foreign_key "test_cases", "requirements"
+  add_foreign_key "test_cases", "users", column: "created_by_id"
   add_foreign_key "traceability_links", "requirements", column: "source_requirement_id"
   add_foreign_key "traceability_links", "requirements", column: "target_requirement_id"
   add_foreign_key "traceability_links", "users", column: "created_by_id"
