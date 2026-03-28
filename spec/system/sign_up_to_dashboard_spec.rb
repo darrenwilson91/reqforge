@@ -114,7 +114,7 @@ RSpec.describe "Sign up to dashboard flow", type: :system do
       visit root_path
 
       expect(page).to have_content("Welcome back, #{user.first_name}")
-      expect(page).to have_content("overview of your requirements management workspace")
+      expect(page).to have_content("Organization overview and team performance")
     end
 
     it "shows getting started empty state when no projects exist" do
