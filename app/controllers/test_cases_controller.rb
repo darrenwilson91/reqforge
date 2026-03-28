@@ -3,6 +3,8 @@ class TestCasesController < ApplicationController
   before_action :set_test_case, only: [ :show, :edit, :update, :destroy ]
 
   def index
+    authorize TestCase
+
     @test_cases = @project.test_cases
       .includes(:requirement, :created_by)
       .order(:uid)
@@ -28,6 +30,7 @@ class TestCasesController < ApplicationController
   end
 
   def show
+    authorize @test_case
   end
 
   def new
@@ -35,12 +38,14 @@ class TestCasesController < ApplicationController
       created_by: current_user,
       requirement_id: params[:requirement_id]
     )
+    authorize @test_case
     load_form_data
   end
 
   def create
     @test_case = @project.test_cases.build(test_case_params)
     @test_case.created_by = current_user
+    authorize @test_case
 
     if @test_case.save
       redirect_to project_test_case_path(@project, @test_case), notice: "Test case created successfully."
@@ -51,10 +56,13 @@ class TestCasesController < ApplicationController
   end
 
   def edit
+    authorize @test_case
     load_form_data
   end
 
   def update
+    authorize @test_case
+
     if @test_case.update(test_case_params)
       redirect_to project_test_case_path(@project, @test_case), notice: "Test case updated successfully."
     else
@@ -64,6 +72,7 @@ class TestCasesController < ApplicationController
   end
 
   def destroy
+    authorize @test_case
     @test_case.destroy
     redirect_to project_test_cases_path(@project), notice: "Test case deleted successfully."
   end
