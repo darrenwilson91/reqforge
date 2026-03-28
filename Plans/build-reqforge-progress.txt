@@ -714,3 +714,19 @@ Task: Run /pr to create a pull request with all changes
 Status: completed
 Changes: Plans/build-reqforge-progress.txt
 Notes: Pushed branch to origin, created PR #3 (https://github.com/darrenwilson91/reqforge/pull/3) with comprehensive description covering all 18 phases, 325 files changed, ~46,500 lines, 2,447 passing specs. Ran code review which identified 5 issues: (1) missing Pundit authorization in ChangeSetCommentsController (score 90), (2) cross-project section assignment in bulk_update (score 75), (3) active_change_set excludes approved status incorrectly (score 75), (4) ReqIF importer link errors are blocking despite "non-blocking" comment (score 75), (5) UID generation TOCTOU race condition (score 65). Posted review as PR comment. No localisation needed (English only).
+
+--- Iteration 36: Sat 28 Mar 2026 ---
+Task: Review PR feedback and create fix tasks for any issues scoring 50% or higher confidence
+Status: completed
+Changes: Plans/build-reqforge-progress.txt
+Notes: Reviewed all 5 code review issues from PR #3. All score ≥50% and require fixes. Fix tasks for next iteration:
+
+FIX 1 (score 90) — Missing Pundit authorization in ChangeSetCommentsController: Add authorize calls to create/resolve/unresolve actions. Create action should check that user is a change set participant who can_comment (or org member with appropriate role). Resolve/unresolve should check similar permissions. Create a ChangeSetCommentPolicy if needed, or use inline authorization against the change_set.
+
+FIX 2 (score 75) — Cross-project section assignment in bulk_update: In RequirementsController#bulk_update, validate that section_id belongs to the current project before applying. Add: `next unless @project.sections.exists?(id: attrs[:section_id])` or scope the lookup.
+
+FIX 3 (score 75) — active_change_set excludes approved status: In ApplicationController#active_change_set, add :approved to the status filter array so approved (pre-merge) change sets remain active for editing. Change `[:draft, :open, :in_review]` to `[:draft, :open, :in_review, :approved]`.
+
+FIX 4 (score 75) — ReqIF importer link errors treated as failures: In ReqifImporter#result, separate requirement errors from link warnings. Change `success: @errors.empty?` to track link errors separately (e.g., @link_errors) so that success reflects only requirement import success, while link issues are reported as warnings.
+
+FIX 5 (score 65) — UID generation TOCTOU race condition: In Requirement#generate_uid, add a retry loop around save that catches ActiveRecord::RecordNotUnique on the uid column and regenerates the UID (up to 3 retries). Alternatively, use a database sequence or advisory lock.
