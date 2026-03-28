@@ -91,11 +91,13 @@ RSpec.describe "ChangeSetComments", type: :request do
     context "as a viewer" do
       before { sign_in viewer }
 
-      it "can create comments" do
+      it "is denied access" do
         expect {
           post project_change_set_change_set_comments_path(project, change_set),
             params: { change_set_comment: { body: "Viewer comment" } }
-        }.to change(ChangeSetComment, :count).by(1)
+        }.not_to change(ChangeSetComment, :count)
+
+        expect(flash[:alert]).to eq("You are not authorized to perform this action.")
       end
     end
 

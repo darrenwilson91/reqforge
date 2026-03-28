@@ -113,5 +113,20 @@ class Requirement < ApplicationRecord
 
     last_seq = project.requirements.maximum(:uid)&.then { |u| u.scan(/(\d+)\z/).flatten.first&.to_i } || 0
     self.uid = "#{project.prefix}-#{format('%04d', last_seq + 1)}"
+    @uid_auto_generated = true
+  end
+
+  # Override create to retry on database-level UID uniqueness violation
+  # (TOCTOU race between generate_uid's MAX query and the INSERT)
+  def create_or_update(...)
+    super
+  rescue ActiveRecord::RecordNotUnique => e
+    raise unless e.message.include?("uid") && @uid_auto_generated
+    raise unless (@uid_retry_count = (@uid_retry_count || 0) + 1) <= 3
+
+    self.uid = nil
+    @uid_auto_generated = false
+    generate_uid
+    retry
   end
 end

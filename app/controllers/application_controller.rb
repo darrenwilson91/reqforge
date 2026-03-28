@@ -100,7 +100,7 @@ class ApplicationController < ActionController::Base
     return @_active_change_set = nil unless defined?(@project) && @project
 
     @_active_change_set = @project.change_sets
-      .where(id: cs_id, status: [ :draft, :open, :in_review ])
+      .where(id: cs_id, status: [ :draft, :open, :in_review, :approved ])
       .first
   end
 

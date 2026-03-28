@@ -11,13 +11,14 @@ class ReqifImporter
   VALID_ASIL_LEVELS = Requirement.asil_levels.keys.freeze
   VALID_LINK_TYPES = TraceabilityLink.link_types.keys.freeze
 
-  attr_reader :project, :user, :errors, :imported_requirements_count,
+  attr_reader :project, :user, :errors, :link_warnings, :imported_requirements_count,
               :imported_links_count, :skipped_count
 
   def initialize(project, user)
     @project = project
     @user = user
     @errors = []
+    @link_warnings = []
     @imported_requirements_count = 0
     @imported_links_count = 0
     @skipped_count = 0
@@ -72,6 +73,7 @@ class ReqifImporter
 
   def reset_counters
     @errors = []
+    @link_warnings = []
     @imported_requirements_count = 0
     @imported_links_count = 0
     @skipped_count = 0
@@ -308,7 +310,7 @@ class ReqifImporter
       target = @uid_to_requirement[rel[:target_ref]]
 
       unless source && target
-        @errors << { relation: index + 1, message: "Source or target requirement not found for link" }
+        @link_warnings << { relation: index + 1, message: "Source or target requirement not found for link" }
         next
       end
 
@@ -325,7 +327,7 @@ class ReqifImporter
       if link.save
         @imported_links_count += 1
       else
-        @errors << { relation: index + 1, message: link.errors.full_messages.join(", ") }
+        @link_warnings << { relation: index + 1, message: link.errors.full_messages.join(", ") }
       end
     end
   end
@@ -347,6 +349,7 @@ class ReqifImporter
       imported_links: @imported_links_count,
       skipped: @skipped_count,
       errors: @errors,
+      link_warnings: @link_warnings,
       success: @errors.empty?
     }
   end

@@ -1,4 +1,5 @@
 <% content_for(:page_title, "#{@project.name} — #{@change_set.title}") %>
+<% can_comment = policy(ChangeSetComment.new(change_set: @change_set)).create? %>
 
 <div class="space-y-6">
   <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Change Sets", project_change_sets_path(@project)], @change_set.title) %>
@@ -331,7 +332,7 @@
                       <% end %>
 
                       <%# Add comment form for this change %>
-                      <% unless @change_set.merged? %>
+                      <% if can_comment && !@change_set.merged? %>
                         <div class="px-4 py-3">
                           <%= form_with url: project_change_set_change_set_comments_path(@project, @change_set), class: "flex gap-2" do |f| %>
                             <%= f.hidden_field :change_set_change_id, value: change.id %>
@@ -376,7 +377,7 @@
           <% end %>
 
           <%# New conversation comment form %>
-          <% unless @change_set.merged? %>
+          <% if can_comment && !@change_set.merged? %>
             <div class="pt-4 border-t border-slate-100 dark:border-slate-700 mt-4">
               <%= form_with url: project_change_set_change_set_comments_path(@project, @change_set), class: "space-y-3" do |f| %>
                 <%= f.text_area :body, rows: 3, placeholder: "Leave a comment...",

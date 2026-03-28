@@ -79,9 +79,10 @@ class ImportExportsController < ApplicationController
     result = importer.import(content)
 
     session[:import_result] = result.merge(format: "ReqIF")
+    link_warning_text = result[:link_warnings]&.any? ? " (#{result[:link_warnings].size} link warning#{'s' if result[:link_warnings].size != 1})" : ""
     redirect_to project_import_export_path(@project),
-      notice: result[:success] ? "Successfully imported #{result[:imported_requirements]} requirements and #{result[:imported_links]} links from ReqIF." : nil,
-      alert: result[:success] ? nil : "Import had issues. #{result[:errors].map { |e| e[:message] || e.to_s }.first(5).join('; ')}."
+      notice: result[:success] ? "Successfully imported #{result[:imported_requirements]} requirements and #{result[:imported_links]} links from ReqIF.#{link_warning_text}" : nil,
+      alert: result[:success] ? nil : "Import failed. #{result[:errors].map { |e| e[:message] || e.to_s }.first(5).join('; ')}."
   rescue ReqifImporter::Error => e
     redirect_to project_import_export_path(@project), alert: "ReqIF import error: #{e.message}"
   end

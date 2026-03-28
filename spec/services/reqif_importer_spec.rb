@@ -397,14 +397,15 @@ RSpec.describe ReqifImporter do
         )
       end
 
-      it "records an error for the missing target" do
+      it "records a link warning for the missing target" do
         result = importer.import(xml)
-        expect(result[:errors]).to include(hash_including(message: /Source or target requirement not found/))
+        expect(result[:link_warnings]).to include(hash_including(message: /Source or target requirement not found/))
       end
 
-      it "still imports the valid requirement" do
+      it "still imports the valid requirement successfully" do
         result = importer.import(xml)
         expect(result[:imported_requirements]).to eq(1)
+        expect(result[:success]).to be true
       end
     end
 

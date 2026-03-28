@@ -211,7 +211,13 @@ class RequirementsController < ApplicationController
         permitted[:status] = attrs[:status] if attrs[:status].present?
         permitted[:priority] = attrs[:priority] if attrs[:priority].present?
         permitted[:asil_level] = attrs[:asil_level] if attrs[:asil_level].present?
-        permitted[:section_id] = attrs[:section_id] if attrs[:section_id].present?
+        if attrs[:section_id].present?
+          section = @project.requirement_modules
+            .joins(:sections)
+            .where(sections: { id: attrs[:section_id] })
+            .exists?
+          permitted[:section_id] = attrs[:section_id] if section
+        end
 
         if req.update(permitted)
           updated_count += 1

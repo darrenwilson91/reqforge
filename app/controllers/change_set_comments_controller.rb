@@ -6,6 +6,7 @@ class ChangeSetCommentsController < ApplicationController
   def create
     @comment = @change_set.change_set_comments.build(comment_params)
     @comment.user = current_user
+    authorize @comment
 
     if @comment.save
       redirect_to project_change_set_path(@project, @change_set, anchor: "comment-#{@comment.id}"),
@@ -17,12 +18,14 @@ class ChangeSetCommentsController < ApplicationController
   end
 
   def resolve
+    authorize @comment
     @comment.resolve!(current_user)
     redirect_to project_change_set_path(@project, @change_set, anchor: "comment-#{@comment.id}"),
       notice: "Comment resolved."
   end
 
   def unresolve
+    authorize @comment
     @comment.unresolve!
     redirect_to project_change_set_path(@project, @change_set, anchor: "comment-#{@comment.id}"),
       notice: "Comment reopened."
