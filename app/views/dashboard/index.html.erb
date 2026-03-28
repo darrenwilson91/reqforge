@@ -333,7 +333,7 @@
                     <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate"><%= req.title %></p>
                     <p class="text-xs text-slate-500 dark:text-slate-400"><%= req.project.prefix %></p>
                   </div>
-                  <span class="<%= helpers.requirement_status_badge_class(req) %> text-xs"><%= req.status.humanize %></span>
+                  <span class="<%= requirement_status_badge_class(req) %> text-xs"><%= req.status.humanize %></span>
                 <% end %>
               <% end %>
             </div>
@@ -356,7 +356,7 @@
             <div class="divide-y divide-slate-100 dark:divide-slate-700">
               <% @my_change_sets.each do |cs| %>
                 <%= link_to project_change_set_path(cs.project, cs), class: "flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" do %>
-                  <span class="<%= helpers.change_set_status_badge_class(cs) %> text-xs"><%= cs.status.humanize %></span>
+                  <span class="<%= change_set_status_badge_class(cs) %> text-xs"><%= cs.status.humanize %></span>
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate"><%= cs.title %></p>
                     <p class="text-xs text-slate-500 dark:text-slate-400"><%= cs.project.prefix %></p>
@@ -390,7 +390,7 @@
                   <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate"><%= tc.title %></p>
                   <p class="text-xs text-slate-500 dark:text-slate-400"><%= tc.project.prefix %></p>
                 </div>
-                <span class="<%= helpers.test_status_badge_class(tc) %> text-xs"><%= tc.status.humanize %></span>
+                <span class="<%= test_status_badge_class(tc) %> text-xs"><%= tc.status.humanize %></span>
               <% end %>
             <% end %>
           </div>
