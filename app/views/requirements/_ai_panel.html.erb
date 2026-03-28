@@ -7,13 +7,13 @@
 
 <div id="ai_analysis_panel" class="rf-card" data-controller="ai-panel" data-ai-panel-active-tab-value="quality">
   <%# Panel Header %>
-  <div class="p-5 border-b border-slate-100">
+  <div class="p-5 border-b border-slate-100 dark:border-slate-700">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-violet-500" viewBox="0 0 20 20" fill="currentColor">
           <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
         </svg>
-        <h2 class="text-base font-semibold text-slate-900">AI Analysis</h2>
+        <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">AI Analysis</h2>
         <% if quality_result&.completed? %>
           <% score = quality_result.quality_score || 0 %>
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold <%= ai_score_badge_class(score) %>">
@@ -25,7 +25,7 @@
         <% if policy(requirement).update? %>
           <%= button_to analyze_quality_project_requirement_path(project, requirement),
                 method: :post,
-                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors",
+                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-700 transition-colors",
                 data: { turbo_stream: true },
                 disabled: quality_result&.running? do %>
             <% if quality_result&.running? %>
@@ -43,7 +43,7 @@
           <% end %>
           <%= button_to suggest_links_project_requirement_path(project, requirement),
                 method: :post,
-                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors",
+                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-700 transition-colors",
                 data: { turbo_stream: true },
                 disabled: link_result&.running? do %>
             <% if link_result&.running? %>
@@ -61,7 +61,7 @@
           <% end %>
           <%= button_to analyze_impact_project_requirement_path(project, requirement),
                 method: :post,
-                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors",
+                class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-700 transition-colors",
                 data: { turbo_stream: true },
                 disabled: impact_result&.running? do %>
             <% if impact_result&.running? %>
@@ -78,12 +78,12 @@
             <% end %>
           <% end %>
         <% end %>
-        <button type="button" data-action="ai-panel#expandAll" class="p-1 text-slate-400 hover:text-slate-600 transition-colors" title="Expand all">
+        <button type="button" data-action="ai-panel#expandAll" class="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors" title="Expand all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
         </button>
-        <button type="button" data-action="ai-panel#collapseAll" class="p-1 text-slate-400 hover:text-slate-600 transition-colors" title="Collapse all">
+        <button type="button" data-action="ai-panel#collapseAll" class="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors" title="Collapse all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
           </svg>
@@ -92,7 +92,7 @@
     </div>
 
     <%# Tab Navigation %>
-    <div class="flex gap-0 mt-4 -mb-5 border-b border-slate-100">
+    <div class="flex gap-0 mt-4 -mb-5 border-b border-slate-100 dark:border-slate-700">
       <button type="button"
         class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors border-brand-accent text-brand-accent-dark"
         data-ai-panel-target="tab"
@@ -110,7 +110,7 @@
         data-action="ai-panel#switchTab">
         Suggested Links
         <% if link_result&.completed? && (link_result.suggestions_count || 0) > 0 %>
-          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold"><%= link_result.suggestions_count %></span>
+          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-semibold"><%= link_result.suggestions_count %></span>
         <% end %>
       </button>
       <button type="button"
@@ -120,7 +120,7 @@
         data-action="ai-panel#switchTab">
         Impact
         <% if impact_result&.completed? && (impact_result.impacts_count || 0) > 0 %>
-          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold"><%= impact_result.impacts_count %></span>
+          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-semibold"><%= impact_result.impacts_count %></span>
         <% end %>
       </button>
     </div>
@@ -152,7 +152,7 @@
 
     <% elsif quality_result.failed? %>
       <%# Analysis failed %>
-      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
         <div class="flex items-start gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -176,7 +176,7 @@
       <div class="flex items-start gap-5 mb-5">
         <div class="shrink-0 relative w-20 h-20">
           <svg viewBox="0 0 36 36" class="w-20 h-20 -rotate-90">
-            <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3" class="stroke-slate-100" />
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3" class="stroke-slate-100 dark:stroke-slate-700" />
             <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3"
               stroke-dasharray="<%= (overall_score * 97.4 / 100.0).round(1) %> 97.4"
               stroke-linecap="round"
@@ -187,7 +187,7 @@
           </div>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold text-slate-900">Overall Quality Score</p>
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Overall Quality Score</p>
           <% if summary.present? %>
             <p class="text-sm text-slate-500 mt-1"><%= summary %></p>
           <% end %>
@@ -214,16 +214,16 @@
 
             <div data-ai-panel-target="section">
               <button type="button" data-action="ai-panel#toggle"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left">
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left">
                 <%# Pass/fail indicator %>
                 <% if passed %>
-                  <span class="shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <span class="shrink-0 w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                   </span>
                 <% else %>
-                  <span class="shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+                  <span class="shrink-0 w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-red-600" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
@@ -231,12 +231,12 @@
                 <% end %>
 
                 <span class="flex-1 min-w-0">
-                  <span class="text-sm font-medium text-slate-700 capitalize"><%= rule_name %></span>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize"><%= rule_name %></span>
                 </span>
 
                 <%# Score bar %>
                 <span class="shrink-0 w-16 flex items-center gap-1.5">
-                  <span class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <span class="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                     <span class="block h-full rounded-full <%= ai_score_bar_class(rule_score) %>" style="width: <%= rule_score %>%"></span>
                   </span>
                   <span class="text-xs font-medium w-7 text-right <%= ai_score_text_class(rule_score) %>"><%= rule_score %></span>
@@ -285,11 +285,11 @@
 
       <%# Top-level suggestions (from the outer result, not per-check) %>
       <% if suggestions.any? %>
-        <div class="mt-4 pt-4 border-t border-slate-100">
-          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Improvement Suggestions</p>
+        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+          <p class="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Improvement Suggestions</p>
           <ul class="space-y-1.5">
             <% suggestions.each do |suggestion| %>
-              <li class="text-sm text-slate-600 flex items-start gap-2">
+              <li class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-violet-400 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                 </svg>
@@ -325,7 +325,7 @@
       </div>
 
     <% elsif link_result.failed? %>
-      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
         <div class="flex items-start gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -365,11 +365,11 @@
             <% rationale = suggestion["rationale"] || suggestion[:rationale] %>
             <% confidence_pct = (confidence * 100).round %>
 
-            <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+            <div class="flex items-start gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
               <%# Confidence indicator %>
               <div class="shrink-0 flex flex-col items-center">
                 <span class="text-xs font-bold <%= ai_score_text_class(confidence_pct) %>"><%= confidence_pct %>%</span>
-                <div class="w-1 h-6 rounded-full bg-slate-100 mt-1 overflow-hidden">
+                <div class="w-1 h-6 rounded-full bg-slate-100 dark:bg-slate-700 mt-1 overflow-hidden">
                   <div class="w-full rounded-full <%= ai_score_bar_class(confidence_pct) %>" style="height: <%= confidence_pct %>%"></div>
                 </div>
               </div>
@@ -413,7 +413,7 @@
       </div>
 
     <% elsif impact_result.failed? %>
-      <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
         <div class="flex items-start gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -450,7 +450,7 @@
         <% end %>
 
         <% if impact_summary.present? %>
-          <p class="text-sm text-slate-600 mb-3"><%= impact_summary %></p>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mb-3"><%= impact_summary %></p>
         <% end %>
 
         <% if impact_result.completed_at %>
@@ -478,7 +478,7 @@
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span class="rf-uid text-xs"><%= target_uid %></span>
                   <span class="rf-badge text-xs <%= impact_severity_badge_class(severity) %>"><%= severity.to_s.capitalize %></span>
-                  <span class="rf-badge text-xs bg-slate-100 text-slate-600"><%= impact_type.to_s.capitalize %></span>
+                  <span class="rf-badge text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"><%= impact_type.to_s.capitalize %></span>
                 </div>
                 <% if description.present? %>
                   <p class="text-xs text-slate-500 leading-relaxed"><%= description %></p>
