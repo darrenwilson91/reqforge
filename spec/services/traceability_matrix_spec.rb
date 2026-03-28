@@ -234,4 +234,134 @@ RSpec.describe TraceabilityMatrix do
       expect(report[:backward_count]).to eq(0)
     end
   end
+
+  describe "#test_coverage_report" do
+    it "returns test coverage metrics" do
+      req_a; req_b; req_c; req_d
+      report = matrix.test_coverage_report
+      expect(report).to have_key(:total_requirements)
+      expect(report).to have_key(:tested_requirements)
+      expect(report).to have_key(:untested_requirements)
+      expect(report).to have_key(:test_coverage_percentage)
+      expect(report).to have_key(:total_test_cases)
+      expect(report).to have_key(:by_status)
+      expect(report).to have_key(:requirements_with_passed)
+      expect(report).to have_key(:requirements_with_failed)
+      expect(report).to have_key(:requirements_with_not_run)
+    end
+
+    context "with no test cases" do
+      it "returns zero coverage" do
+        req_a; req_b
+        report = matrix.test_coverage_report
+        expect(report[:total_requirements]).to eq(2)
+        expect(report[:tested_requirements]).to eq(0)
+        expect(report[:untested_requirements]).to eq(2)
+        expect(report[:test_coverage_percentage]).to eq(0.0)
+        expect(report[:total_test_cases]).to eq(0)
+      end
+
+      it "lists all requirements as untested" do
+        req_a; req_b
+        report = matrix.test_coverage_report
+        expect(report[:untested_requirement_ids]).to contain_exactly(req_a.id, req_b.id)
+      end
+
+      it "returns zero for all statuses" do
+        req_a
+        report = matrix.test_coverage_report
+        expect(report[:by_status].values).to all(eq(0))
+      end
+    end
+
+    context "with test cases" do
+      before do
+        req_a; req_b; req_c; req_d
+        create(:test_case, project: project, requirement: req_a, status: :passed, created_by: user)
+        create(:test_case, project: project, requirement: req_a, status: :failed, created_by: user)
+        create(:test_case, project: project, requirement: req_b, status: :not_run, created_by: user)
+        create(:test_case, project: project, requirement: req_c, status: :passed, created_by: user)
+      end
+
+      it "computes tested/untested counts" do
+        report = matrix.test_coverage_report
+        expect(report[:total_requirements]).to eq(4)
+        expect(report[:tested_requirements]).to eq(3)
+        expect(report[:untested_requirements]).to eq(1)
+      end
+
+      it "computes coverage percentage" do
+        report = matrix.test_coverage_report
+        expect(report[:test_coverage_percentage]).to eq(75.0)
+      end
+
+      it "counts total test cases" do
+        report = matrix.test_coverage_report
+        expect(report[:total_test_cases]).to eq(4)
+      end
+
+      it "groups test cases by status" do
+        report = matrix.test_coverage_report
+        expect(report[:by_status][:passed]).to eq(2)
+        expect(report[:by_status][:failed]).to eq(1)
+        expect(report[:by_status][:not_run]).to eq(1)
+        expect(report[:by_status][:draft]).to eq(0)
+      end
+
+      it "counts requirements with passed test cases" do
+        report = matrix.test_coverage_report
+        expect(report[:requirements_with_passed]).to eq(2) # req_a and req_c
+      end
+
+      it "counts requirements with failed test cases" do
+        report = matrix.test_coverage_report
+        expect(report[:requirements_with_failed]).to eq(1) # req_a
+      end
+
+      it "counts requirements with not_run test cases" do
+        report = matrix.test_coverage_report
+        expect(report[:requirements_with_not_run]).to eq(1) # req_b
+      end
+
+      it "identifies untested requirements" do
+        report = matrix.test_coverage_report
+        expect(report[:untested_requirement_ids]).to contain_exactly(req_d.id)
+      end
+    end
+
+    it "excludes test cases from other projects" do
+      req_a
+      other_project = create(:project, organization: organization)
+      other_mod = create(:requirement_module, project: other_project)
+      other_section = create(:section, requirement_module: other_mod)
+      other_req = create(:requirement, section: other_section, project: other_project, created_by: user)
+      create(:test_case, project: other_project, requirement: other_req, status: :passed, created_by: user)
+
+      report = matrix.test_coverage_report
+      expect(report[:total_test_cases]).to eq(0)
+      expect(report[:tested_requirements]).to eq(0)
+    end
+
+    it "deduplicates requirements with multiple test cases" do
+      req_a; req_b
+      create(:test_case, project: project, requirement: req_a, status: :passed, created_by: user)
+      create(:test_case, project: project, requirement: req_a, status: :passed, created_by: user)
+      create(:test_case, project: project, requirement: req_a, status: :failed, created_by: user)
+
+      report = matrix.test_coverage_report
+      expect(report[:tested_requirements]).to eq(1)
+      expect(report[:requirements_with_passed]).to eq(1)
+      expect(report[:test_coverage_percentage]).to eq(50.0)
+    end
+
+    it "handles empty project" do
+      empty_project = create(:project, organization: organization)
+      empty_matrix = described_class.new(empty_project)
+      report = empty_matrix.test_coverage_report
+      expect(report[:total_requirements]).to eq(0)
+      expect(report[:test_coverage_percentage]).to eq(0.0)
+      expect(report[:total_test_cases]).to eq(0)
+      expect(report[:by_status].values).to all(eq(0))
+    end
+  end
 end

@@ -34,6 +34,7 @@ class TraceabilityMatricesController < ApplicationController
     )
 
     @coverage = @matrix_service.coverage_report
+    @test_coverage = @matrix_service.test_coverage_report
     @modules = @project.requirement_modules.order(:position)
     @all_requirements = @project.requirements.order(:uid)
   end

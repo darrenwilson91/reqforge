@@ -180,6 +180,43 @@ RSpec.describe "Traceability", type: :system do
       expect(page).to have_content("Unlinked Requirements")
       expect(page).to have_content(unlinked.uid)
     end
+
+    it "shows test coverage section" do
+      visit project_traceability_matrix_path(project)
+      expect(page).to have_content("Test Coverage")
+    end
+
+    it "shows empty test coverage state when no test cases" do
+      create_req(title: "No Tests")
+      visit project_traceability_matrix_path(project)
+      expect(page).to have_content("No test cases linked to requirements yet")
+    end
+
+    context "with test cases" do
+      let!(:req1) { create_req(title: "Tested Requirement") }
+
+      before do
+        create(:test_case, project: project, requirement: req1, status: :passed, created_by: user)
+        create(:test_case, project: project, requirement: req1, status: :failed, created_by: user)
+      end
+
+      it "shows test case count" do
+        visit project_traceability_matrix_path(project)
+        expect(page).to have_content("2 test cases")
+      end
+
+      it "shows test status breakdown" do
+        visit project_traceability_matrix_path(project)
+        expect(page).to have_content("Passed")
+        expect(page).to have_content("Failed")
+      end
+
+      it "shows per-status requirement coverage" do
+        visit project_traceability_matrix_path(project)
+        expect(page).to have_content("Req with passed tests")
+        expect(page).to have_content("Req with failed tests")
+      end
+    end
   end
 
   describe "traceability graph" do

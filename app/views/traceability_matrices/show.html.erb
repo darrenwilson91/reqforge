@@ -70,6 +70,97 @@
     </div>
   </div>
 
+  <%# Test Coverage %>
+  <div class="rf-card overflow-hidden">
+    <div class="px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-violet-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Test Coverage</h3>
+      </div>
+      <% if @test_coverage[:total_test_cases] > 0 %>
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400"><%= @test_coverage[:total_test_cases] %> test <%= "case".pluralize(@test_coverage[:total_test_cases]) %></span>
+      <% end %>
+    </div>
+
+    <% if @test_coverage[:total_test_cases] > 0 %>
+      <div class="p-5 space-y-4">
+        <%# Coverage bar %>
+        <div class="flex items-center gap-4">
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Requirements with test cases</span>
+              <span class="text-sm font-bold <%= @test_coverage[:test_coverage_percentage] >= 80 ? 'text-emerald-600' : @test_coverage[:test_coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>"><%= @test_coverage[:test_coverage_percentage] %>%</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+              <div class="h-2 rounded-full transition-all duration-300 <%= @test_coverage[:test_coverage_percentage] >= 80 ? 'bg-emerald-500' : @test_coverage[:test_coverage_percentage] >= 50 ? 'bg-amber-500' : 'bg-red-500' %>" style="width: <%= @test_coverage[:test_coverage_percentage] %>%"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+              <span class="text-xs text-slate-400"><%= @test_coverage[:tested_requirements] %> of <%= @test_coverage[:total_requirements] %> requirements tested</span>
+              <% if @test_coverage[:untested_requirements] > 0 %>
+                <span class="text-xs text-amber-600 dark:text-amber-400"><%= @test_coverage[:untested_requirements] %> untested</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <%# Status breakdown %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <% status_config = {
+            passed:  { color: "emerald", label: "Passed" },
+            failed:  { color: "red", label: "Failed" },
+            blocked: { color: "amber", label: "Blocked" },
+            not_run: { color: "slate", label: "Not Run" },
+            ready:   { color: "blue", label: "Ready" },
+            draft:   { color: "slate", label: "Draft" }
+          } %>
+          <% status_config.each do |status, cfg| %>
+            <% count = @test_coverage[:by_status][status] || 0 %>
+            <% next if count == 0 && ![:passed, :failed, :not_run].include?(status) %>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <span class="w-2 h-2 rounded-full bg-<%= cfg[:color] %>-500 shrink-0"></span>
+              <span class="text-xs text-slate-600 dark:text-slate-400"><%= cfg[:label] %></span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100 ml-auto"><%= count %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Per-status requirement coverage %>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <% [
+            { key: :requirements_with_passed, label: "Req with passed tests", color: "emerald" },
+            { key: :requirements_with_failed, label: "Req with failed tests", color: "red" },
+            { key: :requirements_with_not_run, label: "Req with untested cases", color: "slate" }
+          ].each do |item| %>
+            <% count = @test_coverage[item[:key]] %>
+            <% pct = @test_coverage[:total_requirements] > 0 ? (count.to_f / @test_coverage[:total_requirements] * 100).round(1) : 0.0 %>
+            <div class="flex items-center gap-3 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div class="flex-1 min-w-0">
+                <div class="text-xs text-slate-500 dark:text-slate-400 truncate"><%= item[:label] %></div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-1">
+                    <div class="h-1 rounded-full bg-<%= item[:color] %>-500 transition-all duration-300" style="width: <%= pct %>%"></div>
+                  </div>
+                  <span class="text-xs font-medium text-slate-600 dark:text-slate-300 w-14 text-right"><%= pct %>%</span>
+                  <span class="text-xs text-slate-400">(<%= count %>)</span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="px-5 py-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">No test cases linked to requirements yet</p>
+        <p class="text-xs text-slate-400 dark:text-slate-500">Add test cases to requirements to see verification coverage</p>
+      </div>
+    <% end %>
+  </div>
+
   <%# Per-Link-Type Coverage %>
   <% if @coverage[:by_link_type].any? %>
     <div class="rf-card overflow-hidden">

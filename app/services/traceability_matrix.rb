@@ -51,6 +51,47 @@ class TraceabilityMatrix
     }
   end
 
+  def test_coverage_report
+    all_requirements = requirements.to_a
+    total = all_requirements.size
+
+    return empty_test_coverage_report if total == 0
+
+    req_ids = all_requirements.map(&:id)
+    test_cases = TestCase.where(requirement_id: req_ids)
+
+    # Requirements with at least one test case
+    tested_req_ids = test_cases.distinct.pluck(:requirement_id).to_set
+    untested_req_ids = req_ids - tested_req_ids.to_a
+
+    # Group test cases by status
+    status_counts = test_cases.group(:status).count
+    by_status = {}
+    TestCase.statuses.each_key do |s|
+      by_status[s.to_sym] = status_counts.fetch(s, 0)
+    end
+
+    # Requirements with at least one passed/failed/not_run test case
+    req_by_test_status = {}
+    %i[passed failed not_run].each do |s|
+      req_by_test_status[s] = test_cases.where(status: TestCase.statuses[s.to_s])
+                                         .distinct.pluck(:requirement_id).size
+    end
+
+    {
+      total_requirements: total,
+      tested_requirements: tested_req_ids.size,
+      untested_requirements: untested_req_ids.size,
+      test_coverage_percentage: (tested_req_ids.size.to_f / total * 100).round(1),
+      total_test_cases: test_cases.count,
+      untested_requirement_ids: untested_req_ids,
+      by_status: by_status,
+      requirements_with_passed: req_by_test_status[:passed],
+      requirements_with_failed: req_by_test_status[:failed],
+      requirements_with_not_run: req_by_test_status[:not_run]
+    }
+  end
+
   def coverage_report
     all_requirements = requirements.to_a
     total = all_requirements.size
@@ -102,6 +143,21 @@ class TraceabilityMatrix
   end
 
   private
+
+  def empty_test_coverage_report
+    {
+      total_requirements: 0,
+      tested_requirements: 0,
+      untested_requirements: 0,
+      test_coverage_percentage: 0.0,
+      total_test_cases: 0,
+      untested_requirement_ids: [],
+      by_status: TestCase.statuses.keys.each_with_object({}) { |s, h| h[s.to_sym] = 0 },
+      requirements_with_passed: 0,
+      requirements_with_failed: 0,
+      requirements_with_not_run: 0
+    }
+  end
 
   def empty_coverage_report
     {

@@ -116,6 +116,56 @@ RSpec.describe "TraceabilityMatrices", type: :request do
       end
     end
 
+    it "shows test coverage section" do
+      get project_traceability_matrix_path(project)
+      expect(response.body).to include("Test Coverage")
+    end
+
+    context "with no test cases" do
+      before { create_req(title: "Some Req") }
+
+      it "shows empty test coverage state" do
+        get project_traceability_matrix_path(project)
+        expect(response.body).to include("No test cases linked to requirements yet")
+      end
+    end
+
+    context "with test cases" do
+      let!(:req1) { create_req(title: "Tested Req") }
+      let!(:req2) { create_req(title: "Untested Req") }
+
+      before do
+        create(:test_case, project: project, requirement: req1, status: :passed, created_by: user)
+        create(:test_case, project: project, requirement: req1, status: :failed, created_by: user)
+        create(:test_case, project: project, requirement: req2, status: :not_run, created_by: user)
+      end
+
+      it "shows test case count" do
+        get project_traceability_matrix_path(project)
+        expect(response.body).to include("3 test cases")
+      end
+
+      it "shows coverage percentage" do
+        get project_traceability_matrix_path(project)
+        expect(response.body).to include("100.0%")
+        expect(response.body).to include("Requirements with test cases")
+      end
+
+      it "shows status breakdown" do
+        get project_traceability_matrix_path(project)
+        expect(response.body).to include("Passed")
+        expect(response.body).to include("Failed")
+        expect(response.body).to include("Not Run")
+      end
+
+      it "shows per-status requirement coverage" do
+        get project_traceability_matrix_path(project)
+        expect(response.body).to include("Req with passed tests")
+        expect(response.body).to include("Req with failed tests")
+        expect(response.body).to include("Req with untested cases")
+      end
+    end
+
     context "with filters" do
       let(:mod_a) { create(:requirement_module, project: project, name: "Module A") }
       let(:mod_b) { create(:requirement_module, project: project, name: "Module B") }
