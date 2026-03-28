@@ -690,3 +690,15 @@ Task: Fix any failing tests
 Status: completed
 Changes: (no code changes)
 Notes: Re-ran full test suite — 2447 examples, 0 failures in 38.01 seconds. No failing tests to fix. Only output is Rack deprecation warnings about :unprocessable_entity → :unprocessable_content from rspec-rails matchers (cosmetic, not in application code). All specs green.
+
+--- Iteration 32: Sat 28 Mar 2026 ---
+Task: Add "Test Cases" to sidebar navigation under "Requirements" section
+Status: completed
+Changes: app/views/shared/_sidebar.html.erb
+Notes: Added "Test Cases" link to the sidebar navigation under the Requirements section, positioned between Traceability and Compliance. Link uses a checkmark-circle icon, routes to project_test_cases_path(@project) when a project is persisted (falls back to projects_path otherwise), and highlights when the test_cases controller is active. Follows the same pattern as other sidebar links (conditional path, active state detection, consistent styling). Verified with bundle exec rspec — 2447 examples, 0 failures.
+
+--- Iteration 33: Sat 28 Mar 2026 ---
+Task: Update compliance dashboard to show test coverage per V-model phase
+Status: completed
+Changes: app/controllers/compliance_dashboards_controller.rb, app/views/compliance_dashboards/show.html.erb
+Notes: Added compute_test_coverage_by_phase private method to ComplianceDashboardsController — uses a single grouped query on project test cases (with FILTER aggregate for passed/failed counts per requirement_id) to efficiently compute per-phase test metrics: tested/untested requirement counts, coverage percentage, total tests, passed/failed counts. Also computes an overall @test_coverage_summary with project-wide totals. Updated the phase coverage table with a new "Test Coverage" column showing: a stacked progress bar (emerald for passed, red for failed proportion within coverage), percentage label, and a detail line with test count plus passed/failed breakdowns. Phases with no tests show "No tests" placeholder. Expanded the summary cards row from 4 to 6 columns (responsive: 2→3→6) adding "Test Cases" card (total with passed/failed breakdown) and "Test Coverage" card (percentage with tested/total count). All new elements include dark mode support. Verified with bundle exec rspec — 2447 examples, 0 failures.

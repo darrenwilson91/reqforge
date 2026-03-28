@@ -12,6 +12,7 @@ class ComplianceDashboardsController < ApplicationController
     compute_phase_coverage
     compute_expected_link_coverage
     compute_asil_distribution
+    compute_test_coverage_by_phase
   end
 
   private
@@ -106,6 +107,57 @@ class ComplianceDashboardsController < ApplicationController
         percentage: @asil_total > 0 ? (count.to_f / @asil_total * 100).round(1) : 0.0
       }
     end
+  end
+
+  def compute_test_coverage_by_phase
+    all_req_ids = @requirements.map(&:id)
+    return if all_req_ids.empty?
+
+    # Load all test cases for the project, grouped by requirement_id
+    test_cases_by_req = @project.test_cases.where.not(requirement_id: nil).group(:requirement_id).select(
+      :requirement_id,
+      "COUNT(*) as total_count",
+      "COUNT(*) FILTER (WHERE status = #{TestCase.statuses[:passed]}) as passed_count",
+      "COUNT(*) FILTER (WHERE status = #{TestCase.statuses[:failed]}) as failed_count"
+    ).index_by(&:requirement_id)
+
+    @phase_data.each do |phase|
+      req_ids = phase[:module].sections.flat_map(&:requirements).map(&:id)
+
+      tested_ids = req_ids.select { |id| test_cases_by_req.key?(id) }
+      total_tests = 0
+      passed_tests = 0
+      failed_tests = 0
+
+      tested_ids.each do |id|
+        tc = test_cases_by_req[id]
+        total_tests += tc.total_count
+        passed_tests += tc.passed_count
+        failed_tests += tc.failed_count
+      end
+
+      total_reqs = phase[:requirements_count]
+      phase[:test_coverage] = {
+        tested_count: tested_ids.size,
+        untested_count: total_reqs - tested_ids.size,
+        coverage_percentage: total_reqs > 0 ? (tested_ids.size.to_f / total_reqs * 100).round(1) : 0.0,
+        total_tests: total_tests,
+        passed_tests: passed_tests,
+        failed_tests: failed_tests
+      }
+    end
+
+    # Overall test coverage
+    tested_req_ids = test_cases_by_req.keys & all_req_ids
+    total_tests = @project.test_cases.count
+    @test_coverage_summary = {
+      tested_count: tested_req_ids.size,
+      untested_count: all_req_ids.size - tested_req_ids.size,
+      coverage_percentage: all_req_ids.size > 0 ? (tested_req_ids.size.to_f / all_req_ids.size * 100).round(1) : 0.0,
+      total_tests: total_tests,
+      passed_tests: @project.test_cases.passed.count,
+      failed_tests: @project.test_cases.failed.count
+    }
   end
 
   def detect_template
