@@ -157,11 +157,47 @@ RSpec.describe "Project Management", type: :system do
       expect(page).to have_content("Brake Controller")
     end
 
-    it "shows stats cards" do
+    it "shows quick navigation cards" do
       visit project_path(project)
       expect(page).to have_content("Modules")
       expect(page).to have_content("Requirements")
-      expect(page).to have_content("Import / Export")
+      expect(page).to have_content("Links")
+      expect(page).to have_content("Open Changes")
+      expect(page).to have_content("Test Cases")
+      expect(page).to have_content("Compliance")
+    end
+
+    it "shows requirements breakdown section" do
+      visit project_path(project)
+      expect(page).to have_content("Requirements Breakdown")
+    end
+
+    it "shows traceability health section" do
+      visit project_path(project)
+      expect(page).to have_content("Traceability Health")
+      expect(page).to have_content("Forward links")
+      expect(page).to have_content("Backward links")
+      expect(page).to have_content("Test coverage")
+    end
+
+    it "shows ASIL coverage section" do
+      visit project_path(project)
+      expect(page).to have_content("ASIL Coverage")
+    end
+
+    it "shows change set velocity" do
+      visit project_path(project)
+      expect(page).to have_content("Change Sets")
+      expect(page).to have_content("Open")
+      expect(page).to have_content("Merged")
+    end
+
+    it "shows quick action buttons" do
+      visit project_path(project)
+      expect(page).to have_link("Quick Entry")
+      expect(page).to have_link("New Requirement")
+      expect(page).to have_link("New Change Set")
+      expect(page).to have_link("Import / Export")
     end
 
     it "shows empty state for modules" do

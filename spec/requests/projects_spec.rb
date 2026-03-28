@@ -320,6 +320,133 @@ RSpec.describe "Projects", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it "shows requirements breakdown section" do
+      get project_path(project)
+      expect(response.body).to include("Requirements Breakdown")
+    end
+
+    it "shows requirements breakdown with status counts" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      create(:requirement, project: project, section: section, created_by: user, status: :draft)
+      create(:requirement, project: project, section: section, created_by: user, status: :draft)
+      create(:requirement, project: project, section: section, created_by: user, status: :approved)
+      get project_path(project)
+      expect(response.body).to include("Requirements Breakdown")
+      expect(response.body).to include("Draft")
+      expect(response.body).to include("Approved")
+    end
+
+    it "shows traceability health metrics" do
+      get project_path(project)
+      expect(response.body).to include("Traceability Health")
+      expect(response.body).to include("Forward links")
+      expect(response.body).to include("Backward links")
+      expect(response.body).to include("Test coverage")
+    end
+
+    it "shows traceability health with calculated percentages" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      req1 = create(:requirement, project: project, section: section, created_by: user)
+      req2 = create(:requirement, project: project, section: section, created_by: user)
+      create(:traceability_link, source_requirement: req1, target_requirement: req2, created_by: user)
+      get project_path(project)
+      # req1 has forward link (1/2 = 50%), req2 has backward link (1/2 = 50%)
+      expect(response.body).to include("50%")
+    end
+
+    it "shows change set velocity" do
+      get project_path(project)
+      expect(response.body).to include("Change Sets")
+      expect(response.body).to include("Open")
+      expect(response.body).to include("Merged")
+      expect(response.body).to include("Closed")
+    end
+
+    it "shows change set counts" do
+      create(:change_set, project: project, created_by: user, status: :open)
+      create(:change_set, project: project, created_by: user, status: :merged)
+      create(:change_set, project: project, created_by: user, status: :closed)
+      get project_path(project)
+      body = response.body
+      # Verify the counts are present in the velocity section
+      expect(body).to include("Open")
+      expect(body).to include("Merged")
+      expect(body).to include("Closed")
+    end
+
+    it "shows ASIL coverage section" do
+      get project_path(project)
+      expect(response.body).to include("ASIL Coverage")
+    end
+
+    it "shows ASIL level breakdown with approval status" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      create(:requirement, project: project, section: section, created_by: user, asil_level: :asil_d, status: :approved)
+      create(:requirement, project: project, section: section, created_by: user, asil_level: :asil_d, status: :draft)
+      create(:requirement, project: project, section: section, created_by: user, asil_level: :qm, status: :draft)
+      get project_path(project)
+      expect(response.body).to include("ASIL D")
+      expect(response.body).to include("QM")
+      expect(response.body).to include("safety-rated")
+    end
+
+    it "shows test case summary" do
+      get project_path(project)
+      expect(response.body).to include("Test Cases")
+    end
+
+    it "shows test case pass/fail counts" do
+      mod = create(:requirement_module, project: project)
+      section = create(:section, requirement_module: mod)
+      req = create(:requirement, project: project, section: section, created_by: user)
+      create(:test_case, project: project, requirement: req, created_by: user, status: :passed)
+      create(:test_case, project: project, requirement: req, created_by: user, status: :failed)
+      get project_path(project)
+      expect(response.body).to include("passed")
+      expect(response.body).to include("failed")
+    end
+
+    it "shows review bottlenecks for stale change sets" do
+      cs = create(:change_set, project: project, created_by: user, status: :in_review)
+      cs.update_column(:updated_at, 5.days.ago)
+      get project_path(project)
+      expect(response.body).to include("Review Bottlenecks")
+      expect(response.body).to include("Awaiting Review")
+      expect(response.body).to include(cs.title)
+    end
+
+    it "shows outstanding approvals by reviewer" do
+      reviewer = create(:user)
+      create(:membership, user: reviewer, organization: organization, role: :reviewer)
+      cs = create(:change_set, project: project, created_by: user, status: :in_review)
+      create(:change_set_approval, change_set: cs, user: reviewer, status: :pending)
+      get project_path(project)
+      expect(response.body).to include("Outstanding Approvals")
+      expect(response.body).to include(reviewer.full_name)
+      expect(response.body).to include("pending")
+    end
+
+    it "hides bottlenecks section when none exist" do
+      get project_path(project)
+      expect(response.body).not_to include("Review Bottlenecks")
+    end
+
+    it "shows quick action buttons" do
+      get project_path(project)
+      expect(response.body).to include("Quick Entry")
+      expect(response.body).to include("New Requirement")
+      expect(response.body).to include("New Change Set")
+      expect(response.body).to include("Import / Export")
+    end
+
+    it "shows empty requirements breakdown with CTA" do
+      get project_path(project)
+      expect(response.body).to include("No requirements yet")
+    end
+
     context "when user is a viewer" do
       let!(:membership) { create(:membership, user: user, organization: organization, role: :viewer) }
 

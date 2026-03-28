@@ -11,9 +11,9 @@
           <span class="rf-uid text-sm"><%= @project.prefix %></span>
           <span class="<%= project_status_badge_class(@project) %>"><%= @project.status.humanize %></span>
         </div>
-        <h1 class="text-2xl font-bold text-slate-900 truncate"><%= @project.name %></h1>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 truncate"><%= @project.name %></h1>
         <% if @project.description.present? %>
-          <p class="mt-2 text-sm text-slate-500 max-w-2xl"><%= @project.description %></p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-2xl"><%= @project.description %></p>
         <% end %>
       </div>
 
@@ -35,55 +35,354 @@
     </div>
   </div>
 
-  <%# Stats Row %>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-    <div class="rf-card p-4">
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Modules</div>
-      <div class="mt-1 text-xl font-bold text-slate-900"><%= @modules.size %></div>
+  <%# Quick Navigation Cards %>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <%= link_to project_requirements_path(@project), class: "rf-card p-3 hover:border-brand-accent/40 transition-colors text-center group" do %>
+      <div class="text-lg font-bold text-slate-900 dark:text-slate-100"><%= @req_total %></div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-brand-accent transition-colors">Requirements</div>
+    <% end %>
+    <div class="rf-card p-3 text-center">
+      <div class="text-lg font-bold text-slate-900 dark:text-slate-100"><%= @modules.size %></div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Modules</div>
     </div>
-    <%= link_to project_requirements_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Requirements</div>
-      <div class="mt-1 text-xl font-bold text-slate-900"><%= @project.requirements.count %></div>
-      <div class="mt-1">
-        <%= link_to quick_entry_project_requirements_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
-          Quick Entry &rarr;
+    <%= link_to project_traceability_matrix_path(@project), class: "rf-card p-3 hover:border-brand-accent/40 transition-colors text-center group" do %>
+      <div class="text-lg font-bold text-slate-900 dark:text-slate-100"><%= @traceability_link_count %></div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-brand-accent transition-colors">Links</div>
+    <% end %>
+    <%= link_to project_change_sets_path(@project), class: "rf-card p-3 hover:border-brand-accent/40 transition-colors text-center group" do %>
+      <div class="text-lg font-bold text-slate-900 dark:text-slate-100"><%= @cs_open %></div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-brand-accent transition-colors">Open Changes</div>
+    <% end %>
+    <%= link_to project_test_cases_path(@project), class: "rf-card p-3 hover:border-brand-accent/40 transition-colors text-center group" do %>
+      <div class="text-lg font-bold text-slate-900 dark:text-slate-100"><%= @test_case_total %></div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-brand-accent transition-colors">Test Cases</div>
+    <% end %>
+    <%= link_to project_compliance_dashboard_path(@project), class: "rf-card p-3 hover:border-brand-accent/40 transition-colors text-center group" do %>
+      <div class="text-sm font-bold text-slate-900 dark:text-slate-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-brand-accent transition-colors">Compliance</div>
+    <% end %>
+  </div>
+
+  <%# Main Dashboard Grid %>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%# Left Column: Requirements + ASIL %>
+    <div class="lg:col-span-2 space-y-6">
+      <%# Requirements Breakdown %>
+      <div class="rf-card">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Requirements Breakdown</h2>
+            <%= link_to project_requirements_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
+              View all &rarr;
+            <% end %>
+          </div>
+        </div>
+        <div class="p-5">
+          <% if @req_total > 0 %>
+            <%# Horizontal stacked bar %>
+            <div class="h-6 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-700 mb-4">
+              <% Requirement.statuses.each_key do |status| %>
+                <% count = @req_status_counts[status] || 0 %>
+                <% next if count == 0 %>
+                <% pct = (count.to_f / @req_total * 100).round(1) %>
+                <% bar_color = case status
+                   when "draft" then "bg-slate-400"
+                   when "in_review" then "bg-blue-500"
+                   when "approved" then "bg-emerald-500"
+                   when "implemented" then "bg-violet-500"
+                   when "verified" then "bg-indigo-500"
+                   when "obsolete" then "bg-red-400"
+                   end %>
+                <div class="<%= bar_color %> transition-all" style="width: <%= pct %>%" title="<%= status.humanize %>: <%= count %>"></div>
+              <% end %>
+            </div>
+
+            <%# Status legend %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <% Requirement.statuses.each_key do |status| %>
+                <% count = @req_status_counts[status] || 0 %>
+                <% dot_color = case status
+                   when "draft" then "bg-slate-400"
+                   when "in_review" then "bg-blue-500"
+                   when "approved" then "bg-emerald-500"
+                   when "implemented" then "bg-violet-500"
+                   when "verified" then "bg-indigo-500"
+                   when "obsolete" then "bg-red-400"
+                   end %>
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full <%= dot_color %>"></div>
+                  <span class="text-sm text-slate-600 dark:text-slate-400"><%= status.humanize %></span>
+                  <span class="text-sm font-semibold text-slate-900 dark:text-slate-100 ml-auto"><%= count %></span>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="rf-empty-state py-8">
+              <p class="rf-empty-state-title">No requirements yet</p>
+              <p class="rf-empty-state-description">Start adding requirements to see the breakdown.</p>
+              <%= link_to quick_entry_project_requirements_path(@project), class: "rf-btn-accent mt-3 inline-flex items-center gap-1.5" do %>
+                Quick Entry &rarr;
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# ASIL Coverage %>
+      <div class="rf-card">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+          <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">ASIL Coverage</h2>
+        </div>
+        <div class="p-5">
+          <% if @req_total > 0 %>
+            <div class="space-y-3">
+              <% Requirement.asil_levels.each_key do |level| %>
+                <% count = @asil_counts[level] || 0 %>
+                <% approved = @asil_approved[level] || 0 %>
+                <% pct = count > 0 ? (approved.to_f / count * 100).round : 0 %>
+                <div class="flex items-center gap-3">
+                  <span class="<%= level == 'qm' ? 'rf-asil-qm' : "rf-asil-#{level.gsub('_', '-')}" %> w-16 text-center shrink-0"><%= level.upcase.gsub("_", " ") %></span>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-xs text-slate-500 dark:text-slate-400"><%= count %> req<%= "s" unless count == 1 %></span>
+                      <span class="text-xs text-slate-400 dark:text-slate-500 ml-auto"><%= approved %>/<%= count %> approved+</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                      <div class="h-full rounded-full transition-all <%= pct == 100 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400' %>" style="width: <%= pct %>%"></div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <% safety_count = (@asil_counts["asil_a"] || 0) + (@asil_counts["asil_b"] || 0) + (@asil_counts["asil_c"] || 0) + (@asil_counts["asil_d"] || 0) %>
+            <% if safety_count > 0 %>
+              <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  <span class="font-medium text-amber-600 dark:text-amber-400"><%= safety_count %></span> safety-rated requirement<%= "s" unless safety_count == 1 %> (ASIL A-D)
+                </p>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No requirements to analyze.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <%# Right Column: Traceability Health + Change Sets + Tests %>
+    <div class="space-y-6">
+      <%# Traceability Health %>
+      <div class="rf-card">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Traceability Health</h2>
+            <%= link_to project_traceability_matrix_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
+              Matrix &rarr;
+            <% end %>
+          </div>
+        </div>
+        <div class="p-5 space-y-4">
+          <%# Forward Links %>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm text-slate-600 dark:text-slate-400">Forward links</span>
+              <span class="text-sm font-semibold text-slate-900 dark:text-slate-100"><%= @forward_pct %>%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div class="h-full rounded-full bg-blue-500 transition-all" style="width: <%= @forward_pct %>%"></div>
+            </div>
+            <div class="text-xs text-slate-400 dark:text-slate-500 mt-1"><%= @reqs_with_forward_links %> of <%= @req_total %> requirements</div>
+          </div>
+
+          <%# Backward Links %>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm text-slate-600 dark:text-slate-400">Backward links</span>
+              <span class="text-sm font-semibold text-slate-900 dark:text-slate-100"><%= @backward_pct %>%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div class="h-full rounded-full bg-emerald-500 transition-all" style="width: <%= @backward_pct %>%"></div>
+            </div>
+            <div class="text-xs text-slate-400 dark:text-slate-500 mt-1"><%= @reqs_with_backward_links %> of <%= @req_total %> requirements</div>
+          </div>
+
+          <%# Test Coverage %>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm text-slate-600 dark:text-slate-400">Test coverage</span>
+              <span class="text-sm font-semibold text-slate-900 dark:text-slate-100"><%= @test_coverage_pct %>%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div class="h-full rounded-full bg-violet-500 transition-all" style="width: <%= @test_coverage_pct %>%"></div>
+            </div>
+            <div class="text-xs text-slate-400 dark:text-slate-500 mt-1"><%= @reqs_with_test_cases %> of <%= @req_total %> requirements</div>
+          </div>
+        </div>
+      </div>
+
+      <%# Change Set Velocity %>
+      <div class="rf-card">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Change Sets</h2>
+            <%= link_to project_change_sets_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
+              View all &rarr;
+            <% end %>
+          </div>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <div class="text-xl font-bold text-blue-600 dark:text-blue-400"><%= @cs_open %></div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">Open</div>
+            </div>
+            <div>
+              <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400"><%= @cs_merged %></div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">Merged</div>
+            </div>
+            <div>
+              <div class="text-xl font-bold text-slate-500 dark:text-slate-400"><%= @cs_closed %></div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">Closed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# Test Case Summary %>
+      <div class="rf-card">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Test Cases</h2>
+            <%= link_to project_test_cases_path(@project), class: "text-xs font-medium text-brand-accent hover:text-brand-accent-dark transition-colors" do %>
+              View all &rarr;
+            <% end %>
+          </div>
+        </div>
+        <div class="p-5">
+          <% if @test_case_total > 0 %>
+            <div class="flex items-center gap-4 mb-3">
+              <div class="text-2xl font-bold text-slate-900 dark:text-slate-100"><%= @test_case_total %></div>
+              <div class="flex items-center gap-3 text-sm">
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-slate-600 dark:text-slate-400"><%= @test_case_passed %> passed</span>
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                  <span class="text-slate-600 dark:text-slate-400"><%= @test_case_failed %> failed</span>
+                </span>
+              </div>
+            </div>
+            <% if @test_case_total > 0 %>
+              <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden flex">
+                <% pass_pct = (@test_case_passed.to_f / @test_case_total * 100).round(1) %>
+                <% fail_pct = (@test_case_failed.to_f / @test_case_total * 100).round(1) %>
+                <div class="h-full bg-emerald-500" style="width: <%= pass_pct %>%"></div>
+                <div class="h-full bg-red-500" style="width: <%= fail_pct %>%"></div>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-slate-400 dark:text-slate-500 text-center py-2">No test cases yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Review Bottlenecks %>
+  <% if @stale_change_sets.any? || @outstanding_approvals.any? %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Review Bottlenecks</h2>
+      </div>
+      <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <% if @stale_change_sets.any? %>
+          <div>
+            <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Awaiting Review &gt; 3 days</h3>
+            <div class="space-y-2">
+              <% @stale_change_sets.each do |cs| %>
+                <% days = ((Time.current - cs.updated_at) / 1.day).round %>
+                <%= link_to project_change_set_path(@project, cs), class: "flex items-center justify-between p-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 hover:border-amber-300 dark:hover:border-amber-700 transition-colors" do %>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate"><%= cs.title %></div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">by <%= cs.created_by.first_name %></div>
+                  </div>
+                  <span class="rf-badge bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 shrink-0 ml-2"><%= days %>d</span>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @outstanding_approvals.any? %>
+          <div>
+            <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Outstanding Approvals</h3>
+            <div class="space-y-2">
+              <% @outstanding_approvals.each do |reviewer, approvals| %>
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <div class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <%= reviewer.first_name[0] %><%= reviewer.last_name[0] %>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-slate-900 dark:text-slate-100"><%= reviewer.full_name %></div>
+                  </div>
+                  <span class="rf-badge bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"><%= approvals.size %> pending</span>
+                </div>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </div>
-    <% end %>
-    <%= link_to project_traceability_matrix_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Traceability</div>
-      <div class="mt-1 text-xl font-bold text-slate-900"><%= TraceabilityMatrix.new(@project).links.count %></div>
-      <div class="text-xs text-slate-400 mt-0.5">links</div>
-    <% end %>
-    <%= link_to project_compliance_dashboard_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Compliance</div>
-      <div class="mt-1 text-sm font-medium text-slate-900">Dashboard</div>
-    <% end %>
-    <%= link_to project_import_export_path(@project), class: "rf-card p-4 hover:border-brand-accent/40 transition-colors block" do %>
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Import / Export</div>
-      <div class="mt-1 text-sm font-medium text-slate-900">CSV &middot; ReqIF</div>
-    <% end %>
+    </div>
+  <% end %>
+
+  <%# Quick Actions %>
+  <div class="rf-card p-5">
+    <div class="flex flex-wrap items-center gap-3">
+      <%= link_to quick_entry_project_requirements_path(@project), class: "rf-btn-accent" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+        </svg>
+        Quick Entry
+      <% end %>
+      <%= link_to new_project_requirement_path(@project), class: "rf-btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        New Requirement
+      <% end %>
+      <%= link_to new_project_change_set_path(@project), class: "rf-btn-secondary" do %>
+        New Change Set
+      <% end %>
+      <%= link_to project_import_export_path(@project), class: "rf-btn-secondary" do %>
+        Import / Export
+      <% end %>
+    </div>
   </div>
 
   <%# Custom Attributes %>
   <% if @project.attribute_schema.is_a?(Array) && @project.attribute_schema.any? %>
     <div class="rf-card">
-      <div class="p-5 border-b border-slate-100">
-        <h2 class="text-base font-semibold text-slate-900">Custom Attributes</h2>
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Custom Attributes</h2>
       </div>
       <div class="p-5">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <% @project.attribute_schema.each do |attr| %>
-            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-slate-700 truncate"><%= attr["name"] %></div>
-                <div class="text-xs text-slate-400">
+                <div class="text-sm font-medium text-slate-700 dark:text-slate-300 truncate"><%= attr["name"] %></div>
+                <div class="text-xs text-slate-400 dark:text-slate-500">
                   <%= attr["attr_type"]&.humanize || "Text" %>
                   <% if attr["required"] %>
-                    <span class="text-amber-600 font-medium">&middot; Required</span>
+                    <span class="text-amber-600 dark:text-amber-400 font-medium">&middot; Required</span>
                   <% end %>
                   <% if attr["attr_type"] == "enum" && attr["options"].present? %>
-                    <span class="text-slate-400">&middot; <%= Array(attr["options"]).join(", ") %></span>
+                    <span class="text-slate-400 dark:text-slate-500">&middot; <%= Array(attr["options"]).join(", ") %></span>
                   <% end %>
                 </div>
               </div>
@@ -96,29 +395,29 @@
 
   <%# Modules Tree %>
   <div class="rf-card">
-    <div class="p-5 border-b border-slate-100">
+    <div class="p-5 border-b border-slate-100 dark:border-slate-700">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-semibold text-slate-900">Modules & Sections</h2>
+        <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Modules & Sections</h2>
       </div>
     </div>
 
     <% if @modules.any? %>
-      <div class="divide-y divide-slate-100">
+      <div class="divide-y divide-slate-100 dark:divide-slate-700">
         <% @modules.each do |mod| %>
-          <div class="p-4 hover:bg-slate-50/50 transition-colors">
+          <div class="p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
             <div class="flex items-center gap-3">
-              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600">
+              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                 </svg>
               </div>
               <div>
-                <div class="text-sm font-medium text-slate-900"><%= mod.name %></div>
+                <div class="text-sm font-medium text-slate-900 dark:text-slate-100"><%= mod.name %></div>
                 <% if mod.description.present? %>
-                  <div class="text-xs text-slate-500"><%= mod.description %></div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400"><%= mod.description %></div>
                 <% end %>
               </div>
-              <div class="ml-auto text-xs text-slate-400">
+              <div class="ml-auto text-xs text-slate-400 dark:text-slate-500">
                 <%= pluralize(mod.sections.size, "section") %>
               </div>
             </div>
@@ -126,12 +425,12 @@
             <% if mod.sections.any? %>
               <div class="mt-2 ml-11 space-y-1">
                 <% mod.sections.select { |s| s.parent_section_id.nil? }.each do |section| %>
-                  <div class="flex items-center gap-2 text-sm text-slate-600 py-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 py-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                     </svg>
                     <%= section.name %>
-                    <span class="text-xs text-slate-400"><%= pluralize(section.requirements.size, "req") %></span>
+                    <span class="text-xs text-slate-400 dark:text-slate-500"><%= pluralize(section.requirements.size, "req") %></span>
                   </div>
                 <% end %>
               </div>

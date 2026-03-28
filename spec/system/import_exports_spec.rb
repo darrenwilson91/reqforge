@@ -68,7 +68,7 @@ RSpec.describe "Import / Export", type: :system do
   describe "navigation" do
     it "links from project show page to import/export" do
       visit project_path(project)
-      click_link "Import / Export"
+      click_link "Import / Export", match: :first
       expect(page).to have_current_path(project_import_export_path(project))
     end
 
