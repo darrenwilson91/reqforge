@@ -4,5 +4,80 @@
 
 import { application } from "./application"
 
+import AiPanelController from "./ai_panel_controller"
+application.register("ai-panel", AiPanelController)
+
+import AttributeSchemaController from "./attribute_schema_controller"
+application.register("attribute-schema", AttributeSchemaController)
+
+import BulkEditController from "./bulk_edit_controller"
+application.register("bulk-edit", BulkEditController)
+
+import ChangeSetCommentController from "./change_set_comment_controller"
+application.register("change-set-comment", ChangeSetCommentController)
+
+import ChangeSetTabsController from "./change_set_tabs_controller"
+application.register("change-set-tabs", ChangeSetTabsController)
+
+import ClipboardController from "./clipboard_controller"
+application.register("clipboard", ClipboardController)
+
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
+
+import FlashController from "./flash_controller"
+application.register("flash", FlashController)
+
+import GlobalSearchController from "./global_search_controller"
+application.register("global-search", GlobalSearchController)
+
+import GraphController from "./graph_controller"
+application.register("graph", GraphController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
+
+import KeyboardShortcutsController from "./keyboard_shortcuts_controller"
+application.register("keyboard-shortcuts", KeyboardShortcutsController)
+
+import LinkSearchController from "./link_search_controller"
+application.register("link-search", LinkSearchController)
+
+import LoadingController from "./loading_controller"
+application.register("loading", LoadingController)
+
+import MatrixController from "./matrix_controller"
+application.register("matrix", MatrixController)
+
+import QuickEntryController from "./quick_entry_controller"
+application.register("quick-entry", QuickEntryController)
+
+import ReviewCommentController from "./review_comment_controller"
+application.register("review-comment", ReviewCommentController)
+
+import ReviewSelectController from "./review_select_controller"
+application.register("review-select", ReviewSelectController)
+
+import RichTextController from "./rich_text_controller"
+application.register("rich-text", RichTextController)
+
+import SidebarController from "./sidebar_controller"
+application.register("sidebar", SidebarController)
+
+import SortableController from "./sortable_controller"
+application.register("sortable", SortableController)
+
+import TraceabilityPanelController from "./traceability_panel_controller"
+application.register("traceability-panel", TraceabilityPanelController)
+
+import TreeController from "./tree_controller"
+application.register("tree", TreeController)
+
+import TemplateSelectController from "./template_select_controller"
+application.register("template-select", TemplateSelectController)
+
+import ThemeController from "./theme_controller"
+application.register("theme", ThemeController)
+
+import VersionHistoryController from "./version_history_controller"
+application.register("version-history", VersionHistoryController)

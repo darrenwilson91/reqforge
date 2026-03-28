@@ -1,0 +1,18 @@
+<% if results.empty? %>
+  <div class="px-4 py-6 text-center text-sm text-slate-500">
+    No requirements match "<%= query %>"
+  </div>
+<% else %>
+  <% results.each do |requirement| %>
+    <a href="<%= project_requirement_path(requirement.project, requirement) %>" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors group" data-action="mousedown->global-search#selectResult">
+      <span class="rf-uid text-xs"><%= requirement.uid %></span>
+      <span class="flex-1 text-sm text-slate-700 group-hover:text-slate-900 truncate"><%= requirement.title %></span>
+      <span class="text-xs text-slate-400 shrink-0"><%= requirement.project.prefix %></span>
+    </a>
+  <% end %>
+  <div class="px-4 py-2 border-t border-slate-100">
+    <a href="<%= search_path(q: query) %>" class="text-xs text-brand-accent-dark hover:text-brand-accent font-medium" data-action="mousedown->global-search#selectResult">
+      View all results &rarr;
+    </a>
+  </div>
+<% end %>

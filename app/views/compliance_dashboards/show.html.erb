@@ -1,0 +1,349 @@
+<% content_for(:page_title, "Compliance Dashboard — #{@project.name}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Compliance Dashboard") %>
+
+  <%# Header %>
+  <div class="flex items-start justify-between">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Compliance Dashboard</h1>
+        <span class="rf-uid text-sm"><%= @project.prefix %></span>
+      </div>
+      <% if @template %>
+        <p class="text-sm text-slate-500">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <%= @template.name %>
+          </span>
+        </p>
+      <% else %>
+        <p class="text-sm text-slate-500">No compliance template detected</p>
+      <% end %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to project_traceability_matrix_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm1 5a1 1 0 00-1 1v2a1 1 0 001 1h12a1 1 0 001-1v-2a1 1 0 00-1-1H4z" clip-rule="evenodd" />
+        </svg>
+        Matrix
+      <% end %>
+      <%= link_to project_requirements_path(@project), class: "rf-btn-secondary" do %>
+        Requirements
+      <% end %>
+    </div>
+  </div>
+
+  <%# Summary Cards %>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Requirements</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100"><%= @coverage[:total_requirements] %></div>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Linked</div>
+      <div class="mt-1 text-2xl font-bold text-emerald-600"><%= @coverage[:linked_requirements] %></div>
+      <div class="text-xs text-slate-400 mt-0.5"><%= @coverage[:coverage_percentage] %>% coverage</div>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Unlinked</div>
+      <div class="mt-1 text-2xl font-bold <%= @coverage[:unlinked_requirements] > 0 ? 'text-amber-600' : 'text-slate-900 dark:text-slate-100' %>"><%= @coverage[:unlinked_requirements] %></div>
+      <% if @coverage[:unlinked_requirements] > 0 %>
+        <div class="text-xs text-amber-500 mt-0.5">Gaps detected</div>
+      <% end %>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Phases</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100"><%= @modules.size %></div>
+    </div>
+    <% if @test_coverage_summary %>
+      <div class="rf-card p-4">
+        <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Test Cases</div>
+        <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100"><%= @test_coverage_summary[:total_tests] %></div>
+        <div class="text-xs text-slate-400 mt-0.5">
+          <span class="text-emerald-600"><%= @test_coverage_summary[:passed_tests] %> passed</span>
+          <% if @test_coverage_summary[:failed_tests] > 0 %>
+            · <span class="text-red-600"><%= @test_coverage_summary[:failed_tests] %> failed</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="rf-card p-4">
+        <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Test Coverage</div>
+        <div class="mt-1 text-2xl font-bold <%= @test_coverage_summary[:coverage_percentage] >= 80 ? 'text-emerald-600' : @test_coverage_summary[:coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>">
+          <%= @test_coverage_summary[:coverage_percentage] %>%
+        </div>
+        <div class="text-xs text-slate-400 mt-0.5"><%= @test_coverage_summary[:tested_count] %> of <%= @coverage[:total_requirements] %> tested</div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Overall Coverage Bar %>
+  <% if @coverage[:total_requirements] > 0 %>
+    <div class="rf-card-padded">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Overall Traceability Coverage</h2>
+        <span class="text-sm font-mono font-semibold <%= @coverage[:coverage_percentage] >= 80 ? 'text-emerald-600' : @coverage[:coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>">
+          <%= @coverage[:coverage_percentage] %>%
+        </span>
+      </div>
+      <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all duration-500 <%= @coverage[:coverage_percentage] >= 80 ? 'bg-emerald-500' : @coverage[:coverage_percentage] >= 50 ? 'bg-amber-500' : 'bg-red-500' %>"
+             style="width: <%= @coverage[:coverage_percentage] %>%"></div>
+      </div>
+      <div class="flex items-center gap-6 mt-3 text-xs text-slate-500">
+        <span>Forward: <strong class="text-slate-700"><%= @coverage[:forward_coverage] %>%</strong> (<%= @coverage[:forward_count] %> reqs)</span>
+        <span>Backward: <strong class="text-slate-700"><%= @coverage[:backward_coverage] %>%</strong> (<%= @coverage[:backward_count] %> reqs)</span>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Phase Coverage Table %>
+  <div class="rf-card">
+    <div class="p-5 border-b border-slate-100">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Coverage by Phase</h2>
+      <p class="text-xs text-slate-400 mt-0.5">Traceability coverage breakdown for each module / V-model phase</p>
+    </div>
+
+    <% if @phase_data.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="px-5 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Phase / Module</th>
+              <th class="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Requirements</th>
+              <th class="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Linked</th>
+              <th class="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Unlinked</th>
+              <th class="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Outgoing</th>
+              <th class="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Incoming</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider" style="min-width: 160px;">Coverage</th>
+              <th class="px-5 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider" style="min-width: 160px;">Test Coverage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <% @phase_data.each do |phase| %>
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-5 py-3">
+                  <div class="font-medium text-slate-900 dark:text-slate-100"><%= phase[:module].name %></div>
+                  <% if phase[:module].description.present? %>
+                    <div class="text-xs text-slate-400 mt-0.5 max-w-xs truncate"><%= phase[:module].description %></div>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="font-mono text-slate-700"><%= phase[:requirements_count] %></span>
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="font-mono text-emerald-600"><%= phase[:linked_count] %></span>
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <% if phase[:unlinked_count] > 0 %>
+                    <span class="font-mono text-amber-600"><%= phase[:unlinked_count] %></span>
+                  <% else %>
+                    <span class="font-mono text-slate-300">0</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="font-mono text-slate-600"><%= phase[:outgoing_links] %></span>
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="font-mono text-slate-600"><%= phase[:incoming_links] %></span>
+                </td>
+                <td class="px-5 py-3">
+                  <% if phase[:requirements_count] > 0 %>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full <%= phase[:coverage_percentage] >= 80 ? 'bg-emerald-500' : phase[:coverage_percentage] >= 50 ? 'bg-amber-500' : 'bg-red-500' %>"
+                             style="width: <%= phase[:coverage_percentage] %>%"></div>
+                      </div>
+                      <span class="text-xs font-mono font-medium w-12 text-right <%= phase[:coverage_percentage] >= 80 ? 'text-emerald-600' : phase[:coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>">
+                        <%= phase[:coverage_percentage] %>%
+                      </span>
+                    </div>
+                  <% else %>
+                    <span class="text-xs text-slate-300">No requirements</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3">
+                  <% tc = phase[:test_coverage] %>
+                  <% if tc && phase[:requirements_count] > 0 %>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden dark:bg-slate-700">
+                        <% if tc[:total_tests] > 0 %>
+                          <div class="h-full flex">
+                            <% pass_pct = tc[:total_tests] > 0 ? (tc[:passed_tests].to_f / tc[:total_tests] * tc[:coverage_percentage] / 100.0 * 100).round(1) : 0 %>
+                            <% fail_pct = tc[:total_tests] > 0 ? (tc[:failed_tests].to_f / tc[:total_tests] * tc[:coverage_percentage] / 100.0 * 100).round(1) : 0 %>
+                            <div class="h-full bg-emerald-500" style="width: <%= pass_pct %>%"></div>
+                            <% if tc[:failed_tests] > 0 %>
+                              <div class="h-full bg-red-500" style="width: <%= fail_pct %>%"></div>
+                            <% end %>
+                          </div>
+                        <% else %>
+                          <div class="h-full rounded-full bg-slate-300 dark:bg-slate-600" style="width: <%= tc[:coverage_percentage] %>%"></div>
+                        <% end %>
+                      </div>
+                      <span class="text-xs font-mono font-medium w-12 text-right <%= tc[:coverage_percentage] >= 80 ? 'text-emerald-600' : tc[:coverage_percentage] >= 50 ? 'text-amber-600' : 'text-red-600' %>">
+                        <%= tc[:coverage_percentage] %>%
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                      <span><%= tc[:total_tests] %> test<%= tc[:total_tests] != 1 ? 's' : '' %></span>
+                      <% if tc[:passed_tests] > 0 %>
+                        <span class="text-emerald-600"><%= tc[:passed_tests] %> passed</span>
+                      <% end %>
+                      <% if tc[:failed_tests] > 0 %>
+                        <span class="text-red-600"><%= tc[:failed_tests] %> failed</span>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <span class="text-xs text-slate-300 dark:text-slate-600">No tests</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="rf-empty-state py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+        </svg>
+        <p class="rf-empty-state-title">No modules defined</p>
+        <p class="rf-empty-state-description">Create modules and add requirements to see compliance coverage.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Expected Link Coverage (only when template detected) %>
+  <% if @template && @expected_link_data.any? %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Expected Traceability Links</h2>
+            <p class="text-xs text-slate-400 mt-0.5"><%= @template.name %> — required link relationships between phases</p>
+          </div>
+          <% met_count = @expected_link_data.count { |d| d[:met] } %>
+          <% total_expected = @expected_link_data.size %>
+          <div class="flex items-center gap-2">
+            <span class="rf-badge <%= met_count == total_expected ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' %>">
+              <%= met_count %> / <%= total_expected %> met
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divide-y divide-slate-50">
+        <% @expected_link_data.each do |exp| %>
+          <div class="px-5 py-4 hover:bg-slate-50/50 transition-colors">
+            <div class="flex items-center gap-3">
+              <%# Status indicator %>
+              <% if exp[:met] %>
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-50 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% elsif exp[:source_requirements] == 0 || exp[:target_requirements] == 0 %>
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% else %>
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-red-50 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              <% end %>
+
+              <%# Link relationship %>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-medium text-slate-900 dark:text-slate-100"><%= exp[:source_module].name %></span>
+                  <span class="rf-badge <%= link_type_badge_class(exp[:link_type]) %> text-xs"><%= exp[:link_type].humanize %></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm font-medium text-slate-900 dark:text-slate-100"><%= exp[:target_module].name %></span>
+                </div>
+                <% if exp[:description].present? %>
+                  <div class="text-xs text-slate-400 mt-0.5"><%= exp[:description] %></div>
+                <% end %>
+              </div>
+
+              <%# Stats %>
+              <div class="flex items-center gap-4 text-xs text-slate-500 shrink-0">
+                <span><%= exp[:actual_count] %> link<%= exp[:actual_count] != 1 ? 's' : '' %></span>
+                <% if exp[:gap] > 0 %>
+                  <span class="text-red-600 font-medium">Gap: <%= exp[:gap] %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ASIL Distribution %>
+  <div class="rf-card">
+    <div class="p-5 border-b border-slate-100">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">ASIL Distribution</h2>
+      <p class="text-xs text-slate-400 mt-0.5">Automotive Safety Integrity Level allocation across all requirements</p>
+    </div>
+
+    <% if @asil_total > 0 %>
+      <div class="p-5">
+        <%# Stacked bar %>
+        <div class="flex h-8 rounded-lg overflow-hidden mb-4">
+          <% asil_colors = { "qm" => "bg-slate-300", "asil_a" => "bg-sky-400", "asil_b" => "bg-amber-400", "asil_c" => "bg-orange-500", "asil_d" => "bg-red-500" } %>
+          <% @asil_data.each do |asil| %>
+            <% next if asil[:percentage] == 0 %>
+            <div class="<%= asil_colors[asil[:level]] %> transition-all duration-300 flex items-center justify-center text-xs font-semibold text-white"
+                 style="width: <%= asil[:percentage] %>%"
+                 title="<%= asil[:level].upcase.gsub('_', ' ') %>: <%= asil[:count] %> (<%= asil[:percentage] %>%)">
+              <% if asil[:percentage] > 8 %>
+                <%= asil[:level].upcase.gsub('_', ' ').gsub('ASIL ', '') %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Detail grid %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <% asil_labels = { "qm" => "QM", "asil_a" => "ASIL A", "asil_b" => "ASIL B", "asil_c" => "ASIL C", "asil_d" => "ASIL D" } %>
+          <% asil_badge_classes = { "qm" => "rf-asil-qm", "asil_a" => "rf-asil-a", "asil_b" => "rf-asil-b", "asil_c" => "rf-asil-c", "asil_d" => "rf-asil-d" } %>
+          <% @asil_data.each do |asil| %>
+            <div class="text-center p-3 rounded-lg bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
+              <span class="<%= asil_badge_classes[asil[:level]] %> text-xs"><%= asil_labels[asil[:level]] %></span>
+              <div class="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100"><%= asil[:count] %></div>
+              <div class="text-xs text-slate-400"><%= asil[:percentage] %>%</div>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Safety-rated requirements callout %>
+        <% safety_count = @asil_data.select { |a| a[:level] != "qm" }.sum { |a| a[:count] } %>
+        <% if safety_count > 0 %>
+          <div class="mt-4 flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-lg dark:bg-amber-900/20 dark:border-amber-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-amber-800 dark:text-amber-200">
+              <strong><%= safety_count %></strong> safety-rated requirement<%= safety_count != 1 ? 's' : '' %> (ASIL A–D) require full traceability for compliance.
+            </span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="rf-empty-state py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
+        </svg>
+        <p class="rf-empty-state-title">No requirements yet</p>
+        <p class="rf-empty-state-description">Add requirements to see ASIL distribution and compliance metrics.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

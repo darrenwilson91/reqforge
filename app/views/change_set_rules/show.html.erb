@@ -1,0 +1,137 @@
+<% content_for(:page_title, "#{@project.name} — Change Set Rules") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Change Set Rules") %>
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Change Set Rules</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Configure approval requirements for change sets in <span class="font-medium text-slate-700 dark:text-slate-300"><%= @project.name %></span></p>
+    </div>
+    <%= link_to project_change_sets_path(@project), class: "rf-btn-secondary text-sm" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Back to Change Sets
+    <% end %>
+  </div>
+
+  <%= form_with(model: @rule, url: project_change_set_rules_path(@project), method: :patch, class: "space-y-6") do |f| %>
+    <% if @rule.errors.any? %>
+      <div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-4">
+        <div class="flex items-center gap-2 text-sm font-medium text-red-800 dark:text-red-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <%= pluralize(@rule.errors.count, "error") %> prevented saving:
+        </div>
+        <ul class="mt-2 ml-6 list-disc text-sm text-red-700 dark:text-red-400">
+          <% @rule.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%# Approval Requirements %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-white">Approval Requirements</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Set the minimum number of approvals required before a change set can be merged</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-5">
+        <div class="max-w-xs">
+          <%= f.label :min_approvals, class: "rf-label" %>
+          <%= f.number_field :min_approvals, min: 1, max: 10, step: 1, class: "rf-input mt-1" %>
+          <p class="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Between 1 and 10. Each reviewer must explicitly approve before the threshold is met.</p>
+        </div>
+      </div>
+    </div>
+
+    <%# Conversation Resolution %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-white">Conversation Resolution</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Control whether unresolved comment threads block merging</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-5">
+        <label class="flex items-start gap-3 cursor-pointer group">
+          <%= f.check_box :require_all_conversations_resolved, class: "mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-brand-accent focus:ring-brand-accent dark:bg-slate-700" %>
+          <div>
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Require all conversations to be resolved</span>
+            <p class="mt-0.5 text-xs text-slate-400 dark:text-slate-500">When enabled, all top-level comment threads must be marked as resolved before the change set can be merged. This ensures no feedback is overlooked.</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <%# Auto-Merge %>
+    <div class="rf-card">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-white">Auto-Merge</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Automatically merge change sets when all approval criteria are met</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-5">
+        <label class="flex items-start gap-3 cursor-pointer group">
+          <%= f.check_box :auto_merge_on_approval, class: "mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-brand-accent focus:ring-brand-accent dark:bg-slate-700" %>
+          <div>
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Auto-merge when approval requirements are met</span>
+            <p class="mt-0.5 text-xs text-slate-400 dark:text-slate-500">When enabled, change sets will be automatically merged once the minimum approval count is reached and all other conditions are satisfied. A project manager or admin will still be recorded as the merger.</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <%# Current Rules Summary %>
+    <div class="rf-card-padded">
+      <div class="flex items-start gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <div class="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+          <p class="font-medium text-slate-600 dark:text-slate-300">How merge rules work</p>
+          <p>These rules apply to all change sets in this project. When a change set is submitted for review, reviewers approve or request changes. The change set can only be merged when:</p>
+          <ul class="list-disc ml-4 space-y-0.5">
+            <li>The minimum number of approvals is reached</li>
+            <li>No reviewer has requested changes (unless they subsequently approve)</li>
+            <li>All conversations are resolved (if required)</li>
+          </ul>
+          <p>If no rules are configured, a default of 1 approval is required.</p>
+        </div>
+      </div>
+    </div>
+
+    <%# Actions %>
+    <div class="flex items-center gap-3">
+      <%= f.submit "Save Rules", class: "rf-btn-primary cursor-pointer" %>
+      <%= link_to "Cancel", project_path(@project), class: "rf-btn-secondary" %>
+    </div>
+  <% end %>
+</div>

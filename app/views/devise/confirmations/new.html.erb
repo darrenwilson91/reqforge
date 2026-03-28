@@ -1,0 +1,23 @@
+<div class="rf-card-padded">
+  <h3 class="text-lg font-semibold text-slate-900 text-center mb-2">Resend confirmation</h3>
+  <p class="text-sm text-slate-500 text-center mb-6">Enter your email and we'll resend the confirmation instructions.</p>
+
+  <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div class="space-y-4">
+      <div>
+        <%= f.label :email, class: "rf-label" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email",
+            placeholder: "you@example.com", class: "rf-input",
+            value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email) %>
+      </div>
+
+      <div class="pt-2">
+        <%= f.submit "Resend confirmation", class: "rf-btn-primary w-full justify-center" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%= render "devise/shared/links" %>

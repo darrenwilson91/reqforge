@@ -1,0 +1,75 @@
+<%# Link creation form — embedded in requirement detail via Turbo Frame %>
+<div data-controller="link-search"
+     data-link-search-url-value="<%= search_project_requirements_path(project) %>"
+     data-link-search-exclude-id-value="<%= requirement.id %>">
+
+  <%# Toggle button %>
+  <button type="button"
+          data-action="click->link-search#toggle"
+          class="rf-btn-secondary text-xs">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+    </svg>
+    Add Link
+  </button>
+
+  <%# Expandable form panel %>
+  <div data-link-search-target="panel" class="hidden mt-4">
+    <div class="rounded-lg border border-slate-200 bg-slate-50/50 p-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="text-sm font-semibold text-slate-700">Create Traceability Link</h4>
+        <button type="button" data-action="click->link-search#close" class="text-slate-400 hover:text-slate-600 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <%= form_with url: project_traceability_links_path(project), method: :post, class: "space-y-3" do |f| %>
+        <%= hidden_field_tag "traceability_link[source_requirement_id]", requirement.id %>
+
+        <%# Target requirement search %>
+        <div>
+          <label class="rf-label">Target Requirement</label>
+          <div class="relative">
+            <input type="text"
+                   placeholder="Search by UID, title, or keyword..."
+                   class="rf-input text-sm"
+                   autocomplete="off"
+                   data-link-search-target="input"
+                   data-action="input->link-search#onInput" />
+            <div data-link-search-target="results"
+                 class="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-lg border border-slate-200 shadow-lg max-h-48 overflow-y-auto empty:hidden">
+            </div>
+          </div>
+          <%# Selected requirement display %>
+          <div data-link-search-target="selectedDisplay" class="hidden mt-2 px-3 py-2 bg-white rounded-md border border-slate-200 flex items-center gap-2">
+          </div>
+          <input type="hidden" name="traceability_link[target_requirement_id]" value="" data-link-search-target="selectedId" />
+        </div>
+
+        <%# Link type selector %>
+        <div>
+          <label class="rf-label">Link Type</label>
+          <select name="traceability_link[link_type]" class="rf-input text-sm">
+            <% TraceabilityLink.link_types.keys.each do |lt| %>
+              <option value="<%= lt %>"><%= lt.humanize %></option>
+            <% end %>
+          </select>
+        </div>
+
+        <%# Optional description %>
+        <div>
+          <label class="rf-label">Description <span class="text-slate-400 font-normal">(optional)</span></label>
+          <input type="text" name="traceability_link[description]" class="rf-input text-sm" placeholder="Why this link exists..." />
+        </div>
+
+        <%# Submit %>
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" data-action="click->link-search#close" class="rf-btn-secondary text-xs">Cancel</button>
+          <button type="submit" class="rf-btn-primary text-xs">Create Link</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

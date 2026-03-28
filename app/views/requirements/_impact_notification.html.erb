@@ -1,0 +1,83 @@
+<%# Impact analysis notification banner — shown when impact analysis is running or recently completed %>
+<%
+  impact_result = requirement.ai_analysis_results.find_by(analysis_type: "impact_analysis")
+%>
+
+<div id="impact_notification_<%= requirement.id %>">
+  <% if impact_result&.running? %>
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium border bg-violet-50 text-violet-800 border-violet-200 mb-4"
+         data-controller="flash" data-flash-dismiss-after-value="0">
+      <svg class="animate-spin w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <span class="flex-1">Impact analysis is running — checking downstream effects of your changes...</span>
+    </div>
+
+  <% elsif impact_result&.completed? && impact_result.completed_at.present? && impact_result.completed_at > 5.minutes.ago %>
+    <%
+      impacts = impact_result.result_data&.dig("impacts") || impact_result.result_data&.dig(:impacts) || []
+      risk_level = impact_result.result_data&.dig("risk_level") || impact_result.result_data&.dig(:risk_level) || "minimal"
+      summary = impact_result.result_data&.dig("summary") || impact_result.result_data&.dig(:summary) || ""
+      high_count = impacts.count { |i| (i["severity"] || i[:severity]) == "high" }
+      medium_count = impacts.count { |i| (i["severity"] || i[:severity]) == "medium" }
+    %>
+    <% if impacts.any? %>
+      <%
+        banner_classes = case risk_level.to_s.downcase
+        when "critical"
+          "bg-red-50 text-red-800 border-red-200"
+        when "significant"
+          "bg-amber-50 text-amber-800 border-amber-200"
+        when "moderate"
+          "bg-yellow-50 text-yellow-800 border-yellow-200"
+        else
+          "bg-slate-50 text-slate-800 border-slate-200"
+        end
+
+        icon_color = case risk_level.to_s.downcase
+        when "critical" then "text-red-500"
+        when "significant" then "text-amber-500"
+        when "moderate" then "text-yellow-500"
+        else "text-slate-400"
+        end
+      %>
+      <div class="flex items-start gap-3 px-4 py-3 rounded-lg text-sm border <%= banner_classes %> mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5 <%= icon_color %>" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold">Impact Analysis Complete</span>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-white/60 border border-current/10">
+              <%= risk_level.capitalize %> risk
+            </span>
+            <% if high_count > 0 %>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                <%= high_count %> high severity
+              </span>
+            <% end %>
+            <% if medium_count > 0 %>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+                <%= medium_count %> medium severity
+              </span>
+            <% end %>
+          </div>
+          <% if summary.present? %>
+            <p class="mt-1 text-xs opacity-80"><%= summary %></p>
+          <% end %>
+          <p class="mt-1.5 text-xs">
+            <a href="#ai_analysis_panel" class="underline font-medium hover:no-underline" onclick="document.querySelector('[data-tab=&quot;impact&quot;]')?.click()">
+              View <%= impacts.size %> impacted <%= "requirement".pluralize(impacts.size) %> in the Impact tab
+            </a>
+          </p>
+        </div>
+        <button type="button" onclick="this.closest('[id^=impact_notification]').remove()" class="p-0.5 rounded hover:bg-black/5 transition-colors shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  <% end %>
+</div>

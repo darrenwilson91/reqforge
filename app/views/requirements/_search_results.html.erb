@@ -1,0 +1,18 @@
+<% if results.any? %>
+  <% results.each do |req| %>
+    <button type="button"
+            class="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center gap-2 transition-colors cursor-pointer"
+            data-action="click->link-search#select"
+            data-requirement-id="<%= req.id %>"
+            data-requirement-uid="<%= req.uid %>"
+            data-requirement-title="<%= req.title %>">
+      <span class="rf-uid text-xs shrink-0"><%= req.uid %></span>
+      <span class="text-sm text-slate-700 truncate flex-1"><%= req.title %></span>
+      <% if req.section&.requirement_module %>
+        <span class="text-xs text-slate-400 shrink-0"><%= req.section.requirement_module.name %></span>
+      <% end %>
+    </button>
+  <% end %>
+<% else %>
+  <div class="px-3 py-4 text-center text-sm text-slate-400">No requirements found.</div>
+<% end %>

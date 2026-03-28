@@ -1,0 +1,15 @@
+<% content_for(:page_title, "New Project") %>
+
+<div class="max-w-2xl mx-auto space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], "New Project") %>
+
+  <%# Form Card %>
+  <div class="rf-card-padded">
+    <div class="mb-6">
+      <h1 class="text-xl font-bold text-slate-900">Create a New Project</h1>
+      <p class="mt-1 text-sm text-slate-500">Set up a new requirements management project for your team.</p>
+    </div>
+
+    <%= render "form", project: @project %>
+  </div>
+</div>

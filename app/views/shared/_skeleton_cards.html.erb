@@ -1,0 +1,21 @@
+<%# Skeleton loading state for card grid layouts (projects, reviews)
+    Usage: render "shared/skeleton_cards", count: 6 %>
+<% count ||= 6 %>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <% count.times do %>
+    <div class="rf-skeleton-card">
+      <div class="flex items-center justify-between">
+        <div class="rf-skeleton-line-lg w-2/5"></div>
+        <div class="rf-skeleton-badge"></div>
+      </div>
+      <div class="space-y-2">
+        <div class="rf-skeleton-line w-full"></div>
+        <div class="rf-skeleton-line w-4/5"></div>
+      </div>
+      <div class="flex items-center gap-4 pt-2">
+        <div class="rf-skeleton-line-sm w-20"></div>
+        <div class="rf-skeleton-line-sm w-24"></div>
+      </div>
+    </div>
+  <% end %>
+</div>

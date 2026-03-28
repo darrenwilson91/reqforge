@@ -1,0 +1,84 @@
+<% comment = local_assigns[:comment] %>
+<% project = local_assigns[:project] %>
+<% change_set = local_assigns[:change_set] %>
+<% depth = local_assigns[:depth] || 0 %>
+<% max_depth = 3 %>
+
+<div id="comment-<%= comment.id %>" class="<%= depth > 0 ? 'ml-6 border-l-2 border-slate-100 dark:border-slate-700 pl-4' : '' %>" data-controller="change-set-comment">
+  <div class="py-3 <%= comment.resolved? ? 'opacity-60' : '' %>">
+    <%# Comment header %>
+    <div class="flex items-center gap-2 text-xs">
+      <div class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[10px] font-medium shrink-0">
+        <%= comment.user.first_name[0] %><%= comment.user.last_name[0] %>
+      </div>
+      <span class="font-medium text-slate-700 dark:text-slate-300"><%= comment.user.full_name %></span>
+      <span class="text-slate-400 dark:text-slate-500"><%= time_ago_in_words(comment.created_at) %> ago</span>
+      <% if comment.resolved? %>
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          Resolved
+        </span>
+      <% end %>
+    </div>
+
+    <%# Comment body %>
+    <div class="mt-1.5 text-sm text-slate-700 dark:text-slate-300 ml-8">
+      <%= simple_format(h(comment.body), {}, wrapper_tag: "span") %>
+    </div>
+
+    <%# Actions %>
+    <div class="mt-2 ml-8 flex items-center gap-3 text-xs">
+      <% if depth < max_depth %>
+        <button type="button"
+          class="text-slate-400 dark:text-slate-500 hover:text-brand-accent transition-colors"
+          data-action="click->change-set-comment#toggleReply"
+          data-comment-id="<%= comment.id %>">Reply</button>
+      <% end %>
+
+      <% if comment.top_level? %>
+        <% if comment.resolved? %>
+          <%= link_to unresolve_project_change_set_change_set_comment_path(project, change_set, comment),
+            data: { turbo_method: :patch },
+            class: "text-slate-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" do %>
+            Reopen
+          <% end %>
+        <% else %>
+          <%= link_to resolve_project_change_set_change_set_comment_path(project, change_set, comment),
+            data: { turbo_method: :patch },
+            class: "text-slate-400 dark:text-slate-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors" do %>
+            Resolve
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Reply form (hidden by default) %>
+    <% if depth < max_depth %>
+      <div class="hidden mt-3 ml-8" data-reply-form-id="<%= comment.id %>">
+        <%= form_with url: project_change_set_change_set_comments_path(project, change_set), class: "space-y-2" do |f| %>
+          <%= f.hidden_field :change_set_change_id, value: comment.change_set_change_id %>
+          <%= f.hidden_field :parent_comment_id, value: comment.id %>
+          <%= f.text_area :body, rows: 2, placeholder: "Write a reply...",
+            class: "rf-input text-sm w-full" %>
+          <div class="flex items-center gap-2">
+            <%= f.submit "Reply", class: "rf-btn-primary text-xs py-1 px-3",
+              data: { action: "click->change-set-comment#validateSubmit" } %>
+            <button type="button" class="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400"
+              data-action="click->change-set-comment#cancelReply"
+              data-comment-id="<%= comment.id %>">Cancel</button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Replies %>
+  <% if comment.replies.any? && depth < max_depth %>
+    <% comment.replies.order(:created_at).each do |reply| %>
+      <%= render partial: "change_set_comments/comment",
+        locals: { comment: reply, project: project, change_set: change_set, depth: depth + 1 } %>
+    <% end %>
+  <% end %>
+</div>

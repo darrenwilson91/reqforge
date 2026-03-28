@@ -1,0 +1,15 @@
+<% content_for(:page_title, "Edit #{@requirement.uid}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Requirements", project_requirements_path(@project)], [@requirement.uid, project_requirement_path(@project, @requirement)], "Edit") %>
+
+  <div class="max-w-2xl">
+    <h1 class="text-2xl font-bold text-slate-900 mb-1">Edit Requirement</h1>
+    <p class="text-sm text-slate-500 mb-6">
+      <span class="rf-uid"><%= @requirement.uid %></span>
+      <span class="ml-2"><%= @requirement.title %></span>
+    </p>
+
+    <%= render "form", requirement: @requirement %>
+  </div>
+</div>

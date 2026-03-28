@@ -1,0 +1,9 @@
+<% content_for(:page_title, "#{@project.name} — New Change Set") %>
+
+<div class="space-y-6 max-w-2xl">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Change Sets", project_change_sets_path(@project)], "New Change Set") %>
+
+  <h1 class="text-2xl font-bold text-slate-900">New Change Set</h1>
+
+  <%= render "form", change_set: @change_set %>
+</div>

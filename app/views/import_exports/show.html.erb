@@ -1,0 +1,275 @@
+<% content_for(:page_title, "Import / Export — #{@project.name}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Import / Export") %>
+
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Import / Export</h1>
+      <p class="mt-1 text-sm text-slate-500">Import requirements from files or export your project data for external use.</p>
+    </div>
+    <span class="rf-uid text-sm"><%= @project.prefix %></span>
+  </div>
+
+  <%# Import Result Banner %>
+  <% if @import_result %>
+    <% if @import_result[:success] || @import_result["success"] %>
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-emerald-800"><%= @import_result[:format] || @import_result["format"] %> Import Successful</h3>
+            <div class="mt-1 text-sm text-emerald-700">
+              <% imported = @import_result[:imported] || @import_result["imported"] || @import_result[:imported_requirements] || @import_result["imported_requirements"] || 0 %>
+              <% links = @import_result[:imported_links] || @import_result["imported_links"] %>
+              <span><%= imported %> requirements imported</span>
+              <% if links && links > 0 %>
+                <span class="mx-1">&middot;</span>
+                <span><%= links %> traceability links imported</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-red-800">Import Had Issues</h3>
+            <% errors = @import_result[:errors] || @import_result["errors"] || [] %>
+            <% if errors.any? %>
+              <ul class="mt-1 text-sm text-red-700 space-y-0.5">
+                <% errors.first(5).each do |error| %>
+                  <li>&bull; <%= error[:message] || error["message"] || error.to_s %></li>
+                <% end %>
+                <% if errors.size > 5 %>
+                  <li class="text-red-500 italic">...and <%= errors.size - 5 %> more errors</li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Export Section %>
+  <div class="rf-card">
+    <div class="p-5 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        <h2 class="text-base font-semibold text-slate-900">Export</h2>
+      </div>
+    </div>
+    <div class="p-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <%# CSV Export %>
+        <div class="rounded-lg border border-slate-200 p-5 hover:border-slate-300 transition-colors">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">CSV Export</h3>
+              <p class="text-xs text-slate-500">Comma-separated values</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 mb-4">Export all requirements with standard attributes and custom fields. Compatible with Excel, Google Sheets, and other spreadsheet tools.</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400"><%= @project.requirements.count %> requirements</span>
+            <%= link_to export_csv_project_import_export_path(@project), class: "rf-btn-secondary text-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Download CSV
+            <% end %>
+          </div>
+        </div>
+
+        <%# ReqIF Export %>
+        <div class="rounded-lg border border-slate-200 p-5 hover:border-slate-300 transition-colors">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">ReqIF Export</h3>
+              <p class="text-xs text-slate-500">Requirements Interchange Format 1.2</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 mb-4">Export in the industry-standard ReqIF format for interchange with IBM DOORS, Polarion, and other requirements management tools.</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400"><%= @project.requirements.count %> requirements &middot; <%= TraceabilityMatrix.new(@project).links.count %> links</span>
+            <%= link_to export_reqif_project_import_export_path(@project), class: "rf-btn-secondary text-sm" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Download ReqIF
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Import Section %>
+  <div class="rf-card">
+    <div class="p-5 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+        </svg>
+        <h2 class="text-base font-semibold text-slate-900">Import</h2>
+      </div>
+    </div>
+    <div class="p-5">
+      <% if policy(@project).update? %>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <%# CSV Import %>
+          <div class="rounded-lg border border-slate-200 p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">CSV Import</h3>
+                <p class="text-xs text-slate-500">Comma-separated values</p>
+              </div>
+            </div>
+            <p class="text-sm text-slate-600 mb-3">Import requirements from a CSV file. Required column: <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded font-mono">title</code>. Optional: uid, body, type, status, priority, asil_level, module, section.</p>
+            <%= form_with url: import_csv_project_import_export_path(@project), method: :post, multipart: true, class: "space-y-3" do |f| %>
+              <div class="flex items-center gap-3">
+                <label class="flex-1">
+                  <input type="file" name="file" accept=".csv,text/csv" class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-slate-200 file:text-sm file:font-medium file:bg-white file:text-slate-700 hover:file:bg-slate-50 file:cursor-pointer file:transition-colors" />
+                </label>
+              </div>
+              <%= f.submit "Import CSV", class: "rf-btn-primary text-sm cursor-pointer" %>
+            <% end %>
+          </div>
+
+          <%# ReqIF Import %>
+          <div class="rounded-lg border border-slate-200 p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm5 4a1 1 0 10-2 0v2H5a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2H9V8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">ReqIF Import</h3>
+                <p class="text-xs text-slate-500">Requirements Interchange Format 1.2</p>
+              </div>
+            </div>
+            <p class="text-sm text-slate-600 mb-3">Import from a ReqIF file exported from IBM DOORS, Polarion, or other tools. Imports requirements, hierarchy, and traceability links.</p>
+            <%= form_with url: import_reqif_project_import_export_path(@project), method: :post, multipart: true, class: "space-y-3" do |f| %>
+              <div class="flex items-center gap-3">
+                <label class="flex-1">
+                  <input type="file" name="file" accept=".reqif,.xml,application/xml" class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-slate-200 file:text-sm file:font-medium file:bg-white file:text-slate-700 hover:file:bg-slate-50 file:cursor-pointer file:transition-colors" />
+                </label>
+              </div>
+              <%= f.submit "Import ReqIF", class: "rf-btn-primary text-sm cursor-pointer" %>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="rf-empty-state py-8">
+          <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+          </svg>
+          <p class="rf-empty-state-title">Import not available</p>
+          <p class="rf-empty-state-description">You need project manager or admin permissions to import data into this project.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# CSV Format Reference %>
+  <div class="rf-card">
+    <div class="p-5 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <h2 class="text-base font-semibold text-slate-900">CSV Format Reference</h2>
+      </div>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <h3 class="text-sm font-medium text-slate-700 mb-2">Supported Columns</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200">
+                <th class="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Column</th>
+                <th class="text-left py-2 pr-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Required</th>
+                <th class="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Valid Values</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">title</td>
+                <td class="py-2 pr-4"><span class="text-xs font-medium text-red-600">Required</span></td>
+                <td class="py-2 text-xs text-slate-500">Any text</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">uid</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">Auto-generated if blank</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">body / description</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">Requirement description text</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">type / requirement_type</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">functional, non_functional, safety, interface, design_constraint</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">status</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">draft, in_review, approved, implemented, verified, obsolete</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">priority</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">must_have, should_have, could_have, wont_have</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">asil_level / asil</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">qm, asil_a, asil_b, asil_c, asil_d</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">module / module_name</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">Module name (defaults to "Imported")</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-4 font-mono text-xs text-slate-700">section / section_name</td>
+                <td class="py-2 pr-4"><span class="text-xs text-slate-400">Optional</span></td>
+                <td class="py-2 text-xs text-slate-500">Section name (defaults to "Default")</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400">Any additional columns not listed above will be stored as custom attributes on each requirement.</p>
+    </div>
+  </div>
+</div>

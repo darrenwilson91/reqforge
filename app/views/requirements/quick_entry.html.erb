@@ -1,0 +1,136 @@
+<% content_for(:page_title, "#{@project.name} — Quick Entry") %>
+
+<div class="space-y-4" data-controller="quick-entry" data-quick-entry-url-value="<%= quick_create_project_requirements_path(@project) %>" data-quick-entry-section-value="<%= params[:section_id] %>" data-quick-entry-delete-url-value="<%= project_requirement_path(@project, '__ID__') %>">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Requirements", project_requirements_path(@project)], "Quick Entry") %>
+
+  <%# Header — minimal, focused %>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Quick Entry</h1>
+      <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400"><%= @project.name %> <span class="rf-uid text-xs ml-1"><%= @project.prefix %></span></p>
+    </div>
+    <div class="flex items-center gap-3">
+      <%= link_to project_requirements_path(@project), class: "rf-btn-secondary text-sm" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Back to List
+      <% end %>
+    </div>
+  </div>
+
+  <%# Module/Section Selector %>
+  <div class="rf-card-padded">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <label class="rf-label shrink-0 mb-0">Target Section</label>
+      <select class="rf-input sm:max-w-md" data-quick-entry-target="sectionSelect" data-action="change->quick-entry#changeSection">
+        <option value="" disabled <%= 'selected' unless params[:section_id].present? %>>Select a module / section...</option>
+        <% @sections.each do |label, id| %>
+          <option value="<%= id %>" <%= 'selected' if params[:section_id].to_s == id.to_s %>><%= label %></option>
+        <% end %>
+      </select>
+      <% if @sections.empty? %>
+        <p class="text-sm text-slate-400 dark:text-slate-500">No modules or sections exist yet. Create them from the project page first.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Quick Entry Writing Surface %>
+  <div class="rf-card overflow-hidden">
+    <% if params[:section_id].present? %>
+      <%# Existing requirements in this section %>
+      <div id="quick-entry-list" class="divide-y divide-slate-100 dark:divide-slate-700/50" data-quick-entry-target="requirementList" data-action="keydown->quick-entry#handleRowKeydown">
+        <% @existing_requirements.each do |req| %>
+          <%= render partial: "requirements/quick_entry_row", locals: { requirement: req, project: @project } %>
+        <% end %>
+      </div>
+
+      <%# New requirement input %>
+      <div class="p-4 border-t border-dashed border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50" data-quick-entry-target="inputArea">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 mt-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 tabular-nums">
+              <span data-quick-entry-target="nextUid"><%= @project.prefix %>-????</span>
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <textarea
+              data-quick-entry-target="titleInput"
+              data-action="keydown->quick-entry#handleKeydown"
+              placeholder="Type a requirement and press Enter..."
+              rows="1"
+              class="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border-0 ring-0 focus:ring-2 focus:ring-brand-accent/40 rounded-lg resize-none p-2 leading-relaxed"
+              autofocus
+            ></textarea>
+
+            <%# Inline attribute bar — hidden until Tab is pressed on empty input %>
+            <div
+              data-quick-entry-target="attributeBar"
+              data-action="keydown->quick-entry#handleAttributeKeydown"
+              tabindex="-1"
+              class="hidden mt-2 flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
+            >
+              <%# Populated dynamically by Stimulus controller %>
+            </div>
+          </div>
+        </div>
+        <div class="ml-[4.5rem] mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Enter</kbd> save &amp; next</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Shift+Enter</kbd> new line</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Tab</kbd> set attributes</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">&uarr;&darr;</kbd> navigate rows</span>
+          <span><kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono">Backspace</kbd> delete selected</span>
+          <span class="flex items-center gap-1.5">
+            Defaults:
+            <span data-quick-entry-target="attrTypeBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">Functional</span>
+            <span data-quick-entry-target="attrPriorityBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">Must Have</span>
+            <span data-quick-entry-target="attrAsilBadge" class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-[10px] font-medium">QM</span>
+          </span>
+        </div>
+      </div>
+    <% else %>
+      <%# No section selected %>
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+        </svg>
+        <p class="rf-empty-state-title">Select a section to begin</p>
+        <p class="rf-empty-state-description">Choose a module and section from the dropdown above to start entering requirements.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Floating Action Bar %>
+  <div class="sticky bottom-4 z-10" data-quick-entry-target="actionBar">
+    <div class="rf-card-padded bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-lg">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4 text-sm">
+          <span class="text-slate-500 dark:text-slate-400">
+            <span class="font-semibold text-slate-900 dark:text-white" data-quick-entry-target="sessionCount">0</span>
+            entered this session
+          </span>
+          <% if params[:section_id].present? %>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <span class="text-slate-500 dark:text-slate-400">
+              <span class="font-semibold text-slate-900 dark:text-white" data-quick-entry-target="totalCount"><%= @existing_requirements.size %></span>
+              in section
+            </span>
+          <% end %>
+        </div>
+        <div class="flex items-center gap-2">
+          <% if @modules.any? %>
+            <select class="rf-input text-sm py-1.5 max-w-[200px]" data-quick-entry-target="sectionSwitcher" data-action="change->quick-entry#changeSection">
+              <option value="" disabled selected>Switch section...</option>
+              <% @sections.each do |label, id| %>
+                <option value="<%= id %>"><%= label %></option>
+              <% end %>
+            </select>
+          <% end %>
+          <%= link_to project_requirements_path(@project), class: "rf-btn-primary text-sm" do %>
+            Done
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

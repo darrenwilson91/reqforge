@@ -1,0 +1,118 @@
+<% content_for(:page_title, "#{@project.name} — Change Sets") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Change Sets") %>
+
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Change Sets</h1>
+      <p class="mt-1 text-sm text-slate-500"><%= @project.name %> &middot; <%= @change_sets.size %> change set<%= @change_sets.size == 1 ? "" : "s" %></p>
+    </div>
+    <% if policy(ChangeSet).create? %>
+      <%= link_to new_project_change_set_path(@project), class: "rf-btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        New Change Set
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @change_sets.any? %>
+    <div class="space-y-4">
+      <% @change_sets.each do |change_set| %>
+        <% counts = change_set.changes_count %>
+        <% progress = change_set.progress %>
+        <%= link_to project_change_set_path(@project, change_set), class: "block rf-card group hover:border-brand-accent/40 hover:shadow-md transition-all duration-200" do %>
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3">
+                  <h3 class="text-base font-semibold text-slate-900 group-hover:text-brand-accent-dark transition-colors truncate">
+                    <%= change_set.title %>
+                  </h3>
+                  <span class="<%= change_set_status_badge_class(change_set) %> shrink-0">
+                    <%= change_set.status.humanize %>
+                  </span>
+                </div>
+                <% if change_set.description.present? %>
+                  <p class="mt-1 text-sm text-slate-500 line-clamp-2"><%= change_set.description %></p>
+                <% end %>
+                <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                    <%= change_set.created_by.full_name %>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Updated <%= time_ago_in_words(change_set.updated_at) %> ago
+                  </span>
+                  <% total_changes = counts[:created] + counts[:modified] + counts[:deleted] %>
+                  <span class="flex items-center gap-1.5">
+                    <% if counts[:created] > 0 %>
+                      <span class="text-emerald-600">+<%= counts[:created] %></span>
+                    <% end %>
+                    <% if counts[:modified] > 0 %>
+                      <span class="text-amber-600">~<%= counts[:modified] %></span>
+                    <% end %>
+                    <% if counts[:deleted] > 0 %>
+                      <span class="text-red-600">-<%= counts[:deleted] %></span>
+                    <% end %>
+                    <% if total_changes == 0 %>
+                      <span>No changes</span>
+                    <% end %>
+                  </span>
+                  <% if change_set.change_set_approvals.any? %>
+                    <span class="flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                      </svg>
+                      <%= change_set.change_set_approvals.size %> reviewer<%= change_set.change_set_approvals.size == 1 ? "" : "s" %>
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+
+              <%# Approval progress %>
+              <% if progress[:total] > 0 %>
+                <div class="ml-6 shrink-0 text-right">
+                  <div class="text-sm font-semibold text-slate-700"><%= progress[:percentage] %>%</div>
+                  <div class="text-xs text-slate-400 mt-0.5"><%= progress[:decided] %>/<%= progress[:total] %> reviewed</div>
+                  <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                    <div class="h-full rounded-full transition-all <%= progress[:percentage] >= 100 ? 'bg-emerald-500' : 'bg-violet-500' %>" style="width: <%= progress[:percentage] %>%"></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <%# Empty State %>
+    <div class="rf-card">
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+        <p class="rf-empty-state-title">No change sets yet</p>
+        <p class="rf-empty-state-description">Create a change set to propose requirement changes for review, like a pull request.</p>
+        <% if policy(ChangeSet).create? %>
+          <div class="mt-5">
+            <%= link_to new_project_change_set_path(@project), class: "rf-btn-primary" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              Create First Change Set
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

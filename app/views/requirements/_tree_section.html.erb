@@ -1,0 +1,54 @@
+<%# Recursive section node in the requirement tree %>
+<% padding_left = "padding-left: #{depth * 1.25}rem" %>
+<% section_reqs = section.requirements.sort_by(&:position) %>
+<% child_sections = section.child_sections.sort_by(&:position) %>
+<% has_children = child_sections.any? || section_reqs.any? %>
+
+<div class="tree-node">
+  <% if has_children %>
+    <button type="button"
+            data-action="tree#toggle"
+            data-tree-node-id="sec-<%= section.id %>"
+            class="w-full flex items-center gap-1.5 px-3 py-1.5 text-left hover:bg-slate-100 transition-colors group"
+            style="<%= padding_left %>">
+      <svg data-tree-icon xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150" style="transform: rotate(90deg)" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z" clip-rule="evenodd" />
+        <path d="M6 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H2h2a2 2 0 002-2v-2z" />
+      </svg>
+      <span class="text-slate-600 truncate"><%= section.name %></span>
+      <span class="ml-auto text-xs text-slate-400 tabular-nums shrink-0"><%= section_reqs.size %></span>
+    </button>
+
+    <div data-tree-target="children"
+         data-tree-children-id="sec-<%= section.id %>"
+         data-expanded="true">
+      <%# Child sections first %>
+      <% child_sections.each do |child| %>
+        <%= render partial: "requirements/tree_section", locals: { section: child, depth: depth + 1, project: project } %>
+      <% end %>
+
+      <%# Requirements in this section — sortable container %>
+      <% if section_reqs.any? %>
+        <div data-controller="sortable"
+             data-sortable-url-value="<%= reorder_project_requirements_path(project) %>">
+          <% section_reqs.each do |req| %>
+            <%= render partial: "requirements/tree_requirement", locals: { req: req, depth: depth + 1, project: project } %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="flex items-center gap-1.5 px-3 py-1.5 text-slate-500" style="<%= padding_left %>">
+      <span class="w-3.5 h-3.5 shrink-0"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z" clip-rule="evenodd" />
+        <path d="M6 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H2h2a2 2 0 002-2v-2z" />
+      </svg>
+      <span class="text-slate-400 truncate italic"><%= section.name %></span>
+      <span class="ml-auto text-xs text-slate-300 tabular-nums shrink-0">0</span>
+    </div>
+  <% end %>
+</div>

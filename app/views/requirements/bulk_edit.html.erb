@@ -1,0 +1,251 @@
+<% content_for(:page_title, "#{@project.name} — Bulk Edit") %>
+
+<div class="space-y-4">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Requirements", project_requirements_path(@project)], "Bulk Edit") %>
+
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Bulk Edit</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400"><%= @project.name %> &middot; <%= @requirements.size %> <%= "requirement".pluralize(@requirements.size) %></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to project_requirements_path(@project), class: "rf-btn-secondary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Back to List
+      <% end %>
+    </div>
+  </div>
+
+  <% if @requirements.any? %>
+    <%
+      type_options = Requirement.requirement_types.keys.map { |t| [t.humanize, t] }
+      status_options = Requirement.statuses.keys.map { |s| [s.humanize, s] }
+      priority_options = Requirement.priorities.keys.map { |p| [p.humanize, p] }
+      asil_options = Requirement.asil_levels.keys.map { |a| [a.upcase.sub("_", " "), a] }
+      section_options = @sections.map { |label, id| [label, id.to_s] }
+    %>
+
+    <%= form_tag bulk_update_project_requirements_path(@project), method: :patch, data: { controller: "bulk-edit", bulk_delete_url: bulk_delete_project_requirements_path(@project) } do %>
+
+      <%# Bulk Action Toolbar — shown when items are selected %>
+      <div data-bulk-edit-target="toolbar" class="hidden sticky top-0 z-10 rf-card-padded flex flex-wrap items-center gap-2 border-brand-accent bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700">
+        <span class="text-sm font-medium text-amber-800 dark:text-amber-200" data-bulk-edit-target="selectedCount">0 selected</span>
+        <span class="text-slate-300 dark:text-slate-600">|</span>
+
+        <%# Set Type %>
+        <div class="relative">
+          <button type="button" class="rf-btn-secondary text-xs py-1" data-action="bulk-edit#openBulkAction" data-bulk-action="type">Set Type</button>
+          <div data-popover="type" class="hidden absolute top-full left-0 mt-1 p-3 rf-card shadow-lg z-20 w-56">
+            <label class="rf-label text-xs mb-1">Requirement Type</label>
+            <select class="rf-input text-sm">
+              <% type_options.each do |label, val| %>
+                <option value="<%= val %>"><%= label %></option>
+              <% end %>
+            </select>
+            <button type="button" class="rf-btn-primary text-xs mt-2 w-full" data-action="bulk-edit#applyBulkAction" data-field="requirement_type">Apply</button>
+          </div>
+        </div>
+
+        <%# Set Priority %>
+        <div class="relative">
+          <button type="button" class="rf-btn-secondary text-xs py-1" data-action="bulk-edit#openBulkAction" data-bulk-action="priority">Set Priority</button>
+          <div data-popover="priority" class="hidden absolute top-full left-0 mt-1 p-3 rf-card shadow-lg z-20 w-56">
+            <label class="rf-label text-xs mb-1">Priority</label>
+            <select class="rf-input text-sm">
+              <% priority_options.each do |label, val| %>
+                <option value="<%= val %>"><%= label %></option>
+              <% end %>
+            </select>
+            <button type="button" class="rf-btn-primary text-xs mt-2 w-full" data-action="bulk-edit#applyBulkAction" data-field="priority">Apply</button>
+          </div>
+        </div>
+
+        <%# Set ASIL %>
+        <div class="relative">
+          <button type="button" class="rf-btn-secondary text-xs py-1" data-action="bulk-edit#openBulkAction" data-bulk-action="asil">Set ASIL</button>
+          <div data-popover="asil" class="hidden absolute top-full left-0 mt-1 p-3 rf-card shadow-lg z-20 w-56">
+            <label class="rf-label text-xs mb-1">ASIL Level</label>
+            <select class="rf-input text-sm">
+              <% asil_options.each do |label, val| %>
+                <option value="<%= val %>"><%= label %></option>
+              <% end %>
+            </select>
+            <button type="button" class="rf-btn-primary text-xs mt-2 w-full" data-action="bulk-edit#applyBulkAction" data-field="asil_level">Apply</button>
+          </div>
+        </div>
+
+        <%# Move to Section %>
+        <div class="relative">
+          <button type="button" class="rf-btn-secondary text-xs py-1" data-action="bulk-edit#openBulkAction" data-bulk-action="section">Move to Section</button>
+          <div data-popover="section" class="hidden absolute top-full left-0 mt-1 p-3 rf-card shadow-lg z-20 w-72">
+            <label class="rf-label text-xs mb-1">Section</label>
+            <select class="rf-input text-sm">
+              <% section_options.each do |label, val| %>
+                <option value="<%= val %>"><%= label %></option>
+              <% end %>
+            </select>
+            <button type="button" class="rf-btn-primary text-xs mt-2 w-full" data-action="bulk-edit#applyBulkAction" data-field="section_id">Apply</button>
+          </div>
+        </div>
+
+        <span class="text-slate-300 dark:text-slate-600">|</span>
+        <button type="button" class="rf-btn-danger text-xs py-1" data-action="bulk-edit#bulkDelete">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          Delete Selected
+        </button>
+      </div>
+
+      <%# Spreadsheet Table %>
+      <div class="rf-card overflow-x-auto">
+        <table class="w-full min-w-[900px]">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+              <th class="px-3 py-3 text-left w-10">
+                <input type="checkbox" data-bulk-edit-target="selectAll" data-action="bulk-edit#toggleAll" class="rounded border-slate-300 text-brand-accent focus:ring-brand-accent dark:border-slate-600 dark:bg-slate-700">
+              </th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">UID</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-32">Type</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Status</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-28">Priority</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24">ASIL</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-44">Section</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <% @requirements.each do |req| %>
+              <tr data-bulk-edit-target="row" data-requirement-id="<%= req.id %>" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                <%# Hidden inputs for form submission %>
+                <input type="hidden" name="requirements[<%= req.id %>][title]" value="<%= req.title %>">
+                <input type="hidden" name="requirements[<%= req.id %>][requirement_type]" value="<%= req.requirement_type %>">
+                <input type="hidden" name="requirements[<%= req.id %>][status]" value="<%= req.status %>">
+                <input type="hidden" name="requirements[<%= req.id %>][priority]" value="<%= req.priority %>">
+                <input type="hidden" name="requirements[<%= req.id %>][asil_level]" value="<%= req.asil_level %>">
+                <input type="hidden" name="requirements[<%= req.id %>][section_id]" value="<%= req.section_id %>">
+
+                <%# Checkbox %>
+                <td class="px-3 py-2">
+                  <input type="checkbox" data-action="bulk-edit#toggleRow" class="rounded border-slate-300 text-brand-accent focus:ring-brand-accent dark:border-slate-600 dark:bg-slate-700">
+                </td>
+
+                <%# UID (read-only) %>
+                <td class="px-3 py-2">
+                  <%= link_to req.uid, project_requirement_path(@project, req), class: "rf-uid text-xs" %>
+                </td>
+
+                <%# Title (editable text) %>
+                <td class="px-3 py-2 cursor-pointer group"
+                    data-bulk-edit-target="cell"
+                    data-field="title"
+                    data-field-type="text"
+                    data-value="<%= req.title %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-brand-accent-dark transition-colors"><%= req.title %></span>
+                </td>
+
+                <%# Type (editable select) %>
+                <td class="px-3 py-2 cursor-pointer"
+                    data-bulk-edit-target="cell"
+                    data-field="requirement_type"
+                    data-field-type="select"
+                    data-value="<%= req.requirement_type %>"
+                    data-options="<%= type_options.to_json %>"
+                    data-badge-class="<%= requirement_type_badge_class(req) %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="<%= requirement_type_badge_class(req) %>"><%= req.requirement_type.humanize %></span>
+                </td>
+
+                <%# Status (editable select) %>
+                <td class="px-3 py-2 cursor-pointer"
+                    data-bulk-edit-target="cell"
+                    data-field="status"
+                    data-field-type="select"
+                    data-value="<%= req.status %>"
+                    data-options="<%= status_options.to_json %>"
+                    data-badge-class="<%= requirement_status_badge_class(req) %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="<%= requirement_status_badge_class(req) %>"><%= req.status.humanize %></span>
+                </td>
+
+                <%# Priority (editable select) %>
+                <td class="px-3 py-2 cursor-pointer"
+                    data-bulk-edit-target="cell"
+                    data-field="priority"
+                    data-field-type="select"
+                    data-value="<%= req.priority %>"
+                    data-options="<%= priority_options.to_json %>"
+                    data-badge-class="<%= requirement_priority_badge_class(req) %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="<%= requirement_priority_badge_class(req) %>"><%= req.priority.humanize %></span>
+                </td>
+
+                <%# ASIL (editable select) %>
+                <td class="px-3 py-2 cursor-pointer"
+                    data-bulk-edit-target="cell"
+                    data-field="asil_level"
+                    data-field-type="select"
+                    data-value="<%= req.asil_level %>"
+                    data-options="<%= asil_options.to_json %>"
+                    data-badge-class="<%= asil_badge_class(req) %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="<%= asil_badge_class(req) %>"><%= req.asil_level.upcase.sub("_", " ") %></span>
+                </td>
+
+                <%# Section (editable select) %>
+                <td class="px-3 py-2 cursor-pointer"
+                    data-bulk-edit-target="cell"
+                    data-field="section_id"
+                    data-field-type="select"
+                    data-value="<%= req.section_id %>"
+                    data-options="<%= section_options.to_json %>"
+                    data-action="click->bulk-edit#editCell">
+                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                    <% if req.section&.requirement_module %>
+                      <%= req.section.requirement_module.name %> / <%= req.section.name %>
+                    <% else %>
+                      <%= req.section&.name %>
+                    <% end %>
+                  </span>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%# Save Bar %>
+      <div class="sticky bottom-0 z-10 rf-card-padded flex items-center justify-between bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-700">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          Click any cell to edit inline &middot; Tab to move between cells &middot; Select rows for bulk actions
+        </p>
+        <div class="flex items-center gap-2">
+          <%= link_to "Cancel", project_requirements_path(@project), class: "rf-btn-secondary" %>
+          <%= submit_tag "Save Changes", class: "rf-btn-primary cursor-pointer" %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="rf-card">
+      <div class="rf-empty-state py-16">
+        <svg xmlns="http://www.w3.org/2000/svg" class="rf-empty-state-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+        </svg>
+        <p class="rf-empty-state-title">No requirements to edit</p>
+        <p class="rf-empty-state-description">Create some requirements first, then use Bulk Edit to efficiently update their attributes.</p>
+        <% if policy(Requirement).create? %>
+          <%= link_to quick_entry_project_requirements_path(@project), class: "rf-btn-accent mt-4" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+            Quick Entry
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

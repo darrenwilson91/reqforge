@@ -1,0 +1,42 @@
+<% content_for(:page_title, "#{@requirement.uid} — #{@requirement.title}") %>
+
+<%= turbo_stream_from @requirement %>
+
+<div class="space-y-4">
+  <%# Change set editing banner %>
+  <%= render "requirements/change_set_banner" %>
+
+  <%# Impact analysis notification banner %>
+  <%= render "requirements/impact_notification", requirement: @requirement %>
+
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Requirements", project_requirements_path(@project)], @requirement.uid) %>
+
+  <%# Mobile tree toggle %>
+  <div class="lg:hidden">
+    <button type="button" onclick="document.getElementById('req-tree-panel').classList.toggle('hidden')" class="rf-btn-secondary text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+      </svg>
+      Toggle Module Tree
+    </button>
+  </div>
+
+  <%# Two-panel layout: tree + detail %>
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <%# Left panel — hierarchy tree (hidden on mobile by default) %>
+    <div id="req-tree-panel" class="hidden lg:block w-full lg:w-72 shrink-0 rf-card overflow-hidden lg:sticky lg:top-4">
+      <%= render partial: "requirements/tree" %>
+    </div>
+
+    <%# Right panel — requirement detail (Turbo Frame for inline editing) %>
+    <div class="flex-1 min-w-0">
+      <%= turbo_frame_tag "requirement_detail" do %>
+        <% if action_name == "edit" || (action_name == "update" && @requirement.errors.any?) %>
+          <%= render partial: "requirements/edit_detail", locals: { requirement: @requirement, project: @project } %>
+        <% else %>
+          <%= render partial: "requirements/detail", locals: { requirement: @requirement, project: @project } %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

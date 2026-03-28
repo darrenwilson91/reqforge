@@ -1,0 +1,129 @@
+<%# Inline edit form — rendered inside turbo_frame "requirement_detail" %>
+<div class="space-y-6">
+  <div class="rf-card-padded">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <span class="rf-uid text-sm"><%= requirement.uid %></span>
+        <h1 class="text-xl font-bold text-slate-900">Editing Requirement</h1>
+      </div>
+      <%= link_to project_requirement_path(project, requirement), class: "rf-btn-secondary", data: { turbo_frame: "requirement_detail", keyboard_shortcut: "cancel-edit" } do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        Cancel
+      <% end %>
+    </div>
+
+    <%= form_with(model: [project, requirement], class: "space-y-5", data: { turbo_frame: "requirement_detail" }) do |f| %>
+      <% if requirement.errors.any? %>
+        <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm font-medium text-red-800">Please fix the following errors:</span>
+          </div>
+          <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+            <% requirement.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%# Title %>
+      <div>
+        <%= f.label :title, class: "rf-label" %>
+        <%= f.text_field :title, class: "rf-input", placeholder: "Enter requirement title..." %>
+      </div>
+
+      <%# Body — Rich Text Editor %>
+      <div data-controller="rich-text">
+        <%= f.label :body, "Description", class: "rf-label" %>
+        <input type="hidden" id="requirement_body_trix_edit" name="requirement[body]" value="<%= requirement.body %>">
+        <trix-editor input="requirement_body_trix_edit" placeholder="Describe the requirement in detail..."></trix-editor>
+      </div>
+
+      <%# Section %>
+      <div>
+        <%= f.label :section_id, "Module / Section", class: "rf-label" %>
+        <% if @sections.any? %>
+          <%= f.select :section_id, @sections, { include_blank: "Select a section..." }, class: "rf-input" %>
+        <% else %>
+          <p class="text-sm text-slate-500">No modules or sections have been created yet.</p>
+        <% end %>
+      </div>
+
+      <%# Type, Status, Priority, ASIL — 2x2 grid %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :requirement_type, "Type", class: "rf-label" %>
+          <%= f.select :requirement_type, Requirement.requirement_types.keys.map { |t| [t.humanize, t] }, {}, class: "rf-input" %>
+        </div>
+        <div>
+          <%= f.label :status, class: "rf-label" %>
+          <%= f.select :status, Requirement.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "rf-input" %>
+        </div>
+        <div>
+          <%= f.label :priority, class: "rf-label" %>
+          <%= f.select :priority, Requirement.priorities.keys.map { |p| [p.humanize, p] }, {}, class: "rf-input" %>
+        </div>
+        <div>
+          <%= f.label :asil_level, "ASIL Level", class: "rf-label" %>
+          <%= f.select :asil_level, Requirement.asil_levels.keys.map { |a| [a.upcase.sub("_", " "), a] }, {}, class: "rf-input" %>
+        </div>
+      </div>
+
+      <%# Custom Attributes %>
+      <% if project.attribute_schema.is_a?(Array) && project.attribute_schema.any? %>
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900 mb-3">Custom Attributes</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <% custom_attrs = requirement.custom_attributes || {} %>
+            <% project.attribute_schema.each do |attr_def| %>
+              <div>
+                <label class="rf-label">
+                  <%= attr_def["name"] %>
+                  <% if attr_def["required"] %>
+                    <span class="text-red-500">*</span>
+                  <% end %>
+                </label>
+                <% attr_name = attr_def["name"] %>
+                <% attr_value = custom_attrs[attr_name] %>
+                <% case attr_def["attr_type"] %>
+                <% when "integer" %>
+                  <input type="number" name="requirement[custom_attributes][<%= attr_name %>]" value="<%= attr_value %>" class="rf-input" step="1">
+                <% when "decimal" %>
+                  <input type="number" name="requirement[custom_attributes][<%= attr_name %>]" value="<%= attr_value %>" class="rf-input" step="any">
+                <% when "boolean" %>
+                  <select name="requirement[custom_attributes][<%= attr_name %>]" class="rf-input">
+                    <option value="">—</option>
+                    <option value="true" <%= "selected" if attr_value == "true" %>>Yes</option>
+                    <option value="false" <%= "selected" if attr_value == "false" %>>No</option>
+                  </select>
+                <% when "date" %>
+                  <input type="date" name="requirement[custom_attributes][<%= attr_name %>]" value="<%= attr_value %>" class="rf-input">
+                <% when "enum" %>
+                  <select name="requirement[custom_attributes][<%= attr_name %>]" class="rf-input">
+                    <option value="">Select...</option>
+                    <% Array(attr_def["options"]).each do |opt| %>
+                      <option value="<%= opt %>" <%= "selected" if attr_value == opt %>><%= opt %></option>
+                    <% end %>
+                  </select>
+                <% else %>
+                  <input type="text" name="requirement[custom_attributes][<%= attr_name %>]" value="<%= attr_value %>" class="rf-input">
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Actions %>
+      <div class="flex items-center gap-3 pt-4 border-t border-slate-200">
+        <%= f.submit "Save Changes", class: "rf-btn-primary cursor-pointer" %>
+        <%= link_to "Discard", project_requirement_path(project, requirement), class: "rf-btn-secondary", data: { turbo_frame: "requirement_detail", keyboard_shortcut: "cancel-edit" } %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,72 @@
+<% content_for(:page_title) { "Search Results" } %>
+
+<div class="space-y-6">
+  <%= breadcrumbs("Search Results") %>
+
+  <!-- Search Form -->
+  <div class="flex items-center gap-4">
+    <form action="<%= search_path %>" method="get" class="flex-1 max-w-2xl">
+      <div class="relative">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        </svg>
+        <input type="text" name="q" value="<%= @query %>" placeholder="Search requirements by title, body, or UID..." class="rf-input w-full pl-10 pr-4 py-2.5 text-base" autofocus />
+      </div>
+    </form>
+    <% if @query.present? %>
+      <span class="text-sm text-slate-500"><%= @results.size %> result<%= @results.size == 1 ? "" : "s" %></span>
+    <% end %>
+  </div>
+
+  <% if @query.blank? %>
+    <!-- Empty state: no query -->
+    <div class="rf-card rf-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <h3 class="mt-3 text-sm font-medium text-slate-900">Search requirements</h3>
+      <p class="mt-1 text-sm text-slate-500">Enter a search term to find requirements by title, body, or UID across all projects.</p>
+    </div>
+  <% elsif @results.empty? %>
+    <!-- Empty state: no results -->
+    <div class="rf-card rf-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="mt-3 text-sm font-medium text-slate-900">No results found</h3>
+      <p class="mt-1 text-sm text-slate-500">No requirements match "<%= @query %>". Try a different search term.</p>
+    </div>
+  <% else %>
+    <!-- Results list -->
+    <div class="space-y-2">
+      <% @results.each do |requirement| %>
+        <%= link_to project_requirement_path(requirement.project, requirement), class: "block rf-card p-4 hover:border-brand-accent/30 hover:shadow-sm transition-all group" do %>
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="rf-uid"><%= requirement.uid %></span>
+                <span class="text-sm font-medium text-slate-900 group-hover:text-brand-accent-dark transition-colors truncate"><%= requirement.title %></span>
+              </div>
+              <% if requirement.body.present? %>
+                <p class="text-sm text-slate-500 line-clamp-2 mt-1"><%= strip_tags(requirement.body).truncate(200) %></p>
+              <% end %>
+              <div class="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                <span class="inline-flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                  </svg>
+                  <%= requirement.project.name %>
+                </span>
+                <span><%= requirement.section.requirement_module.name %> &rsaquo; <%= requirement.section.name %></span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="<%= requirement_status_badge_class(requirement) %>"><%= requirement.status.humanize %></span>
+              <span class="<%= requirement_type_badge_class(requirement) %>"><%= requirement.requirement_type.humanize %></span>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

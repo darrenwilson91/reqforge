@@ -1,0 +1,15 @@
+<% content_for(:page_title, "Edit #{@project.name}") %>
+
+<div class="max-w-2xl mx-auto space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Edit") %>
+
+  <%# Form Card %>
+  <div class="rf-card-padded">
+    <div class="mb-6">
+      <h1 class="text-xl font-bold text-slate-900">Edit Project</h1>
+      <p class="mt-1 text-sm text-slate-500">Update project settings and configuration.</p>
+    </div>
+
+    <%= render "form", project: @project %>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<% content_for(:page_title, "Edit #{@test_case.uid} — #{@project.name}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(
+    ["Projects", projects_path],
+    [@project.name, project_path(@project)],
+    ["Test Cases", project_test_cases_path(@project)],
+    [@test_case.uid, project_test_case_path(@project, @test_case)],
+    "Edit"
+  ) %>
+
+  <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Edit Test Case</h1>
+
+  <%= render "form", test_case: @test_case, project: @project %>
+</div>

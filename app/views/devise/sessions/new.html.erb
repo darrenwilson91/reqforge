@@ -1,0 +1,38 @@
+<div class="rf-card-padded">
+  <h3 class="text-lg font-semibold text-slate-900 text-center mb-6">Sign in to your account</h3>
+
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+    <div class="space-y-4">
+      <div>
+        <%= f.label :email, class: "rf-label" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email",
+            placeholder: "you@example.com", class: "rf-input" %>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <%= f.label :password, class: "rf-label !mb-0" %>
+          <% if devise_mapping.recoverable? %>
+            <%= link_to "Forgot password?", new_password_path(resource_name),
+                class: "text-xs text-brand-accent hover:text-brand-accent-dark transition-colors" %>
+          <% end %>
+        </div>
+        <%= f.password_field :password, autocomplete: "current-password",
+            placeholder: "Enter your password", class: "rf-input" %>
+      </div>
+
+      <% if devise_mapping.rememberable? %>
+        <div class="flex items-center gap-2">
+          <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-slate-300 text-brand-accent focus:ring-brand-accent/40" %>
+          <%= f.label :remember_me, class: "text-sm text-slate-600 select-none" %>
+        </div>
+      <% end %>
+
+      <div class="pt-2">
+        <%= f.submit "Sign in", class: "rf-btn-primary w-full justify-center" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%= render "devise/shared/links" %>

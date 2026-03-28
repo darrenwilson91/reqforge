@@ -1,0 +1,14 @@
+<% content_for(:page_title, "New Test Case — #{@project.name}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(
+    ["Projects", projects_path],
+    [@project.name, project_path(@project)],
+    ["Test Cases", project_test_cases_path(@project)],
+    "New Test Case"
+  ) %>
+
+  <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">New Test Case</h1>
+
+  <%= render "form", test_case: @test_case, project: @project %>
+</div>

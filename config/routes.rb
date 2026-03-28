@@ -1,4 +1,84 @@
 Rails.application.routes.draw do
+  devise_for :users
+
+  resources :organizations, only: [ :new, :create ]
+
+  # My Work
+  get "my_work", to: "my_work#show", as: :my_work
+
+  # Global search
+  get "search", to: "search#index", as: :search
+  get "search/autocomplete", to: "search#autocomplete", as: :search_autocomplete
+  resources :projects do
+    resources :test_cases
+    resources :requirements do
+      member do
+        patch :transition_status
+        post :analyze_quality
+        post :suggest_links
+        post :analyze_impact
+      end
+      collection do
+        patch :reorder
+        get :search
+        get :quick_entry
+        post :quick_create
+        get :bulk_edit
+        patch :bulk_update
+        delete :bulk_delete
+      end
+    end
+    resources :traceability_links, only: [ :create, :destroy ]
+    resource :traceability_matrix, only: [ :show ]
+    resource :traceability_graph, only: [ :show ]
+    resource :compliance_dashboard, only: [ :show ]
+    resource :import_export, only: [ :show ] do
+      post :import_csv
+      post :import_reqif
+      get :export_csv
+      get :export_reqif
+    end
+    resources :reviews do
+      member do
+        patch :transition_status
+        post :generate_share_token
+        delete :revoke_share_token
+      end
+      resources :review_items, only: [ :show ] do
+        member do
+          patch :update_status
+        end
+        resources :review_comments, only: [ :create ] do
+          member do
+            patch :resolve
+            patch :unresolve
+          end
+        end
+      end
+    end
+    resource :change_set_rules, only: [ :show, :update ]
+    resources :change_sets do
+      member do
+        patch :transition_status
+        post :approve
+        post :request_changes
+        post :merge
+        post :activate
+        delete :deactivate
+      end
+      resources :change_set_comments, only: [ :create ] do
+        member do
+          patch :resolve
+          patch :unresolve
+        end
+      end
+    end
+  end
+
+  # Public shareable review links (no authentication required)
+  get "reviews/:token", to: "public_reviews#show", as: :public_review
+  get "reviews/:token/items/:item_id", to: "public_reviews#review_item", as: :public_review_item
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -10,5 +90,5 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "dashboard#index"
 end

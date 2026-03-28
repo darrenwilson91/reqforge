@@ -1,0 +1,140 @@
+<% content_for(:title) { "#{@review.title} — #{@project.name} — ReqForge" } %>
+
+<div class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+  <%# Header %>
+  <div>
+    <div class="mb-4">
+      <%= breadcrumbs(@project.name, "Review") %>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @review.title %></h1>
+      <span class="<%= review_status_badge_class(@review) %>"><%= @review.status.humanize %></span>
+    </div>
+    <% if @review.description.present? %>
+      <p class="mt-2 text-sm text-slate-500 max-w-2xl"><%= @review.description %></p>
+    <% end %>
+    <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+      <span class="flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+        Created by <%= @review.created_by.full_name %>
+      </span>
+      <span>Created <%= time_ago_in_words(@review.created_at) %> ago</span>
+    </div>
+  </div>
+
+  <%# Stats Row %>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-slate-900"><%= @progress[:total] %></div>
+      <div class="text-xs text-slate-400 mt-1">Total Items</div>
+    </div>
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-emerald-600"><%= @review_items.select(&:approved?).size %></div>
+      <div class="text-xs text-slate-400 mt-1">Approved</div>
+    </div>
+    <div class="rf-card p-4 text-center">
+      <div class="text-2xl font-bold text-red-600"><%= @review_items.select(&:rejected?).size %></div>
+      <div class="text-xs text-slate-400 mt-1">Rejected</div>
+    </div>
+    <div class="rf-card p-4 text-center">
+      <% pct = @progress[:percentage] %>
+      <div class="text-2xl font-bold text-slate-900"><%= pct %>%</div>
+      <div class="text-xs text-slate-500 mt-1">Progress</div>
+      <div class="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+        <div class="h-full rounded-full transition-all <%= review_progress_bar_color(pct) %>" style="width: <%= pct %>%"></div>
+      </div>
+    </div>
+  </div>
+
+  <%# Outcome Banner %>
+  <% if @review.completed? && @outcome %>
+    <% config = review_outcome_config(@outcome) %>
+    <% if config %>
+      <div class="rounded-lg border p-4 flex items-center gap-4 <%= config[:bg] %>" data-testid="review-outcome">
+        <% if @outcome == :approved %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 shrink-0 <%= config[:icon_color] %>" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+        <% elsif @outcome == :rejected %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 shrink-0 <%= config[:icon_color] %>" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        <% else %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 shrink-0 <%= config[:icon_color] %>" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-semibold text-slate-900">Review Outcome</h3>
+            <span class="<%= config[:badge] %>"><%= config[:label] %></span>
+          </div>
+          <p class="text-sm text-slate-600 mt-0.5"><%= config[:description] %></p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Review Items (2/3) -->
+    <div class="lg:col-span-2 space-y-3">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Review Items</h2>
+      <% if @review_items.any? %>
+        <% @review_items.each do |item| %>
+          <%= link_to public_review_item_path(@review.share_token, item_id: item.id), class: "block rf-card-padded hover:border-brand-accent/40 hover:shadow-sm transition-all group" do %>
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="rf-uid"><%= item.requirement.uid %></span>
+                  <span class="<%= review_item_status_badge_class(item) %>"><%= item.status.humanize %></span>
+                  <% if item.changed_since_snapshot? %>
+                    <span class="rf-badge bg-orange-50 text-orange-700">Changed</span>
+                  <% end %>
+                </div>
+                <h3 class="mt-1.5 text-sm font-medium text-slate-900 group-hover:text-brand-accent transition-colors"><%= item.requirement.title %></h3>
+                <div class="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                  <span><%= item.requirement.section&.requirement_module&.name %></span>
+                  <span><%= item.review_comments.size %> comment<%= item.review_comments.size == 1 ? "" : "s" %></span>
+                </div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-300 group-hover:text-brand-accent transition-colors shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          <% end %>
+        <% end %>
+      <% else %>
+        <div class="rf-card-padded text-center py-8">
+          <p class="text-sm text-slate-500">No items in this review.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Participants (1/3) -->
+    <div class="space-y-3">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Participants</h2>
+      <% if @participants.any? %>
+        <div class="rf-card-padded space-y-3">
+          <% @participants.each do |participant| %>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                  <%= participant.user.first_name[0] %><%= participant.user.last_name[0] %>
+                </div>
+                <span class="text-sm text-slate-700"><%= participant.user.full_name %></span>
+              </div>
+              <span class="<%= participant_role_badge_class(participant) %> text-xs"><%= participant.role.humanize %></span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="rf-card-padded text-center py-6">
+          <p class="text-sm text-slate-500">No participants added.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

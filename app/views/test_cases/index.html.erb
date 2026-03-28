@@ -1,0 +1,119 @@
+<% content_for(:page_title, "Test Cases — #{@project.name}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], "Test Cases") %>
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Test Cases</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <span class="rf-uid"><%= @project.prefix %></span>
+        <span class="ml-1"><%= pluralize(@test_cases.count, "test case") %></span>
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to new_project_test_case_path(@project), class: "rf-btn-primary" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        New Test Case
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="rf-card p-4">
+    <%= form_tag project_test_cases_path(@project), method: :get, class: "flex flex-wrap items-end gap-3" do %>
+      <div class="flex-1 min-w-[180px]">
+        <label class="rf-label">Search</label>
+        <%= text_field_tag :q, params[:q], placeholder: "Search by title or UID...", class: "rf-input w-full" %>
+      </div>
+      <div class="w-36">
+        <label class="rf-label">Type</label>
+        <%= select_tag :test_type,
+          options_for_select([["All Types", ""]] + TestCase.test_types.keys.map { |t| [t.humanize, t] }, params[:test_type]),
+          class: "rf-input w-full" %>
+      </div>
+      <div class="w-36">
+        <label class="rf-label">Status</label>
+        <%= select_tag :status,
+          options_for_select([["All Statuses", ""]] + TestCase.statuses.keys.map { |s| [s.humanize, s] }, params[:status]),
+          class: "rf-input w-full" %>
+      </div>
+      <div class="flex items-center gap-2">
+        <%= submit_tag "Filter", class: "rf-btn-secondary cursor-pointer" %>
+        <% if params[:q].present? || params[:test_type].present? || params[:status].present? || params[:requirement_id].present? %>
+          <%= link_to "Clear", project_test_cases_path(@project), class: "text-sm text-slate-500 hover:text-brand-accent-dark transition-colors" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @test_cases.any? %>
+    <div class="rf-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400">UID</th>
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400">Title</th>
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400 hidden sm:table-cell">Requirement</th>
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400 hidden md:table-cell">Type</th>
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400">Status</th>
+              <th class="text-left px-4 py-3 font-medium text-slate-500 dark:text-slate-400 hidden lg:table-cell">Priority</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+            <% @test_cases.each do |test_case| %>
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                <td class="px-4 py-3">
+                  <%= link_to project_test_case_path(@project, test_case), class: "rf-uid hover:text-brand-accent transition-colors" do %>
+                    <%= test_case.uid %>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3">
+                  <%= link_to test_case.title, project_test_case_path(@project, test_case),
+                    class: "text-slate-900 dark:text-slate-100 font-medium hover:text-brand-accent transition-colors" %>
+                </td>
+                <td class="px-4 py-3 hidden sm:table-cell">
+                  <% if test_case.requirement %>
+                    <%= link_to project_requirement_path(@project, test_case.requirement), class: "rf-uid text-xs hover:text-brand-accent transition-colors" do %>
+                      <%= test_case.requirement.uid %>
+                    <% end %>
+                  <% else %>
+                    <span class="text-slate-400 dark:text-slate-500 text-xs">—</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 hidden md:table-cell">
+                  <span class="<%= test_type_badge_class(test_case) %>"><%= test_case.test_type.humanize %></span>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="<%= test_status_badge_class(test_case) %>"><%= test_case.status.humanize %></span>
+                </td>
+                <td class="px-4 py-3 hidden lg:table-cell">
+                  <span class="<%= test_priority_badge_class(test_case) %>"><%= test_case.priority.humanize %></span>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="rf-card rf-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+      <h3 class="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">No test cases yet</h3>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Create test cases to verify requirements and track test coverage.</p>
+      <div class="mt-4">
+        <%= link_to new_project_test_case_path(@project), class: "rf-btn-primary" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          New Test Case
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
