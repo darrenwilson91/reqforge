@@ -524,6 +524,309 @@ AiAnalysisResult.create!(
 
 puts "  Created #{AiAnalysisResult.count} AI analysis results"
 
+# --- Test Cases ---
+# Unit tests linked to SW requirements
+tc1 = TestCase.create!(
+  project: iso_project, requirement: swr1, created_by: engineer,
+  title: "Verify temperature sensor plausibility check detects fault",
+  description: "Test that the plausibility check flags a sensor fault when redundant NTC readings diverge by more than 5°C for 500ms.",
+  preconditions: "BMS running in normal mode. Both NTC sensors reading 25°C ± 0.5°C initially.",
+  steps: "1. Inject a 6°C offset on sensor B via test harness\n2. Monitor plausibility check output for 600ms\n3. Verify fault flag is set after 500ms debounce\n4. Verify the higher sensor reading is selected for safety decisions",
+  expected_result: "Sensor fault flag set at 500ms ± 10ms. Higher reading (31°C) used for thermal protection decisions.",
+  test_type: :unit, status: :passed, priority: :must_have
+)
+
+tc2 = TestCase.create!(
+  project: iso_project, requirement: swr1, created_by: engineer,
+  title: "Verify plausibility check passes for normal sensor deviation",
+  description: "Test that normal sensor variation within 5°C does not trigger a false fault.",
+  preconditions: "BMS running in normal mode. Both sensors reading 40°C.",
+  steps: "1. Inject a 4.5°C offset on sensor B\n2. Monitor plausibility check for 2 seconds\n3. Verify no fault flag is raised",
+  expected_result: "No sensor fault flag. Both readings used in normal averaging mode.",
+  test_type: :unit, status: :passed, priority: :must_have
+)
+
+tc3 = TestCase.create!(
+  project: iso_project, requirement: swr2, created_by: engineer,
+  title: "Verify voltage monitoring watchdog triggers emergency shutdown",
+  description: "Test that the watchdog triggers shutdown when the voltage monitoring task misses 3 consecutive deadlines.",
+  preconditions: "BMS running. Voltage monitoring task executing at 100ms interval.",
+  steps: "1. Suspend voltage monitoring task via debugger\n2. Wait for 300ms (3 missed periods)\n3. Verify emergency shutdown is triggered\n4. Verify main contactors are commanded open",
+  expected_result: "Emergency shutdown triggered at 300ms ± 10ms. Contactor open command issued.",
+  test_type: :unit, status: :passed, priority: :must_have
+)
+
+tc4 = TestCase.create!(
+  project: iso_project, requirement: swr3, created_by: engineer,
+  title: "Verify coulomb counting integration accuracy at 1C rate",
+  description: "Test trapezoidal integration accuracy over a 1-hour constant-current charge cycle.",
+  preconditions: "Battery at 20% SoC. Constant 1C charge current applied.",
+  steps: "1. Start coulomb counting integration\n2. Apply constant 1C current for 3600 seconds\n3. Compare accumulated charge to theoretical value\n4. Calculate percentage error",
+  expected_result: "Accumulated charge within ±0.1% of theoretical value (I × t).",
+  test_type: :unit, status: :failed, priority: :must_have
+)
+
+tc5 = TestCase.create!(
+  project: iso_project, requirement: swr4, created_by: engineer,
+  title: "Verify cell balancing algorithm selects correct cells",
+  description: "Test that cells exceeding module average by more than 10mV are selected for balancing.",
+  preconditions: "Module with 12 cells. Average voltage 3.80V.",
+  steps: "1. Set cell 3 to 3.815V and cell 7 to 3.820V\n2. Run balancing algorithm\n3. Verify cells 3 and 7 are selected for balancing\n4. Verify other cells are not selected",
+  expected_result: "Cells 3 and 7 balancing FETs activated. All other cells FETs remain off.",
+  test_type: :unit, status: :not_run, priority: :should_have
+)
+
+# Integration tests
+tc6 = TestCase.create!(
+  project: iso_project, requirement: arch1, created_by: engineer,
+  title: "Verify temperature monitoring to safety manager shutdown path",
+  description: "Integration test for the complete temperature exceedance → emergency shutdown path.",
+  preconditions: "BMS fully operational. All temperatures nominal at 35°C.",
+  steps: "1. Inject temperature exceedance (62°C) on cell group 4 via SPI test interface\n2. Measure time from detection to contactor open command\n3. Verify coolant pump activated to maximum\n4. Verify DTC logged via CAN",
+  expected_result: "Contactor open within 50ms. Coolant pump at max. DTC 0xBMS_T01 transmitted.",
+  test_type: :integration, status: :passed, priority: :must_have
+)
+
+tc7 = TestCase.create!(
+  project: iso_project, requirement: arch2, created_by: engineer,
+  title: "Verify voltage monitoring to contactor control path",
+  description: "Integration test for overvoltage detection → charging path disconnection.",
+  preconditions: "BMS in charging mode. All cell voltages at 4.10V.",
+  steps: "1. Ramp cell 5 voltage to 4.22V via SPI test interface\n2. Measure time from detection to contactor command\n3. Verify charging path disconnected\n4. Verify overvoltage DTC logged",
+  expected_result: "Charging contactor opened within 10ms. DTC 0xBMS_V02 transmitted on CAN.",
+  test_type: :integration, status: :blocked, priority: :must_have
+)
+
+# System tests
+tc8 = TestCase.create!(
+  project: iso_project, requirement: sg1, created_by: pm,
+  title: "End-to-end thermal runaway propagation prevention test",
+  description: "System-level test verifying complete thermal protection chain from detection through safe state entry.",
+  preconditions: "BMS connected to battery pack simulator. Ambient 25°C. Pack at 80% SoC.",
+  steps: "1. Trigger simulated thermal event on cell group 2 (80°C ramp at 5°C/s)\n2. Monitor BMS response chain: detection → fault flag → contactor control → cooling\n3. Monitor adjacent cell group temperatures for 5 minutes\n4. Verify no propagation (adjacent groups stay below 45°C)\n5. Verify all DTCs logged correctly",
+  expected_result: "Shutdown initiated within 100ms. Adjacent cells below 45°C at all times. Full DTC chain logged.",
+  test_type: :safety, status: :not_run, priority: :must_have
+)
+
+tc9 = TestCase.create!(
+  project: iso_project, requirement: sg2, created_by: pm,
+  title: "Overcharge protection system validation at temperature extremes",
+  description: "Validate overcharge protection across the full temperature range: -20°C, +25°C, +60°C.",
+  preconditions: "Climate chamber available. Battery pack simulator with cell-level voltage injection.",
+  steps: "1. For each temperature point (-20°C, +25°C, +60°C):\n   a. Stabilize at target temperature for 30 minutes\n   b. Apply charging current and ramp cell voltage to 4.22V\n   c. Measure response time from threshold crossing to contactor open\n   d. Verify protection activates within 10ms at all temperatures\n2. Record response times and margins",
+  expected_result: "Protection activated within 10ms at all three temperature points. No cell exceeds 4.25V.",
+  test_type: :safety, status: :ready, priority: :must_have
+)
+
+tc10 = TestCase.create!(
+  project: iso_project, requirement: swr5, created_by: engineer,
+  title: "Verify CAN bus message transmission rates",
+  description: "Validate all CAN messages are transmitted at specified rates under bus load conditions.",
+  preconditions: "BMS connected to CAN bus analyzer. 40% background bus load applied.",
+  steps: "1. Enable CAN message recording on analyzer\n2. Run BMS for 60 seconds\n3. Analyze BMS_Status message timing (expect 10ms ± 1ms)\n4. Analyze BMS_CellVoltages timing (expect 100ms ± 5ms)\n5. Analyze BMS_Temperatures timing (expect 500ms ± 25ms)\n6. Trigger a fault and verify BMS_Faults latency < 50ms",
+  expected_result: "All message rates within tolerance. Fault message latency < 50ms.",
+  test_type: :integration, status: :passed, priority: :must_have
+)
+
+puts "  Created #{iso_project.test_cases.count} test cases"
+
+# --- Change Set Rules ---
+ChangeSetRule.create!(
+  project: iso_project,
+  min_approvals: 2,
+  require_all_conversations_resolved: true,
+  auto_merge_on_approval: false
+)
+
+puts "  Created change set rules for #{iso_project.name}"
+
+# --- Change Set 1: Merged (completed PR flow) ---
+merged_cs = ChangeSet.create!(
+  project: iso_project,
+  title: "Update SoC estimation accuracy targets",
+  description: "Refines the SoC accuracy requirements based on feedback from the safety review. Narrows the operating range for the 3% accuracy target and adds explicit fallback behavior for extreme SoC values.",
+  status: :merged,
+  created_by: engineer,
+  merged_by: pm,
+  merged_at: 3.days.ago
+)
+
+# Modified requirement: update the SoC safety goal body
+cs1_change1 = ChangeSetChange.create!(
+  change_set: merged_cs,
+  requirement: sg3,
+  change_type: :modified,
+  before_snapshot: {
+    "uid" => sg3.uid, "title" => sg3.title,
+    "body" => "The BMS shall report state-of-charge (SoC) to the vehicle controller with an accuracy of +/-3% under normal operating conditions (-20C to +60C ambient temperature range).",
+    "requirement_type" => "safety", "status" => "approved", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => sg3.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Safety Goals"
+  },
+  after_snapshot: {
+    "uid" => sg3.uid, "title" => sg3.title,
+    "body" => "The BMS shall report state-of-charge (SoC) to the vehicle controller with an accuracy of +/-3% in the 10-90% SoC range and +/-5% outside that range, under normal operating conditions (-20C to +60C ambient temperature range).",
+    "requirement_type" => "safety", "status" => "approved", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => sg3.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Safety Goals"
+  }
+)
+
+# Modified requirement: update the SoC estimation SW requirement
+cs1_change2 = ChangeSetChange.create!(
+  change_set: merged_cs,
+  requirement: fsr3,
+  change_type: :modified,
+  before_snapshot: {
+    "uid" => fsr3.uid, "title" => fsr3.title,
+    "body" => fsr3.body,
+    "requirement_type" => "functional", "status" => "in_review", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => fsr3.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Functional Safety Requirements"
+  },
+  after_snapshot: {
+    "uid" => fsr3.uid, "title" => "SoC estimation using dual algorithm approach with defined uncertainty metric",
+    "body" => "The BMS shall estimate state-of-charge using both coulomb counting and open-circuit voltage lookup methods, selecting the result with the lowest estimated uncertainty as measured by the 95% confidence interval width. When both methods report uncertainty exceeding 5% SoC, the system shall use coulomb counting as the primary source and flag a degraded accuracy condition.",
+    "requirement_type" => "functional", "status" => "in_review", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => fsr3.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Functional Safety Requirements"
+  }
+)
+
+# Approvals for merged change set
+ChangeSetApproval.create!(change_set: merged_cs, user: reviewer_user, status: :approved, body: "SoC accuracy refinements look good. The 10-90% range for 3% accuracy is well-justified.")
+ChangeSetApproval.create!(change_set: merged_cs, user: admin, status: :approved, body: "Approved. Aligns with the review feedback on SG-03.")
+
+# Comments on merged change set
+ChangeSetComment.create!(
+  change_set: merged_cs, change_set_change: cs1_change1, user: reviewer_user,
+  body: "The split between 10-90% and outside ranges addresses the review comment well. Good refinement."
+)
+ChangeSetComment.create!(
+  change_set: merged_cs, change_set_change: cs1_change2, user: admin,
+  body: "The fallback to coulomb counting is a safe choice — it's more robust for extreme SoC values. The 5% uncertainty threshold should be validated against our sensor accuracy data."
+)
+cs1_conv = ChangeSetComment.create!(
+  change_set: merged_cs, user: engineer,
+  body: "This change set addresses the feedback from the safety requirements review (BMS-003 accuracy clarification). Ready for review."
+)
+ChangeSetComment.create!(
+  change_set: merged_cs, user: pm, parent_comment: cs1_conv,
+  body: "Thanks Priya. I've asked James and Sarah to review since they raised the original concern."
+)
+
+puts "  Created merged change set: '#{merged_cs.title}'"
+
+# --- Change Set 2: In Review (active PR) ---
+active_cs = ChangeSet.create!(
+  project: iso_project,
+  title: "Add CAN bus fault injection test coverage",
+  description: "Adds new requirements for CAN bus fault injection testing and updates the interface specification to include error frame handling. Driven by the EMC test plan review.",
+  status: :in_review,
+  created_by: engineer
+)
+
+# New requirement added in this change set
+new_req_for_cs = Requirement.create!(
+  project: iso_project,
+  section: sw_iface_section,
+  created_by: engineer,
+  title: "CAN bus error frame handling",
+  body: "The BMS software shall detect and handle CAN bus error frames by incrementing the bus-off error counter and initiating a bus recovery sequence if the error count exceeds 128 within any 1-second window.",
+  requirement_type: :interface,
+  status: :draft,
+  priority: :must_have,
+  asil_level: :asil_b,
+  custom_attributes: { "Verification Method" => "Testing" }
+)
+
+cs2_change1 = ChangeSetChange.create!(
+  change_set: active_cs,
+  requirement: new_req_for_cs,
+  change_type: :created,
+  before_snapshot: {},
+  after_snapshot: {
+    "uid" => new_req_for_cs.uid, "title" => new_req_for_cs.title,
+    "body" => new_req_for_cs.body,
+    "requirement_type" => "interface", "status" => "draft", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => new_req_for_cs.custom_attributes,
+    "module_name" => "Software Requirements", "section_name" => "Software Interface Requirements"
+  }
+)
+
+# Modified existing CAN message requirement
+cs2_change2 = ChangeSetChange.create!(
+  change_set: active_cs,
+  requirement: swr5,
+  change_type: :modified,
+  before_snapshot: {
+    "uid" => swr5.uid, "title" => swr5.title,
+    "body" => swr5.body,
+    "requirement_type" => "interface", "status" => "draft", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => swr5.custom_attributes,
+    "module_name" => "Software Requirements", "section_name" => "Software Interface Requirements"
+  },
+  after_snapshot: {
+    "uid" => swr5.uid, "title" => swr5.title,
+    "body" => "The BMS software shall transmit the following CAN messages at the specified rates: BMS_Status (10ms), BMS_CellVoltages (100ms), BMS_Temperatures (500ms), BMS_Faults (event-triggered, max latency 50ms). All messages shall include a rolling 4-bit alive counter and 8-bit CRC for end-to-end protection.",
+    "requirement_type" => "interface", "status" => "draft", "priority" => "must_have", "asil_level" => "asil_b",
+    "custom_attributes" => swr5.custom_attributes,
+    "module_name" => "Software Requirements", "section_name" => "Software Interface Requirements"
+  }
+)
+
+# Approvals: one approved, one pending
+ChangeSetApproval.create!(change_set: active_cs, user: reviewer_user, status: :approved, body: "CAN error handling looks correct. The bus-off recovery sequence follows ISO 11898.")
+ChangeSetApproval.create!(change_set: active_cs, user: admin, status: :pending)
+
+# Comments with an unresolved conversation thread
+cs2_inline = ChangeSetComment.create!(
+  change_set: active_cs, change_set_change: cs2_change2, user: reviewer_user,
+  body: "The alive counter and CRC addition is good for E2E protection, but should we reference the AUTOSAR E2E profile specifically? Profile 1 or Profile 2 would be standard for this use case."
+)
+ChangeSetComment.create!(
+  change_set: active_cs, change_set_change: cs2_change2, user: engineer,
+  parent_comment: cs2_inline,
+  body: "Good point. I'll reference AUTOSAR E2E Profile 2 since it's the standard for periodic CAN messages in our domain. Will update the after_snapshot."
+)
+ChangeSetComment.create!(
+  change_set: active_cs, user: pm,
+  body: "This change set was requested by the EMC team after their fault injection test plan review. Priority is high for the upcoming qualification milestone."
+)
+
+puts "  Created in-review change set: '#{active_cs.title}'"
+
+# --- Change Set 3: Draft (just started) ---
+draft_cs = ChangeSet.create!(
+  project: iso_project,
+  title: "Thermal management algorithm improvements",
+  description: "Proposed improvements to the thermal management shutdown thresholds based on cell characterization test results. Adjusts the emergency shutdown temperature from 60°C to 55°C for improved safety margin.",
+  status: :draft,
+  created_by: pm
+)
+
+cs3_change1 = ChangeSetChange.create!(
+  change_set: draft_cs,
+  requirement: tsr1,
+  change_type: :modified,
+  before_snapshot: {
+    "uid" => tsr1.uid, "title" => tsr1.title,
+    "body" => tsr1.body,
+    "requirement_type" => "safety", "status" => "approved", "priority" => "must_have", "asil_level" => "asil_d",
+    "custom_attributes" => tsr1.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Technical Safety Requirements"
+  },
+  after_snapshot: {
+    "uid" => tsr1.uid, "title" => tsr1.title,
+    "body" => "The BMS shall initiate an emergency shutdown sequence when any cell temperature exceeds 55C (reduced from 60C based on cell characterization data), opening main contactors within 50ms and activating the coolant pump to maximum flow rate.",
+    "requirement_type" => "safety", "status" => "approved", "priority" => "must_have", "asil_level" => "asil_d",
+    "custom_attributes" => tsr1.custom_attributes,
+    "module_name" => "System Requirements", "section_name" => "Technical Safety Requirements"
+  }
+)
+
+puts "  Created draft change set: '#{draft_cs.title}'"
+
 # --- Second Project (blank, smaller) ---
 adas_project = Project.create!(
   organization: demo_org,
@@ -566,6 +869,30 @@ create_req(
 
 puts "  Created project: #{adas_project.name} with #{adas_project.requirements.count} requirements"
 
+# --- ADAS Project Test Cases ---
+adas_reqs = adas_project.requirements.order(:position)
+TestCase.create!(
+  project: adas_project, requirement: adas_reqs.first, created_by: engineer,
+  title: "Verify maximum vehicle detection range",
+  description: "Validate radar detects passenger vehicles at 250m with 95% probability.",
+  preconditions: "Radar mounted on test vehicle. Standard passenger vehicle target at calibrated distances.",
+  steps: "1. Position target vehicle at 250m\n2. Collect 1000 radar frames\n3. Count detections\n4. Calculate detection probability",
+  expected_result: "Detection probability >= 95% at 250m.",
+  test_type: :system, status: :not_run, priority: :must_have
+)
+
+TestCase.create!(
+  project: adas_project, requirement: adas_reqs.second, created_by: engineer,
+  title: "Verify object classification accuracy at 100m",
+  description: "Validate classification accuracy for vehicles, pedestrians, cyclists, and static obstacles.",
+  preconditions: "Radar operational. Four target types available at 100m.",
+  steps: "1. Present each target type 250 times at 100m\n2. Record classifications\n3. Calculate per-class and overall accuracy",
+  expected_result: "Overall classification accuracy >= 98%.",
+  test_type: :system, status: :draft, priority: :must_have
+)
+
+puts "  Created #{adas_project.test_cases.count} ADAS test cases"
+
 # --- Archived Project ---
 legacy_project = Project.create!(
   organization: demo_org,
@@ -587,4 +914,6 @@ puts "  Projects: #{Project.where(organization: demo_org).count}"
 puts "  Requirements: #{Requirement.joins(:project).where(projects: { organization: demo_org }).count}"
 puts "  Traceability Links: #{TraceabilityLink.count}"
 puts "  Reviews: #{Review.joins(:project).where(projects: { organization: demo_org }).count}"
+puts "  Change Sets: #{ChangeSet.joins(:project).where(projects: { organization: demo_org }).count}"
+puts "  Test Cases: #{TestCase.joins(:project).where(projects: { organization: demo_org }).count}"
 puts "  AI Analysis Results: #{AiAnalysisResult.count}"
