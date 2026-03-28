@@ -1,0 +1,105 @@
+<%= form_with(model: [project, test_case], class: "space-y-6") do |f| %>
+  <% if test_case.errors.any? %>
+    <div class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <h3 class="text-sm font-medium text-red-800 dark:text-red-300"><%= pluralize(test_case.errors.count, "error") %> prevented this test case from being saved:</h3>
+      </div>
+      <ul class="ml-7 list-disc text-sm text-red-700 dark:text-red-400 space-y-1">
+        <% test_case.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="rf-card p-6 space-y-5">
+    <!-- Title -->
+    <div>
+      <%= f.label :title, class: "rf-label" %>
+      <%= f.text_field :title, class: "rf-input w-full", placeholder: "e.g., Verify brake force response time under normal conditions" %>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <%= f.label :description, class: "rf-label" %>
+      <%= f.text_area :description, class: "rf-input w-full", rows: 3, placeholder: "Brief description of what this test case verifies..." %>
+    </div>
+
+    <!-- Preconditions -->
+    <div>
+      <%= f.label :preconditions, class: "rf-label" %>
+      <%= f.text_area :preconditions, class: "rf-input w-full", rows: 3, placeholder: "e.g., System is powered on, vehicle speed is 0 km/h" %>
+    </div>
+
+    <!-- Steps -->
+    <div>
+      <%= f.label :steps, "Test Steps", class: "rf-label" %>
+      <%= f.text_area :steps, class: "rf-input w-full font-mono text-sm", rows: 5, placeholder: "1. Apply brake pedal with 50N force\n2. Measure brake system response time\n3. Record deceleration rate" %>
+      <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Use numbered steps, one per line.</p>
+    </div>
+
+    <!-- Expected Result -->
+    <div>
+      <%= f.label :expected_result, class: "rf-label" %>
+      <%= f.text_area :expected_result, class: "rf-input w-full", rows: 3, placeholder: "e.g., Brake system responds within 150ms, deceleration >= 6 m/s²" %>
+    </div>
+  </div>
+
+  <!-- Attributes -->
+  <div class="rf-card p-6">
+    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Attributes</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Linked Requirement -->
+      <div>
+        <%= f.label :requirement_id, "Linked Requirement", class: "rf-label" %>
+        <%= f.select :requirement_id,
+          options_for_select(
+            [["None", ""]] + @requirements.map { |r| ["#{r.uid} — #{r.title.truncate(30)}", r.id] },
+            test_case.requirement_id
+          ),
+          {},
+          class: "rf-input w-full" %>
+      </div>
+
+      <!-- Test Type -->
+      <div>
+        <%= f.label :test_type, "Type", class: "rf-label" %>
+        <%= f.select :test_type,
+          options_for_select(TestCase.test_types.keys.map { |t| [t.humanize, t] }, test_case.test_type),
+          {},
+          class: "rf-input w-full" %>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <%= f.label :status, class: "rf-label" %>
+        <%= f.select :status,
+          options_for_select(TestCase.statuses.keys.map { |s| [s.humanize, s] }, test_case.status),
+          {},
+          class: "rf-input w-full" %>
+      </div>
+
+      <!-- Priority -->
+      <div>
+        <%= f.label :priority, class: "rf-label" %>
+        <%= f.select :priority,
+          options_for_select(TestCase.priorities.keys.map { |p| [p.humanize, p] }, test_case.priority),
+          {},
+          class: "rf-input w-full" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center gap-3">
+    <%= f.submit test_case.persisted? ? "Update Test Case" : "Create Test Case", class: "rf-btn-primary cursor-pointer" %>
+    <% if test_case.persisted? %>
+      <%= link_to "Cancel", project_test_case_path(project, test_case), class: "rf-btn-secondary" %>
+    <% else %>
+      <%= link_to "Cancel", project_test_cases_path(project), class: "rf-btn-secondary" %>
+    <% end %>
+  </div>
+<% end %>
