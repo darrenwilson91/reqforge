@@ -6,6 +6,7 @@ class ChangeSet < ApplicationRecord
 
   has_many :change_set_changes, dependent: :destroy
   has_many :change_set_approvals, dependent: :destroy
+  has_many :change_set_comments, dependent: :destroy
   has_many :approvers, through: :change_set_approvals, source: :user
 
   has_paper_trail

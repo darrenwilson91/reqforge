@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_235951) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_001612) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,6 +54,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235951) do
     t.index ["change_set_id", "requirement_id"], name: "index_change_set_changes_on_change_set_id_and_requirement_id", unique: true
     t.index ["change_set_id"], name: "index_change_set_changes_on_change_set_id"
     t.index ["requirement_id"], name: "index_change_set_changes_on_requirement_id"
+  end
+
+  create_table "change_set_comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.bigint "change_set_change_id"
+    t.bigint "change_set_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "parent_comment_id"
+    t.boolean "resolved", default: false, null: false
+    t.datetime "resolved_at"
+    t.bigint "resolved_by_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["change_set_change_id", "created_at"], name: "idx_on_change_set_change_id_created_at_7ad5502177"
+    t.index ["change_set_change_id"], name: "index_change_set_comments_on_change_set_change_id"
+    t.index ["change_set_id", "created_at"], name: "index_change_set_comments_on_change_set_id_and_created_at"
+    t.index ["change_set_id"], name: "index_change_set_comments_on_change_set_id"
+    t.index ["parent_comment_id"], name: "index_change_set_comments_on_parent_comment_id"
+    t.index ["resolved_by_id"], name: "index_change_set_comments_on_resolved_by_id"
+    t.index ["user_id"], name: "index_change_set_comments_on_user_id"
   end
 
   create_table "change_set_rules", force: :cascade do |t|
@@ -295,6 +315,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_235951) do
   add_foreign_key "change_set_approvals", "users"
   add_foreign_key "change_set_changes", "change_sets"
   add_foreign_key "change_set_changes", "requirements"
+  add_foreign_key "change_set_comments", "change_set_changes"
+  add_foreign_key "change_set_comments", "change_set_comments", column: "parent_comment_id"
+  add_foreign_key "change_set_comments", "change_sets"
+  add_foreign_key "change_set_comments", "users"
+  add_foreign_key "change_set_comments", "users", column: "resolved_by_id"
   add_foreign_key "change_set_rules", "projects"
   add_foreign_key "change_sets", "projects"
   add_foreign_key "change_sets", "reviews", column: "source_baseline_id"

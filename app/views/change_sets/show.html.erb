@@ -7,11 +7,11 @@
   <div class="flex items-start justify-between">
     <div>
       <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-slate-900"><%= @change_set.title %></h1>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white"><%= @change_set.title %></h1>
         <span class="<%= change_set_status_badge_class(@change_set) %>"><%= @change_set.status.humanize %></span>
       </div>
       <% if @change_set.description.present? %>
-        <p class="mt-2 text-sm text-slate-500 max-w-2xl"><%= @change_set.description %></p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-2xl"><%= @change_set.description %></p>
       <% end %>
       <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
         <span class="flex items-center gap-1">
@@ -59,9 +59,9 @@
       <div class="rf-card-padded">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <h3 class="text-sm font-medium text-slate-700">Workflow</h3>
+            <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Workflow</h3>
             <span class="text-xs text-slate-400">
-              Current: <span class="font-medium text-slate-600"><%= @change_set.status.humanize %></span>
+              Current: <span class="font-medium text-slate-600 dark:text-slate-300"><%= @change_set.status.humanize %></span>
             </span>
           </div>
           <div class="flex items-center gap-2">
@@ -82,7 +82,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
     <div class="rf-card p-4">
       <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Changes</div>
-      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @changes_count[:created] + @changes_count[:modified] + @changes_count[:deleted] %></div>
+      <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-white"><%= @changes_count[:created] + @changes_count[:modified] + @changes_count[:deleted] %></div>
       <div class="flex items-center gap-2 mt-1 text-xs">
         <% if @changes_count[:created] > 0 %><span class="text-emerald-600">+<%= @changes_count[:created] %> added</span><% end %>
         <% if @changes_count[:modified] > 0 %><span class="text-amber-600">~<%= @changes_count[:modified] %> modified</span><% end %>
@@ -91,13 +91,19 @@
     </div>
     <div class="rf-card p-4">
       <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Approvals</div>
-      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @change_set.change_set_approvals.where(status: :approved).count %></div>
+      <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-white"><%= @change_set.change_set_approvals.where(status: :approved).count %></div>
       <div class="text-xs text-slate-400 mt-1">of <%= @rule&.min_approvals || 1 %> required</div>
     </div>
     <div class="rf-card p-4">
-      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Review Progress</div>
-      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @progress[:percentage] %>%</div>
-      <div class="text-xs text-slate-400 mt-1"><%= @progress[:decided] %>/<%= @progress[:total] %> reviewed</div>
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Comments</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900 dark:text-white"><%= @change_set.change_set_comments.count %></div>
+      <div class="text-xs text-slate-400 mt-1">
+        <% if @unresolved_count > 0 %>
+          <span class="text-amber-600"><%= @unresolved_count %> unresolved</span>
+        <% else %>
+          All resolved
+        <% end %>
+      </div>
     </div>
     <div class="rf-card p-4">
       <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Status</div>
@@ -113,15 +119,15 @@
   <%# Merge Banner (for approved change sets) %>
   <% if @change_set.approved? && policy(@change_set).merge? %>
     <% eligibility = merge_eligibility_summary(@change_set, @rule) %>
-    <div class="rounded-lg border p-4 flex items-center justify-between <%= eligibility[:eligible] ? 'bg-indigo-50 border-indigo-200' : 'bg-amber-50 border-amber-200' %>">
+    <div class="rounded-lg border p-4 flex items-center justify-between <%= eligibility[:eligible] ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800' : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800' %>">
       <div class="flex items-center gap-3">
         <% if eligibility[:eligible] %>
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
           <div>
-            <h3 class="text-sm font-semibold text-indigo-900">Ready to merge</h3>
-            <p class="text-xs text-indigo-700 mt-0.5">
+            <h3 class="text-sm font-semibold text-indigo-900 dark:text-indigo-300">Ready to merge</h3>
+            <p class="text-xs text-indigo-700 dark:text-indigo-400 mt-0.5">
               <%= eligibility[:approvals_count] %> of <%= eligibility[:approvals_needed] %> required approvals met.
               All checks passed.
             </p>
@@ -131,8 +137,8 @@
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
           <div>
-            <h3 class="text-sm font-semibold text-amber-900">Not ready to merge</h3>
-            <p class="text-xs text-amber-700 mt-0.5">
+            <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-300">Not ready to merge</h3>
+            <p class="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
               <% unless eligibility[:approvals_met] %>
                 Needs <%= eligibility[:approvals_needed] - eligibility[:approvals_count] %> more approval<%= (eligibility[:approvals_needed] - eligibility[:approvals_count]) == 1 ? "" : "s" %>.
               <% end %>
@@ -158,14 +164,14 @@
 
   <%# Merged Banner %>
   <% if @change_set.merged? %>
-    <div class="rounded-lg border p-4 bg-indigo-50 border-indigo-200">
+    <div class="rounded-lg border p-4 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800">
       <div class="flex items-center gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
         <div>
-          <h3 class="text-sm font-semibold text-indigo-900">Merged</h3>
-          <p class="text-xs text-indigo-700 mt-0.5">
+          <h3 class="text-sm font-semibold text-indigo-900 dark:text-indigo-300">Merged</h3>
+          <p class="text-xs text-indigo-700 dark:text-indigo-400 mt-0.5">
             All changes have been applied to the requirements.
             <% if @change_set.merge_commit_message.present? %>
               &mdash; "<%= @change_set.merge_commit_message %>"
@@ -177,93 +183,183 @@
   <% end %>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <%# Changes (2/3) %>
-    <div class="lg:col-span-2 space-y-4">
-      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Changes</h2>
+    <%# Main content (2/3) %>
+    <div class="lg:col-span-2 space-y-4" data-controller="change-set-tabs">
 
-      <% if @changes.any? %>
-        <%# Group by change type %>
-        <% grouped = @changes.group_by(&:change_type) %>
+      <%# Tabs %>
+      <div class="border-b border-slate-200 dark:border-slate-700">
+        <nav class="flex gap-6 -mb-px">
+          <button type="button"
+            class="pb-3 text-sm font-medium border-b-2 transition-colors border-brand-accent text-brand-accent"
+            data-change-set-tabs-target="tab"
+            data-tab="changes"
+            data-action="click->change-set-tabs#switchTab">
+            Changes
+            <% total_changes = @changes_count[:created] + @changes_count[:modified] + @changes_count[:deleted] %>
+            <% if total_changes > 0 %>
+              <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 text-xs text-slate-600 dark:text-slate-300"><%= total_changes %></span>
+            <% end %>
+          </button>
+          <button type="button"
+            class="pb-3 text-sm font-medium border-b-2 transition-colors border-transparent text-slate-500"
+            data-change-set-tabs-target="tab"
+            data-tab="conversation"
+            data-action="click->change-set-tabs#switchTab">
+            Conversation
+            <% if @conversation_comments.any? %>
+              <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 text-xs text-slate-600 dark:text-slate-300"><%= @conversation_comments.size %></span>
+            <% end %>
+          </button>
+        </nav>
+      </div>
 
-        <% %w[created modified deleted].each do |type| %>
-          <% type_changes = grouped[type] || [] %>
-          <% next if type_changes.empty? %>
+      <%# Changes Tab %>
+      <div data-change-set-tabs-target="panel" data-tab="changes">
+        <% if @changes.any? %>
+          <% grouped = @changes.group_by(&:change_type) %>
 
-          <div class="space-y-2">
-            <h3 class="text-xs font-semibold uppercase tracking-wider <%= type == 'created' ? 'text-emerald-600' : type == 'modified' ? 'text-amber-600' : 'text-red-600' %>">
-              <%= type == "created" ? "Added" : type == "deleted" ? "Removed" : "Modified" %> (<%= type_changes.size %>)
-            </h3>
+          <% %w[created modified deleted].each do |type| %>
+            <% type_changes = grouped[type] || [] %>
+            <% next if type_changes.empty? %>
 
-            <% type_changes.each do |change| %>
-              <div class="rf-card p-4 <%= type == 'created' ? 'border-l-4 border-l-emerald-400' : type == 'deleted' ? 'border-l-4 border-l-red-400' : 'border-l-4 border-l-amber-400' %>">
-                <div class="flex items-start justify-between">
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="rf-uid"><%= change.requirement.uid %></span>
-                      <span class="text-sm font-medium text-slate-900 truncate">
-                        <%= change.after_snapshot["title"] || change.requirement.title %>
-                      </span>
-                      <span class="<%= change_type_badge_class(change.change_type) %> text-xs"><%= change.change_type.humanize %></span>
-                    </div>
+            <div class="space-y-3 mb-6">
+              <h3 class="text-xs font-semibold uppercase tracking-wider <%= type == 'created' ? 'text-emerald-600' : type == 'modified' ? 'text-amber-600' : 'text-red-600' %>">
+                <%= type == "created" ? "Added" : type == "deleted" ? "Removed" : "Modified" %> (<%= type_changes.size %>)
+              </h3>
 
-                    <% if change.requirement.section&.requirement_module %>
-                      <div class="text-xs text-slate-400 mt-1">
-                        <%= change.requirement.section.requirement_module.name %> &rarr; <%= change.requirement.section.name %>
-                      </div>
-                    <% end %>
+              <% type_changes.each do |change| %>
+                <div class="rf-card overflow-hidden <%= type == 'created' ? 'border-l-4 border-l-emerald-400' : type == 'deleted' ? 'border-l-4 border-l-red-400' : 'border-l-4 border-l-amber-400' %>">
+                  <div class="p-4">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="rf-uid"><%= change.requirement.uid %></span>
+                          <span class="text-sm font-medium text-slate-900 dark:text-white truncate">
+                            <%= change.after_snapshot["title"] || change.requirement.title %>
+                          </span>
+                          <span class="<%= change_type_badge_class(change.change_type) %> text-xs"><%= change.change_type.humanize %></span>
+                        </div>
 
-                    <%# Show diff for modified changes %>
-                    <% if change.modified? && change.any_changes? %>
-                      <div class="mt-3 space-y-2">
-                        <% change.changed_fields.each do |field, (old_val, new_val)| %>
-                          <div class="text-xs">
-                            <span class="font-medium text-slate-500"><%= field.humanize %>:</span>
-                            <% if %w[title body].include?(field) %>
-                              <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div class="bg-red-50 rounded p-2 text-red-700 line-through"><%= truncate(old_val.to_s, length: 120) %></div>
-                                <div class="bg-emerald-50 rounded p-2 text-emerald-700"><%= truncate(new_val.to_s, length: 120) %></div>
+                        <% if change.requirement.section&.requirement_module %>
+                          <div class="text-xs text-slate-400 mt-1">
+                            <%= change.requirement.section.requirement_module.name %> &rarr; <%= change.requirement.section.name %>
+                          </div>
+                        <% end %>
+
+                        <%# Show diff for modified changes %>
+                        <% if change.modified? && change.any_changes? %>
+                          <div class="mt-3 space-y-2">
+                            <% change.changed_fields.each do |field, (old_val, new_val)| %>
+                              <div class="text-xs">
+                                <span class="font-medium text-slate-500 dark:text-slate-400"><%= field.humanize %>:</span>
+                                <% if %w[title body].include?(field) %>
+                                  <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div class="bg-red-50 dark:bg-red-950/30 rounded p-2 text-red-700 dark:text-red-400 line-through text-xs"><%= truncate(strip_tags(old_val.to_s), length: 200) %></div>
+                                    <div class="bg-emerald-50 dark:bg-emerald-950/30 rounded p-2 text-emerald-700 dark:text-emerald-400 text-xs"><%= truncate(strip_tags(new_val.to_s), length: 200) %></div>
+                                  </div>
+                                <% else %>
+                                  <span class="rf-badge bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs line-through"><%= old_val.to_s.humanize %></span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline text-slate-300 mx-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                                  <span class="rf-badge bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 text-xs"><%= new_val.to_s.humanize %></span>
+                                <% end %>
                               </div>
-                            <% else %>
-                              <span class="rf-badge bg-red-50 text-red-600 text-xs line-through"><%= old_val.to_s.humanize %></span>
-                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline text-slate-300 mx-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                              <span class="rf-badge bg-emerald-50 text-emerald-600 text-xs"><%= new_val.to_s.humanize %></span>
+                            <% end %>
+                          </div>
+                        <% end %>
+
+                        <%# Show new requirement details for created %>
+                        <% if change.created? && change.after_snapshot.present? %>
+                          <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            <% if change.after_snapshot["body"].present? %>
+                              <p class="line-clamp-2"><%= truncate(strip_tags(change.after_snapshot["body"].to_s), length: 200) %></p>
+                            <% end %>
+                          </div>
+                        <% end %>
+
+                        <%# Show deleted requirement details %>
+                        <% if change.deleted? && change.before_snapshot.present? %>
+                          <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 line-through">
+                            <% if change.before_snapshot["body"].present? %>
+                              <p class="line-clamp-2"><%= truncate(strip_tags(change.before_snapshot["body"].to_s), length: 200) %></p>
                             <% end %>
                           </div>
                         <% end %>
                       </div>
-                    <% end %>
-
-                    <%# Show new requirement details for created %>
-                    <% if change.created? && change.after_snapshot.present? %>
-                      <div class="mt-2 text-xs text-slate-500">
-                        <% if change.after_snapshot["body"].present? %>
-                          <p class="line-clamp-2"><%= truncate(strip_tags(change.after_snapshot["body"].to_s), length: 200) %></p>
-                        <% end %>
-                      </div>
-                    <% end %>
-
-                    <%# Show deleted requirement details %>
-                    <% if change.deleted? && change.before_snapshot.present? %>
-                      <div class="mt-2 text-xs text-slate-500 line-through">
-                        <% if change.before_snapshot["body"].present? %>
-                          <p class="line-clamp-2"><%= truncate(strip_tags(change.before_snapshot["body"].to_s), length: 200) %></p>
-                        <% end %>
-                      </div>
-                    <% end %>
+                    </div>
                   </div>
+
+                  <%# Inline comment thread for this change %>
+                  <% change_comments = @inline_comments[change.id] || [] %>
+                  <% if change_comments.any? || !@change_set.merged? %>
+                    <div class="border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                      <% if change_comments.any? %>
+                        <div class="px-4 pt-3 pb-1">
+                          <% change_comments.each do |comment| %>
+                            <%= render partial: "change_set_comments/comment",
+                              locals: { comment: comment, project: @project, change_set: @change_set, depth: 0 } %>
+                          <% end %>
+                        </div>
+                      <% end %>
+
+                      <%# Add comment form for this change %>
+                      <% unless @change_set.merged? %>
+                        <div class="px-4 py-3">
+                          <%= form_with url: project_change_set_change_set_comments_path(@project, @change_set), class: "flex gap-2" do |f| %>
+                            <%= f.hidden_field :change_set_change_id, value: change.id %>
+                            <%= f.text_area :body, rows: 1, placeholder: "Add a comment on this change...",
+                              class: "rf-input text-sm flex-1 min-h-[34px] resize-none" %>
+                            <%= f.submit "Comment", class: "rf-btn-secondary text-xs py-1.5 px-3 shrink-0" %>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
                 </div>
-              </div>
-            <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="rf-card">
+            <div class="rf-empty-state py-12">
+              <p class="rf-empty-state-title">No changes yet</p>
+              <p class="rf-empty-state-description">Edit requirements within this change set to track changes.</p>
+            </div>
           </div>
         <% end %>
-      <% else %>
-        <div class="rf-card">
-          <div class="rf-empty-state py-12">
-            <p class="rf-empty-state-title">No changes yet</p>
-            <p class="rf-empty-state-description">Edit requirements within this change set to track changes.</p>
-          </div>
+      </div>
+
+      <%# Conversation Tab %>
+      <div class="hidden" data-change-set-tabs-target="panel" data-tab="conversation">
+        <div class="rf-card-padded space-y-1">
+          <% if @conversation_comments.any? %>
+            <% @conversation_comments.each do |comment| %>
+              <%= render partial: "change_set_comments/comment",
+                locals: { comment: comment, project: @project, change_set: @change_set, depth: 0 } %>
+            <% end %>
+          <% else %>
+            <div class="text-center py-8">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">No conversation yet</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Start a general discussion about this change set.</p>
+            </div>
+          <% end %>
+
+          <%# New conversation comment form %>
+          <% unless @change_set.merged? %>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 mt-4">
+              <%= form_with url: project_change_set_change_set_comments_path(@project, @change_set), class: "space-y-3" do |f| %>
+                <%= f.text_area :body, rows: 3, placeholder: "Leave a comment...",
+                  class: "rf-input text-sm w-full" %>
+                <div class="flex justify-end">
+                  <%= f.submit "Comment", class: "rf-btn-primary text-sm" %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
         </div>
-      <% end %>
+      </div>
     </div>
 
     <%# Sidebar (1/3) %>
@@ -271,7 +367,7 @@
       <%# Approval Actions %>
       <% if policy(@change_set).approve? && @change_set.status.in?(%w[in_review]) %>
         <div class="space-y-3">
-          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Your Review</h2>
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Review</h2>
           <div class="rf-card-padded space-y-3">
             <div class="flex items-center gap-2">
               <%= link_to approve_project_change_set_path(@project, @change_set, approval_status: "approved"),
@@ -284,7 +380,7 @@
               <% end %>
               <%= link_to request_changes_project_change_set_path(@project, @change_set),
                 data: { turbo_method: :post },
-                class: "rf-btn-secondary text-amber-700 border-amber-300 hover:bg-amber-50 text-sm flex-1 justify-center" do %>
+                class: "rf-btn-secondary text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-950/30 text-sm flex-1 justify-center" do %>
                 Request Changes
               <% end %>
             </div>
@@ -294,16 +390,16 @@
 
       <%# Reviewers %>
       <div class="space-y-3">
-        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Reviewers</h2>
+        <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Reviewers</h2>
         <% if @approvals.any? %>
           <div class="rf-card-padded space-y-3">
             <% @approvals.each do |approval| %>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                  <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                  <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium">
                     <%= approval.user.first_name[0] %><%= approval.user.last_name[0] %>
                   </div>
-                  <span class="text-sm text-slate-700"><%= approval.user.full_name %></span>
+                  <span class="text-sm text-slate-700 dark:text-slate-300"><%= approval.user.full_name %></span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <%= approval_status_icon(approval) %>
@@ -311,13 +407,13 @@
                 </div>
               </div>
               <% if approval.body.present? %>
-                <p class="text-xs text-slate-500 ml-9 -mt-1 line-clamp-2"><%= approval.body %></p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 ml-9 -mt-1 line-clamp-2"><%= approval.body %></p>
               <% end %>
             <% end %>
           </div>
         <% else %>
           <div class="rf-card-padded text-center py-6">
-            <p class="text-sm text-slate-500">No reviewers assigned.</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">No reviewers assigned.</p>
           </div>
         <% end %>
       </div>
@@ -325,13 +421,13 @@
       <%# Merge Rules %>
       <% if @rule %>
         <div class="space-y-3">
-          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Merge Rules</h2>
-          <div class="rf-card-padded space-y-2 text-xs text-slate-500">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Merge Rules</h2>
+          <div class="rf-card-padded space-y-2 text-xs text-slate-500 dark:text-slate-400">
             <div class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
               </svg>
-              <span>Minimum <strong class="text-slate-700"><%= @rule.min_approvals %></strong> approval<%= @rule.min_approvals == 1 ? "" : "s" %> required</span>
+              <span>Minimum <strong class="text-slate-700 dark:text-slate-300"><%= @rule.min_approvals %></strong> approval<%= @rule.min_approvals == 1 ? "" : "s" %> required</span>
             </div>
             <% if @rule.require_all_conversations_resolved? %>
               <div class="flex items-center gap-2">

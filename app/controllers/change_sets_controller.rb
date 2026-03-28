@@ -19,6 +19,14 @@ class ChangeSetsController < ApplicationController
     @changes_count = @change_set.changes_count
     @rule = @project.change_set_rule
     @progress = @change_set.progress
+    @inline_comments = @change_set.change_set_comments.inline
+      .includes(:user, :resolved_by, replies: [ :user, :resolved_by, replies: [ :user ] ])
+      .top_level.order(:created_at)
+      .group_by(&:change_set_change_id)
+    @conversation_comments = @change_set.change_set_comments.conversation
+      .includes(:user, :resolved_by, replies: [ :user, :resolved_by, replies: [ :user ] ])
+      .top_level.order(:created_at)
+    @unresolved_count = @change_set.change_set_comments.top_level.unresolved.count
   end
 
   def new

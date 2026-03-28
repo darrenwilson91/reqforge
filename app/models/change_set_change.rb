@@ -2,6 +2,8 @@ class ChangeSetChange < ApplicationRecord
   belongs_to :change_set
   belongs_to :requirement
 
+  has_many :change_set_comments, dependent: :destroy
+
   has_paper_trail
 
   enum :change_type, { created: 0, modified: 1, deleted: 2 }

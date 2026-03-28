@@ -227,7 +227,7 @@ RSpec.describe "ChangeSets", type: :request do
       get project_change_set_path(project, cs)
       expect(response.body).to include("Changes")
       expect(response.body).to include("Approvals")
-      expect(response.body).to include("Review Progress")
+      expect(response.body).to include("Comments")
     end
 
     it "shows changes grouped by type" do

@@ -13,6 +13,12 @@ application.register("attribute-schema", AttributeSchemaController)
 import BulkEditController from "./bulk_edit_controller"
 application.register("bulk-edit", BulkEditController)
 
+import ChangeSetCommentController from "./change_set_comment_controller"
+application.register("change-set-comment", ChangeSetCommentController)
+
+import ChangeSetTabsController from "./change_set_tabs_controller"
+application.register("change-set-tabs", ChangeSetTabsController)
+
 import ClipboardController from "./clipboard_controller"
 application.register("clipboard", ClipboardController)
 

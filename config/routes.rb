@@ -59,6 +59,12 @@ Rails.application.routes.draw do
         post :request_changes
         post :merge
       end
+      resources :change_set_comments, only: [ :create ] do
+        member do
+          patch :resolve
+          patch :unresolve
+        end
+      end
     end
   end
 
