@@ -1,0 +1,357 @@
+<% content_for(:page_title, "#{@project.name} — #{@change_set.title}") %>
+
+<div class="space-y-6">
+  <%= breadcrumbs(["Projects", projects_path], [@project.name, project_path(@project)], ["Change Sets", project_change_sets_path(@project)], @change_set.title) %>
+
+  <%# Header %>
+  <div class="flex items-start justify-between">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-slate-900"><%= @change_set.title %></h1>
+        <span class="<%= change_set_status_badge_class(@change_set) %>"><%= @change_set.status.humanize %></span>
+      </div>
+      <% if @change_set.description.present? %>
+        <p class="mt-2 text-sm text-slate-500 max-w-2xl"><%= @change_set.description %></p>
+      <% end %>
+      <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+        <span class="flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          </svg>
+          Created by <%= @change_set.created_by.full_name %>
+        </span>
+        <span>Created <%= time_ago_in_words(@change_set.created_at) %> ago</span>
+        <% if @change_set.merged? && @change_set.merged_by %>
+          <span class="flex items-center gap-1 text-indigo-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Merged by <%= @change_set.merged_by.full_name %> <%= time_ago_in_words(@change_set.merged_at) %> ago
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <% if policy(@change_set).update? && @change_set.status.in?(%w[draft open]) %>
+        <%= link_to edit_project_change_set_path(@project, @change_set), class: "rf-btn-secondary text-sm" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+          </svg>
+          Edit
+        <% end %>
+      <% end %>
+      <% if policy(@change_set).destroy? %>
+        <%= link_to project_change_set_path(@project, @change_set), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to delete this change set?" }, class: "rf-btn-danger text-sm" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          Delete
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Workflow Transitions %>
+  <% if policy(@change_set).transition_status? && @change_set.available_transitions.any? %>
+    <% non_merge_transitions = @change_set.available_transitions.reject { |t| t == "merged" } %>
+    <% if non_merge_transitions.any? %>
+      <div class="rf-card-padded">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h3 class="text-sm font-medium text-slate-700">Workflow</h3>
+            <span class="text-xs text-slate-400">
+              Current: <span class="font-medium text-slate-600"><%= @change_set.status.humanize %></span>
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <% non_merge_transitions.each do |transition| %>
+              <% confirm = transition == "closed" ? "Are you sure you want to close this change set?" : nil %>
+              <%= link_to change_set_transition_label(transition),
+                transition_status_project_change_set_path(@project, @change_set, status: transition),
+                data: { turbo_method: :patch, turbo_confirm: confirm },
+                class: "#{change_set_transition_button_class(transition)} text-sm" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Stats Row %>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Changes</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @changes_count[:created] + @changes_count[:modified] + @changes_count[:deleted] %></div>
+      <div class="flex items-center gap-2 mt-1 text-xs">
+        <% if @changes_count[:created] > 0 %><span class="text-emerald-600">+<%= @changes_count[:created] %> added</span><% end %>
+        <% if @changes_count[:modified] > 0 %><span class="text-amber-600">~<%= @changes_count[:modified] %> modified</span><% end %>
+        <% if @changes_count[:deleted] > 0 %><span class="text-red-600">-<%= @changes_count[:deleted] %> deleted</span><% end %>
+      </div>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Approvals</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @change_set.change_set_approvals.where(status: :approved).count %></div>
+      <div class="text-xs text-slate-400 mt-1">of <%= @rule&.min_approvals || 1 %> required</div>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Review Progress</div>
+      <div class="mt-1 text-2xl font-bold text-slate-900"><%= @progress[:percentage] %>%</div>
+      <div class="text-xs text-slate-400 mt-1"><%= @progress[:decided] %>/<%= @progress[:total] %> reviewed</div>
+    </div>
+    <div class="rf-card p-4">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Status</div>
+      <div class="mt-2">
+        <span class="<%= change_set_status_badge_class(@change_set) %> text-sm"><%= @change_set.status.humanize %></span>
+      </div>
+      <% if @change_set.any_changes_requested? %>
+        <div class="text-xs text-amber-600 mt-1">Changes requested</div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Merge Banner (for approved change sets) %>
+  <% if @change_set.approved? && policy(@change_set).merge? %>
+    <% eligibility = merge_eligibility_summary(@change_set, @rule) %>
+    <div class="rounded-lg border p-4 flex items-center justify-between <%= eligibility[:eligible] ? 'bg-indigo-50 border-indigo-200' : 'bg-amber-50 border-amber-200' %>">
+      <div class="flex items-center gap-3">
+        <% if eligibility[:eligible] %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <h3 class="text-sm font-semibold text-indigo-900">Ready to merge</h3>
+            <p class="text-xs text-indigo-700 mt-0.5">
+              <%= eligibility[:approvals_count] %> of <%= eligibility[:approvals_needed] %> required approvals met.
+              All checks passed.
+            </p>
+          </div>
+        <% else %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-amber-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <h3 class="text-sm font-semibold text-amber-900">Not ready to merge</h3>
+            <p class="text-xs text-amber-700 mt-0.5">
+              <% unless eligibility[:approvals_met] %>
+                Needs <%= eligibility[:approvals_needed] - eligibility[:approvals_count] %> more approval<%= (eligibility[:approvals_needed] - eligibility[:approvals_count]) == 1 ? "" : "s" %>.
+              <% end %>
+              <% if eligibility[:changes_requested] %>
+                Changes have been requested.
+              <% end %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+      <% if eligibility[:eligible] %>
+        <%= link_to merge_project_change_set_path(@project, @change_set),
+          data: { turbo_method: :post, turbo_confirm: "Merge this change set? All changes will be applied to the requirements." },
+          class: "rf-btn-primary bg-indigo-600 hover:bg-indigo-700 text-sm shrink-0" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          Merge Change Set
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# Merged Banner %>
+  <% if @change_set.merged? %>
+    <div class="rounded-lg border p-4 bg-indigo-50 border-indigo-200">
+      <div class="flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <div>
+          <h3 class="text-sm font-semibold text-indigo-900">Merged</h3>
+          <p class="text-xs text-indigo-700 mt-0.5">
+            All changes have been applied to the requirements.
+            <% if @change_set.merge_commit_message.present? %>
+              &mdash; "<%= @change_set.merge_commit_message %>"
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%# Changes (2/3) %>
+    <div class="lg:col-span-2 space-y-4">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Changes</h2>
+
+      <% if @changes.any? %>
+        <%# Group by change type %>
+        <% grouped = @changes.group_by(&:change_type) %>
+
+        <% %w[created modified deleted].each do |type| %>
+          <% type_changes = grouped[type] || [] %>
+          <% next if type_changes.empty? %>
+
+          <div class="space-y-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider <%= type == 'created' ? 'text-emerald-600' : type == 'modified' ? 'text-amber-600' : 'text-red-600' %>">
+              <%= type == "created" ? "Added" : type == "deleted" ? "Removed" : "Modified" %> (<%= type_changes.size %>)
+            </h3>
+
+            <% type_changes.each do |change| %>
+              <div class="rf-card p-4 <%= type == 'created' ? 'border-l-4 border-l-emerald-400' : type == 'deleted' ? 'border-l-4 border-l-red-400' : 'border-l-4 border-l-amber-400' %>">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="rf-uid"><%= change.requirement.uid %></span>
+                      <span class="text-sm font-medium text-slate-900 truncate">
+                        <%= change.after_snapshot["title"] || change.requirement.title %>
+                      </span>
+                      <span class="<%= change_type_badge_class(change.change_type) %> text-xs"><%= change.change_type.humanize %></span>
+                    </div>
+
+                    <% if change.requirement.section&.requirement_module %>
+                      <div class="text-xs text-slate-400 mt-1">
+                        <%= change.requirement.section.requirement_module.name %> &rarr; <%= change.requirement.section.name %>
+                      </div>
+                    <% end %>
+
+                    <%# Show diff for modified changes %>
+                    <% if change.modified? && change.any_changes? %>
+                      <div class="mt-3 space-y-2">
+                        <% change.changed_fields.each do |field, (old_val, new_val)| %>
+                          <div class="text-xs">
+                            <span class="font-medium text-slate-500"><%= field.humanize %>:</span>
+                            <% if %w[title body].include?(field) %>
+                              <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div class="bg-red-50 rounded p-2 text-red-700 line-through"><%= truncate(old_val.to_s, length: 120) %></div>
+                                <div class="bg-emerald-50 rounded p-2 text-emerald-700"><%= truncate(new_val.to_s, length: 120) %></div>
+                              </div>
+                            <% else %>
+                              <span class="rf-badge bg-red-50 text-red-600 text-xs line-through"><%= old_val.to_s.humanize %></span>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline text-slate-300 mx-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                              <span class="rf-badge bg-emerald-50 text-emerald-600 text-xs"><%= new_val.to_s.humanize %></span>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+
+                    <%# Show new requirement details for created %>
+                    <% if change.created? && change.after_snapshot.present? %>
+                      <div class="mt-2 text-xs text-slate-500">
+                        <% if change.after_snapshot["body"].present? %>
+                          <p class="line-clamp-2"><%= truncate(strip_tags(change.after_snapshot["body"].to_s), length: 200) %></p>
+                        <% end %>
+                      </div>
+                    <% end %>
+
+                    <%# Show deleted requirement details %>
+                    <% if change.deleted? && change.before_snapshot.present? %>
+                      <div class="mt-2 text-xs text-slate-500 line-through">
+                        <% if change.before_snapshot["body"].present? %>
+                          <p class="line-clamp-2"><%= truncate(strip_tags(change.before_snapshot["body"].to_s), length: 200) %></p>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="rf-card">
+          <div class="rf-empty-state py-12">
+            <p class="rf-empty-state-title">No changes yet</p>
+            <p class="rf-empty-state-description">Edit requirements within this change set to track changes.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Sidebar (1/3) %>
+    <div class="space-y-6">
+      <%# Approval Actions %>
+      <% if policy(@change_set).approve? && @change_set.status.in?(%w[in_review]) %>
+        <div class="space-y-3">
+          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Your Review</h2>
+          <div class="rf-card-padded space-y-3">
+            <div class="flex items-center gap-2">
+              <%= link_to approve_project_change_set_path(@project, @change_set, approval_status: "approved"),
+                data: { turbo_method: :post },
+                class: "rf-btn-primary bg-emerald-600 hover:bg-emerald-700 text-sm flex-1 justify-center" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Approve
+              <% end %>
+              <%= link_to request_changes_project_change_set_path(@project, @change_set),
+                data: { turbo_method: :post },
+                class: "rf-btn-secondary text-amber-700 border-amber-300 hover:bg-amber-50 text-sm flex-1 justify-center" do %>
+                Request Changes
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Reviewers %>
+      <div class="space-y-3">
+        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Reviewers</h2>
+        <% if @approvals.any? %>
+          <div class="rf-card-padded space-y-3">
+            <% @approvals.each do |approval| %>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                    <%= approval.user.first_name[0] %><%= approval.user.last_name[0] %>
+                  </div>
+                  <span class="text-sm text-slate-700"><%= approval.user.full_name %></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <%= approval_status_icon(approval) %>
+                  <span class="<%= approval_status_badge_class(approval) %> text-xs"><%= approval.status.humanize %></span>
+                </div>
+              </div>
+              <% if approval.body.present? %>
+                <p class="text-xs text-slate-500 ml-9 -mt-1 line-clamp-2"><%= approval.body %></p>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="rf-card-padded text-center py-6">
+            <p class="text-sm text-slate-500">No reviewers assigned.</p>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Merge Rules %>
+      <% if @rule %>
+        <div class="space-y-3">
+          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Merge Rules</h2>
+          <div class="rf-card-padded space-y-2 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+              <span>Minimum <strong class="text-slate-700"><%= @rule.min_approvals %></strong> approval<%= @rule.min_approvals == 1 ? "" : "s" %> required</span>
+            </div>
+            <% if @rule.require_all_conversations_resolved? %>
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+                <span>All conversations must be resolved</span>
+              </div>
+            <% end %>
+            <% if @rule.auto_merge_on_approval? %>
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                </svg>
+                <span>Auto-merge when approved</span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

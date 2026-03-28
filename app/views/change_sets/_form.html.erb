@@ -1,0 +1,60 @@
+<%= form_with(model: [@project, change_set], class: "space-y-6") do |f| %>
+  <% if change_set.errors.any? %>
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+      <div class="flex items-center gap-2 text-red-800 font-medium text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <%= pluralize(change_set.errors.count, "error") %> prevented this change set from being saved:
+      </div>
+      <ul class="mt-2 ml-7 list-disc text-sm text-red-700 space-y-1">
+        <% change_set.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="rf-card-padded space-y-5">
+    <div>
+      <%= f.label :title, class: "rf-label" %>
+      <%= f.text_field :title, class: "rf-input w-full", placeholder: "e.g., Update braking safety requirements", autofocus: true %>
+    </div>
+
+    <div>
+      <%= f.label :description, class: "rf-label" %>
+      <%= f.text_area :description, class: "rf-input w-full", rows: 4, placeholder: "Describe what changes you're proposing and why..." %>
+    </div>
+  </div>
+
+  <%# Reviewer Selection (new change sets only) %>
+  <% if change_set.new_record? && @organization_members.any? %>
+    <div class="rf-card-padded space-y-4">
+      <h3 class="text-sm font-semibold text-slate-700">Reviewers</h3>
+      <p class="text-xs text-slate-500 -mt-2">Select team members to review this change set.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <% @organization_members.each do |member| %>
+          <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-brand-accent/40 hover:bg-slate-50 cursor-pointer transition-all">
+            <input type="checkbox" name="change_set[reviewer_ids][]" value="<%= member.id %>"
+                   class="w-4 h-4 rounded border-slate-300 text-brand-accent focus:ring-brand-accent/20">
+            <div class="flex items-center gap-2">
+              <div class="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                <%= member.first_name[0] %><%= member.last_name[0] %>
+              </div>
+              <div>
+                <div class="text-sm font-medium text-slate-700"><%= member.full_name %></div>
+                <div class="text-xs text-slate-400"><%= member.email %></div>
+              </div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit change_set.new_record? ? "Create Change Set" : "Update Change Set", class: "rf-btn-primary cursor-pointer" %>
+    <%= link_to "Cancel", change_set.new_record? ? project_change_sets_path(@project) : project_change_set_path(@project, change_set), class: "rf-btn-secondary" %>
+  </div>
+<% end %>

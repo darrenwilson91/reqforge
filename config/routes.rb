@@ -52,6 +52,14 @@ Rails.application.routes.draw do
         end
       end
     end
+    resources :change_sets do
+      member do
+        patch :transition_status
+        post :approve
+        post :request_changes
+        post :merge
+      end
+    end
   end
 
   # Public shareable review links (no authentication required)
