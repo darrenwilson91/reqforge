@@ -52,6 +52,7 @@ Rails.application.routes.draw do
         end
       end
     end
+    resource :change_set_rules, only: [ :show, :update ]
     resources :change_sets do
       member do
         patch :transition_status

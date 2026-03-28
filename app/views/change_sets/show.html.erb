@@ -448,9 +448,14 @@
       </div>
 
       <%# Merge Rules %>
-      <% if @rule %>
-        <div class="space-y-3">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
           <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Merge Rules</h2>
+          <% if policy(@project).update? %>
+            <%= link_to project_change_set_rules_path(@project), class: "text-xs text-brand-accent hover:text-brand-accent-dark transition-colors" do %>Configure<% end %>
+          <% end %>
+        </div>
+        <% if @rule %>
           <div class="rf-card-padded space-y-2 text-xs text-slate-500 dark:text-slate-400">
             <div class="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -475,8 +480,15 @@
               </div>
             <% end %>
           </div>
-        </div>
-      <% end %>
+        <% else %>
+          <div class="rf-card-padded text-xs text-slate-400 dark:text-slate-500">
+            <p>Using defaults: 1 approval required.</p>
+            <% if policy(@project).update? %>
+              <%= link_to "Configure rules", project_change_set_rules_path(@project), class: "text-brand-accent hover:text-brand-accent-dark transition-colors" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>

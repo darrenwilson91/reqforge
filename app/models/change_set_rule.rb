@@ -19,7 +19,6 @@ class ChangeSetRule < ApplicationRecord
   end
 
   def unresolved_conversations?(change_set)
-    # Will be wired up when ChangeSetChange has inline comments
-    false
+    change_set.change_set_comments.top_level.unresolved.exists?
   end
 end
