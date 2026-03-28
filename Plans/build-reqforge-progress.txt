@@ -678,3 +678,15 @@ Task: Rebuild CSS assets to ensure all new views use the design system correctly
 Status: completed
 Changes: app/views/change_set_comments/_comment.html.erb, app/views/requirements/_ai_panel.html.erb, app/assets/builds/application.css, app/assets/builds/application.js
 Notes: Comprehensive CSS/design system audit across all views from Phases 12-17. Built Tailwind CSS and JS assets cleanly (no errors). Identified two files with significant dark mode gaps: change_set_comments/_comment.html.erb (8 elements missing dark: variants — border separator, avatar bg/text, username, timestamp, resolved badge, comment body, action links, cancel button) and requirements/_ai_panel.html.erb (25+ elements missing dark: variants — panel border, heading, 3 action buttons, tab navigation border, tab count badges, expand/collapse buttons, score ring track, quality score label, INCOSE check hover bg, pass/fail indicator backgrounds, rule name text, score bar background, 3 error panels, suggestions border/text, improvement suggestions border/label/text, link suggestion card borders/hover, confidence bar background, impact summary text, impact type badge). All Phase 15-17 views (change_sets, test_cases, my_work, dashboard, bulk_edit, quick_entry, change_set_rules) were already properly dark-mode-compliant. Rebuilt CSS (4873→4960 lines, +87 lines of dark mode rules) and JS assets. Verified with bundle exec rspec — 2447 examples, 0 failures.
+
+--- Iteration 30: Sat 28 Mar 2026 ---
+Task: Run full test suite: `bundle exec rspec`
+Status: completed
+Changes: (no code changes)
+Notes: Ran bundle exec rspec — 2447 examples, 0 failures in 36.93 seconds. All specs pass cleanly. Only non-failure output: Rack deprecation warnings about :unprocessable_entity → :unprocessable_content (cosmetic, from rspec-rails matcher, not application code). No flaky tests observed.
+
+--- Iteration 31: Sat 28 Mar 2026 ---
+Task: Fix any failing tests
+Status: completed
+Changes: (no code changes)
+Notes: Re-ran full test suite — 2447 examples, 0 failures in 38.01 seconds. No failing tests to fix. Only output is Rack deprecation warnings about :unprocessable_entity → :unprocessable_content from rspec-rails matchers (cosmetic, not in application code). All specs green.
